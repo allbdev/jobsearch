@@ -175,9 +175,14 @@
   cursor: pointer;
 }
 
-/* Text the mobile design shortens: "matched positions" -> "matched",
-   "index updated" -> "updated". */
-.longWord {
+/* The mobile design uses shorter phrasing for the match count and index
+   timestamp. These are separate complete sentences per locale rather than a
+   trimmed suffix, so the wording stays grammatical in every language. */
+.shortForm {
+  display: none;
+}
+
+.longForm {
   display: inline;
 }
 
@@ -216,7 +221,11 @@
     font-size: 12px;
   }
 
-  .longWord {
+  .shortForm {
+    display: inline;
+  }
+
+  .longForm {
     display: none;
   }
 
