@@ -1,7 +1,8 @@
 import type { ElementType, ReactNode } from 'react'
 import { Button } from '../primitives/Button'
 import { Tag } from '../primitives/Tag'
-import { color, hairline } from '@jobsearch/design-system/tokens'
+import { cx } from '../lib/cx'
+import styles from './AppShell.module.css'
 
 export interface NavItem {
   href: string
@@ -28,7 +29,7 @@ export interface AppShellProps {
 
 export function Brand() {
   return (
-    <div className="nav-brand" style={{ letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={cx('nav-brand', styles.brand)}>
       JOBSEARCH
       <Tag tone="outline" size="xs">
         BETA
@@ -53,17 +54,8 @@ export function AppShell({
   const Link = (linkComponent ?? 'a') as ElementType
 
   return (
-    <div style={{ minHeight: '100vh', background: color.bg, display: 'flex', flexDirection: 'column' }}>
-      <nav
-        className="nav"
-        style={{
-          borderBottom: hairline,
-          position: 'sticky',
-          top: 0,
-          zIndex: 20,
-          background: color.bg,
-        }}
-      >
+    <div className={styles.shell}>
+      <nav className={cx('nav', styles.bar)}>
         <Brand />
         {nav.map((item) => (
           <Link key={item.href} href={item.href} aria-current={item.current ? 'page' : undefined}>
@@ -75,7 +67,7 @@ export function AppShell({
       {bare ? (
         children
       ) : (
-        <div className="app-main" style={{ maxWidth }}>
+        <div className={cx('app-main', styles.content)} style={{ maxWidth }}>
           {children}
         </div>
       )}

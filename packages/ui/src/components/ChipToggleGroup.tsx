@@ -2,7 +2,8 @@
 
 import { Cluster } from '../primitives/Stack'
 import { Tag } from '../primitives/Tag'
-import { color } from '@jobsearch/design-system/tokens'
+import { cx } from '../lib/cx'
+import styles from './ChipToggleGroup.module.css'
 
 export interface ChipOption<T extends string = string> {
   value: T
@@ -43,12 +44,7 @@ export function ChipToggleGroup<T extends string>({
             tone={on ? 'accent' : 'neutral'}
             aria-pressed={on}
             onClick={() => onToggle(option.value)}
-            style={{
-              cursor: 'pointer',
-              font: 'inherit',
-              fontSize: 12,
-              border: `1px solid ${on ? color.accent : color.divider}`,
-            }}
+            className={cx(styles.chip, on && styles.on)}
           >
             {option.label}
           </Tag>

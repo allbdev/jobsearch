@@ -1,0 +1,19 @@
+.inline {
+  border: 1px solid var(--color-divider);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-accent) 4%, transparent);
+}
+
+.framed {
+  padding: var(--space-3);
+}
+
+.quote {
+  margin: 0;
+  font-size: 13.5px;
+  font-style: italic;
+}
+
+.footer {
+  font-size: 12px;
+}

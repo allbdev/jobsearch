@@ -3,6 +3,7 @@
 import { Field } from '../primitives/Field'
 import { Input } from '../primitives/Input'
 import { Select, toOptions } from '../primitives/Select'
+import styles from './CompensationField.module.css'
 
 export const CURRENCIES = ['USD', 'EUR', 'BRL'] as const
 export type Currency = (typeof CURRENCIES)[number]
@@ -30,14 +31,7 @@ export function CompensationField({
   maxWidth,
 }: CompensationFieldProps) {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 110px',
-        gap: 'var(--space-2)',
-        maxWidth,
-      }}
-    >
+    <div className={styles.grid} style={{ maxWidth }}>
       <Field label={label} htmlFor="comp-amount">
         <Input
           id="comp-amount"
