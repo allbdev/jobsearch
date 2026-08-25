@@ -1,26 +1,64 @@
+import { notFound } from 'next/navigation'
+import { NextIntlClientProvider, hasLocale } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import { localeMeta, routing } from '@/i18n/routing'
+import { localeAlternates, siteUrl } from '@/i18n/metadata'
 
-export const metadata: Metadata = {
-  title: 'JobSearch — remote jobs you are actually eligible for',
-  description:
-    'Most boards say "Remote". We verify whether the company hires from your country — and quote the line in the posting that proves it. Any profession.',
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }))
 }
 
-/**
- * `width=device-width` is what makes the mobile breakpoints apply at all --
- * without it a phone reports a ~980px viewport and renders the desktop layout
- * scaled down. `maximumScale` is deliberately left alone so users can zoom.
- */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'meta' })
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: t('title'),
+    description: t('description'),
+    /**
+     * hreflang alternates — the reason for locale-prefixed routes in the first
+     * place. Without these, three URLs of near-identical structure look like
+     * duplicates to a crawler rather than translations of one page.
+     *
+     * Set here for the landing page; the authenticated screens override it
+     * with `noindex` instead, since a personalised feed is not a page anyone
+     * should reach from search.
+     */
+    alternates: localeAlternates(),
+  }
+}
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+
+  // Opts this branch into static rendering; without it every page using
+  // translations is forced dynamic.
+  setRequestLocale(locale)
+
   return (
-    <html lang="en">
-      <body style={{ margin: 0 }}>{children}</body>
+    <html lang={localeMeta[locale].hreflang}>
+      <body style={{ margin: 0 }}>
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      </body>
     </html>
   )
 }
