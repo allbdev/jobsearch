@@ -40,6 +40,14 @@ export const profileSchema = z.object({
   minCompensation: z.number().nullable(),
   currency: z.string().length(3),
   email: z.string().email(),
+  /**
+   * Durable interface-language preference.
+   *
+   * It does NOT drive the current page: with locale-prefixed routes the URL is
+   * the interface language, and the switcher navigates. This is what the API
+   * uses to pick a locale when a signed-in user arrives without a prefix --
+   * something the NEXT_LOCALE cookie cannot do across devices.
+   */
   interfaceLanguage: z.string(),
   digest: digestSettingsSchema,
 })

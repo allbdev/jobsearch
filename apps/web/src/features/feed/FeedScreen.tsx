@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import type { Feed, FeedResult, FeedSort } from '@jobsearch/shared'
 import { CONTRACT_MODEL_LABELS } from '@jobsearch/shared'
 import {
@@ -49,6 +50,7 @@ export function FeedScreen({
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
   const [dialogOpen, setDialogOpen] = useState(false)
+  const t = useTranslations('nav')
 
   const { feed, stats } = result
   const { definition } = feed
@@ -79,8 +81,8 @@ export function FeedScreen({
   return (
     <AppShell
       nav={[
-        { href: '/feed', label: 'Feed', current: true },
-        { href: '/profile', label: 'Profile' },
+        { href: '/feed', label: t('feed'), current: true },
+        { href: '/profile', label: t('profile') },
       ]}
       navAside={<SignOutButton href="/" linkComponent={Link} />}
       linkComponent={Link}
@@ -132,8 +134,8 @@ export function FeedScreen({
         <MobileTabBar
           linkComponent={Link}
           tabs={[
-            { href: '/feed', label: 'Feed', icon: Rows3, current: true },
-            { href: '/profile', label: 'Profile', icon: User },
+            { href: '/feed', label: t('feed'), icon: Rows3, current: true },
+            { href: '/profile', label: t('profile'), icon: User },
           ]}
         />
       }

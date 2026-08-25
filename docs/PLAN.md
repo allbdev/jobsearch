@@ -38,6 +38,7 @@ Each decision is recorded with its rationale so we can revisit it deliberately r
 | D8 | Queue: start with pg-boss (Postgres), add Redis when a second reason appears | 🔶 provisional |
 | D9 | Profession-agnostic: any occupation, not tech-only. Architecture generic from day one; verticals expand as sources allow | ✅ agreed |
 | D10 | Design system "Industry", authored in Claude Design, vendored unmodified; every component written exactly once in `@jobsearch/ui` | ✅ implemented |
+| D11 | i18n via locale-prefixed routes (`/en`, `/pt-br`, `/es`) with next-intl; changing language navigates | ✅ implemented |
 
 ### D1 — Global crawl, per-user query
 
@@ -154,6 +155,37 @@ itself — each screen is a standalone document, so the same chip row is
 hand-written seven times and the blueprint frame fourteen. Porting that
 verbatim would carry the duplication into the codebase permanently. The
 inventory in `docs/FRONTEND.md` records what collapsed into what.
+
+### D11 — Locale-prefixed routes
+
+Interface languages at launch: **English, Português (BR), Español** — chosen
+because the first users are in Brazil and LATAM, per D9's launch reasoning.
+
+The URL carries the locale: `/en/feed`, `/pt-br/feed`, `/es/feed`, with
+`localePrefix: 'always'` so the default locale is prefixed too and one URL never
+serves two languages.
+
+**Why the prefix rather than a cookie.** PLAN.md names SEO-indexable job pages
+as a growth channel (D6). A cookie-driven locale means one URL serving three
+languages, so a crawler indexes only one of them and `hreflang` has nothing to
+point at. It also means a shared link opens in the *recipient's* language, not
+the sender's. The cost is a routing restructure, which is far cheaper now than
+after job pages exist.
+
+**Changing language navigates.** With the URL as the source of truth, setting a
+preference without moving would leave the address bar lying about what is on
+screen. The switcher lives on the landing page and in Profile → Account.
+
+`profiles.interfaceLanguage` is kept as the *durable* preference — what the API
+uses to pick a locale for a signed-in user arriving without a prefix, which a
+cookie cannot do across devices. It does not drive the current page.
+
+Authenticated screens (`/feed`, `/profile`) are `noindex` and carry no
+`hreflang`: a personalised feed is not a page anyone should reach from search.
+
+**Operational note:** `NEXT_PUBLIC_SITE_URL` must be set at **build** time. The
+landing pages are prerendered and `hreflang`/`canonical` are absolute URLs baked
+in at that point; without it they are emitted against `localhost` and ignored.
 
 ---
 
