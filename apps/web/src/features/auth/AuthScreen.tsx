@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   AppShell,
   Blueprint,
+  Brand,
   BrandIcon,
   Button,
   Checkbox,
@@ -55,6 +56,17 @@ export function AuthScreen() {
       }
       linkComponent={Link}
       bare
+      mobileHeader={
+        <div className={cx('nav', styles.mobileNav)}>
+          <Brand />
+          <Select
+            aria-label="Language"
+            options={toOptions(LANGUAGES)}
+            defaultValue="English"
+            className={styles.languageSelect}
+          />
+        </div>
+      }
       footer={
         <Cluster
           as="footer"
@@ -69,7 +81,7 @@ export function AuthScreen() {
       }
     >
       <div className={styles.layout}>
-        <Stack as="section" gap="4">
+        <Stack as="section" gap="4" className={styles.hero}>
           <h1 className={styles.headline}>
             Remote jobs you are actually eligible for.
           </h1>
@@ -87,13 +99,15 @@ export function AuthScreen() {
               footer={
                 <Cluster gap="2">
                   <Tag tone="accent">ELIGIBLE · LATAM</Tag>
-                  <span>quoted from the posting, link verified today</span>
+                  <span className={styles.evidenceNote}>
+                    quoted from the posting, link verified today
+                  </span>
                 </Cluster>
               }
             />
           </div>
 
-          <StatRow stats={STATS} />
+          <StatRow stats={STATS} className={styles.stats} />
         </Stack>
 
         <Blueprint

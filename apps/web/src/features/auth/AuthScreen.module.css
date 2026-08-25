@@ -5,6 +5,7 @@
   font-size: 13px;
 }
 
+
 .footer {
   border-top: 1px solid var(--color-divider);
   padding: var(--space-3) var(--space-4);
@@ -103,4 +104,99 @@
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────────
+   Per `Login Mobile.dc.html`: one column, the form unframed, and the evidence
+   example pushed to the bottom of the screen. */
+
+.evidenceNote {
+  display: inline;
+}
+
+@media (max-width: 768px) {
+  .mobileNav {
+    padding: var(--space-3);
+  }
+
+  /* The compact desktop height is below the chip touch target on a phone. */
+  .languageSelect {
+    min-height: var(--touch-target-sm);
+  }
+
+  /* The register fields stack; only the OAuth pair stays two-up. */
+  .pair {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 480px;
+    padding: var(--space-6) var(--space-4);
+    align-items: stretch;
+  }
+
+  /* The hero column dissolves so its children can be reordered against the
+     auth panel: headline, lede, form, then the example at the bottom. */
+  .hero {
+    display: contents;
+  }
+
+  .headline {
+    order: 1;
+    font-size: 34px;
+    max-width: none;
+    margin: 0 0 6px;
+  }
+
+  .lede {
+    order: 2;
+    font-size: 14px;
+    max-width: none;
+  }
+
+  .panel {
+    order: 3;
+    max-width: none;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  /* The mobile design drops the blueprint frame around the form, so its
+     registration marks go with it. */
+  .panel > i {
+    display: none;
+  }
+
+  .evidence {
+    order: 4;
+    max-width: none;
+    margin-top: auto;
+  }
+
+  /* Only the verdict tag survives on mobile; the provenance line is detail
+     the landing page does not need at this width. */
+  .evidenceNote {
+    display: none;
+  }
+
+  /* A standalone control, not a link inside a sentence, so it does not get
+     WCAG 2.5.5's inline exception. Padded into a real tap target, with a
+     matching negative margin so the label row does not move. */
+  .forgot {
+    display: inline-block;
+    padding: 7px 8px;
+    margin: -7px -8px;
+  }
+
+  /* The stat row and the page footer are not in the mobile design -- at 390px
+     they push the form below the fold for no benefit. */
+  .stats,
+  .footer {
+    display: none;
+  }
 }
