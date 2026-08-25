@@ -5,3 +5,39 @@
 .panel {
   background: var(--color-bg);
 }
+
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The close button is a mobile affordance: the sheet fills the screen, so the
+   backdrop is not reliably tappable. On desktop the action row already
+   carries a Cancel, and the design does not draw an X. */
+.close {
+  display: none;
+  flex: none;
+}
+
+/* Below --bp-md the dialog becomes a bottom sheet: anchored to the bottom
+   edge, full width, and capped so the backdrop stays visible above it. */
+@media (max-width: 768px) {
+  .backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .panel {
+    width: 100% !important;
+    max-width: 480px;
+    max-height: 88vh;
+    overflow-y: auto;
+    border-bottom: none;
+  }
+
+  .close {
+    display: inline-flex;
+  }
+}
