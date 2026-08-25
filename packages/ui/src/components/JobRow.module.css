@@ -1,0 +1,57 @@
+.row {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+}
+.header:hover {
+  background: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+
+.main {
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.company {
+  font-size: 13px;
+}
+
+.skill {
+  opacity: 0.8;
+}
+
+.aside {
+  align-items: flex-end;
+}
+
+.salary {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.saved {
+  color: var(--color-accent-700);
+}
+
+.evidence {
+  padding: 0 var(--space-4) var(--space-3);
+}

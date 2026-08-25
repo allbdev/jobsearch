@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Blueprint } from './Blueprint'
+import styles from './Table.module.css'
 
 export interface Column<Row> {
   key: string
@@ -24,7 +25,7 @@ export function DataTable<Row>({
   emptyMessage = 'Nothing here yet.',
 }: DataTableProps<Row>) {
   return (
-    <Blueprint style={{ padding: 0 }}>
+    <Blueprint className={styles.frame}>
       <table className="table">
         <thead>
           <tr>

@@ -3,7 +3,8 @@
 import { useEffect, type ReactNode } from 'react'
 import { Blueprint } from './Blueprint'
 import { Button } from './Button'
-import { color } from '@jobsearch/design-system/tokens'
+import { cx } from '../lib/cx'
+import styles from './Dialog.module.css'
 
 export interface DialogProps {
   open: boolean
@@ -38,15 +39,15 @@ export function Dialog({ open, onClose, title, children, actions, width = 440 }:
   if (!open) return null
 
   return (
-    <div className="dialog-backdrop" style={{ zIndex: 50 }} onClick={onClose}>
+    <div className={cx('dialog-backdrop', styles.backdrop)} onClick={onClose}>
       <Blueprint
         elevation="lg"
-        className="dialog"
+        className={cx('dialog', styles.panel)}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(event: React.MouseEvent) => event.stopPropagation()}
-        style={{ width: `min(${width}px, 100%)`, background: color.bg }}
+        style={{ width: `min(${width}px, 100%)` }}
       >
         <div className="dialog-title">{title}</div>
         {children}

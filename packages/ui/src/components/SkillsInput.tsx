@@ -3,8 +3,8 @@
 import { useState, type KeyboardEvent } from 'react'
 import { Tag } from '../primitives/Tag'
 import { Icon } from '../primitives/Icon'
-import { X } from 'lucide-react'
-import { color, hairline } from '@jobsearch/design-system/tokens'
+import { X } from '../primitives/icons'
+import styles from './SkillsInput.module.css'
 
 export interface SkillsInputProps {
   skills: readonly string[]
@@ -42,25 +42,15 @@ export function SkillsInput({ skills, onChange, placeholder = 'Add a skill…' }
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 6,
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        border: hairline,
-        background: color.surface,
-        padding: '8px 10px',
-      }}
-    >
+    <div className={styles.box}>
       {skills.map((skill) => (
-        <Tag key={skill} tone="accent" style={{ gap: 5 }}>
+        <Tag key={skill} tone="accent" className={styles.chip}>
           {skill}
           <button
             type="button"
             title={`Remove ${skill}`}
             onClick={() => onChange(skills.filter((item) => item !== skill))}
-            style={{ all: 'unset', cursor: 'pointer', lineHeight: 0 }}
+            className={styles.remove}
           >
             <Icon icon={X} size={10} />
           </button>
@@ -72,16 +62,7 @@ export function SkillsInput({ skills, onChange, placeholder = 'Add a skill…' }
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={onKeyDown}
         onBlur={commit}
-        style={{
-          border: 'none',
-          background: 'none',
-          font: 'inherit',
-          fontSize: 13,
-          outline: 'none',
-          flex: 1,
-          minWidth: 110,
-          color: color.text,
-        }}
+        className={styles.input}
       />
     </div>
   )

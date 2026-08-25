@@ -1,0 +1,12 @@
+.section {
+  padding: var(--space-6);
+}
+
+.title {
+  margin-bottom: 4px;
+}
+
+.description {
+  font-size: 13px;
+  margin-bottom: var(--space-4);
+}
