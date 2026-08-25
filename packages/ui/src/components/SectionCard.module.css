@@ -10,3 +10,19 @@
   font-size: 13px;
   margin-bottom: var(--space-4);
 }
+
+/* The mobile design tightens the frame and drops the section heading a level,
+   so the six stacked sections do not dominate a 390px column. */
+@media (max-width: 768px) {
+  .section {
+    padding: var(--space-4);
+  }
+
+  .description {
+    margin-bottom: var(--space-3);
+  }
+
+  .title {
+    font-size: 20px;
+  }
+}
