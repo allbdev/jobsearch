@@ -5,6 +5,7 @@ import { Tag } from '../primitives/Tag'
 import { Icon } from '../primitives/Icon'
 import { X } from '../primitives/icons'
 import styles from './SkillsInput.module.css'
+import { formatLabel, useUiLabels } from '../i18n/labels'
 
 export interface SkillsInputProps {
   skills: readonly string[]
@@ -17,7 +18,8 @@ export interface SkillsInputProps {
  * D9), so anything the user types is valid — there is no controlled vocabulary
  * to validate against.
  */
-export function SkillsInput({ skills, onChange, placeholder = 'Add a skill…' }: SkillsInputProps) {
+export function SkillsInput({ skills, onChange, placeholder }: SkillsInputProps) {
+  const labels = useUiLabels()
   const [draft, setDraft] = useState('')
 
   const commit = () => {
@@ -48,7 +50,7 @@ export function SkillsInput({ skills, onChange, placeholder = 'Add a skill…' }
           {skill}
           <button
             type="button"
-            title={`Remove ${skill}`}
+            title={formatLabel(labels.remove, { item: skill })}
             onClick={() => onChange(skills.filter((item) => item !== skill))}
             className={styles.remove}
           >
@@ -58,7 +60,7 @@ export function SkillsInput({ skills, onChange, placeholder = 'Add a skill…' }
       ))}
       <input
         value={draft}
-        placeholder={placeholder}
+        placeholder={placeholder ?? labels.addSkill}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={onKeyDown}
         onBlur={commit}

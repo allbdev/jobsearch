@@ -7,6 +7,7 @@ import { Icon } from './Icon'
 import { X } from './icons'
 import { cx } from '../lib/cx'
 import styles from './Dialog.module.css'
+import { useUiLabels } from '../i18n/labels'
 
 export interface DialogProps {
   open: boolean
@@ -27,6 +28,8 @@ export interface DialogProps {
  * lock.
  */
 export function Dialog({ open, onClose, title, children, actions, width = 440 }: DialogProps) {
+  const labels = useUiLabels()
+
   useEffect(() => {
     if (!open) return
     const onKey = (event: KeyboardEvent) => {
@@ -60,8 +63,8 @@ export function Dialog({ open, onClose, title, children, actions, width = 440 }:
             variant="secondary"
             icon
             className={styles.close}
-            title="Close"
-            aria-label="Close"
+            title={labels.close}
+            aria-label={labels.close}
             onClick={onClose}
           >
             <Icon icon={X} size={15} />
@@ -71,7 +74,7 @@ export function Dialog({ open, onClose, title, children, actions, width = 440 }:
         <div className="dialog-actions">
           {actions ?? (
             <Button variant="secondary" onClick={onClose}>
-              Close
+              {labels.close}
             </Button>
           )}
         </div>

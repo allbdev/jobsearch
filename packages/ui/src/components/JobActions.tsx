@@ -5,6 +5,7 @@ import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
 import { Bookmark, ExternalLink, X } from '../primitives/icons'
 import { cx } from '../lib/cx'
+import { useUiLabels } from '../i18n/labels'
 import styles from './JobActions.module.css'
 
 export interface JobActionsProps {
@@ -29,6 +30,7 @@ export function JobActions({
   variant,
   className,
 }: JobActionsProps) {
+  const labels = useUiLabels()
   const stop = (event: MouseEvent) => event.stopPropagation()
   const compact = variant === 'compact'
   const iconSize = compact ? 14 : 16
@@ -39,7 +41,7 @@ export function JobActions({
         variant="secondary"
         icon
         size={compact ? 'sm' : 'md'}
-        title={saved ? 'Saved' : 'Save'}
+        title={saved ? labels.saved : labels.save}
         aria-pressed={saved}
         className={cx(saved && styles.saved)}
         onClick={(event: MouseEvent) => {
@@ -59,7 +61,7 @@ export function JobActions({
         variant="secondary"
         icon
         size={compact ? 'sm' : 'md'}
-        title="Dismiss"
+        title={labels.dismiss}
         onClick={(event: MouseEvent) => {
           stop(event)
           onDismiss()
@@ -72,13 +74,13 @@ export function JobActions({
         variant="primary"
         icon={compact}
         size={compact ? 'sm' : 'md'}
-        title="Apply"
+        title={labels.apply}
         href={applyUrl}
         target="_blank"
         rel="noreferrer noopener"
         onClick={stop}
       >
-        {compact ? null : 'Apply'}
+        {compact ? null : labels.apply}
         <Icon icon={ExternalLink} size={iconSize} />
       </Button>
     </div>

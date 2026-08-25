@@ -10,6 +10,7 @@ import { EvidenceCard } from './EvidenceCard'
 import { JobActions } from './JobActions'
 import { relativeTime, verifiedLabel } from '../lib/format'
 import styles from './JobRow.module.css'
+import { formatLabel, useUiLabels } from '../i18n/labels'
 
 export interface JobRowProps {
   job: Job
@@ -23,6 +24,7 @@ export interface JobRowProps {
 
 /** One posting in the feed, with its evidence panel. */
 export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss }: JobRowProps) {
+  const labels = useUiLabels()
   const { eligibility } = job
   const actionProps = { applyUrl: job.applyUrl, saved, onSave, onDismiss }
 
@@ -60,7 +62,7 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
         <Stack gap="2" className={styles.aside}>
           <span className={styles.salary}>{job.compensation.label}</span>
           <Muted className={styles.meta}>
-            {relativeTime(job.postedAt, now)} · {JOB_SOURCE_LABELS[job.source]}
+            {relativeTime(job.postedAt, now, labels)} · {JOB_SOURCE_LABELS[job.source]}
           </Muted>
           <JobActions variant="compact" className={styles.actionsInline} {...actionProps} />
         </Stack>
@@ -71,26 +73,29 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
           <EvidenceCard
             kicker={
               <>
-                Eligibility evidence
+                {labels.evidenceKicker}
                 <span className={styles.classifier}>
-                  {' · classifier '}
-                  {eligibility.classifierVersion}
+                  {formatLabel(labels.classifierSuffix, {
+                    version: eligibility.classifierVersion,
+                  })}
                 </span>
               </>
             }
             snippet={eligibility.evidenceSnippet}
             footer={
               <>
-                Quoted from the posting ·{' '}
+                {labels.quotedFrom} ·{' '}
                 <a
                   href={eligibility.evidenceUrl ?? job.applyUrl}
                   target="_blank"
                   rel="noreferrer noopener"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  view source
+                  {labels.viewSource}
                 </a>{' '}
-                · link verified {verifiedLabel(eligibility.linkVerifiedAt, now)}
+                · {formatLabel(labels.linkVerified, {
+                  when: verifiedLabel(eligibility.linkVerifiedAt, now, labels),
+                })}
               </>
             }
           />
