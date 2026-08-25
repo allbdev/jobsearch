@@ -2,16 +2,13 @@
 
 import type { Job } from '@jobsearch/shared'
 import { CONTRACT_MODEL_LABELS, JOB_SOURCE_LABELS } from '@jobsearch/shared'
-import { Button } from '../primitives/Button'
 import { Cluster, Stack } from '../primitives/Stack'
-import { Icon } from '../primitives/Icon'
-import { Bookmark, ExternalLink, X } from '../primitives/icons'
 import { Muted } from '../primitives/Text'
 import { Tag } from '../primitives/Tag'
 import { EligibilityBadge } from './EligibilityBadge'
 import { EvidenceCard } from './EvidenceCard'
+import { JobActions } from './JobActions'
 import { relativeTime, verifiedLabel } from '../lib/format'
-import { cx } from '../lib/cx'
 import styles from './JobRow.module.css'
 
 export interface JobRowProps {
@@ -27,6 +24,7 @@ export interface JobRowProps {
 /** One posting in the feed, with its evidence panel. */
 export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss }: JobRowProps) {
   const { eligibility } = job
+  const actionProps = { applyUrl: job.applyUrl, saved, onSave, onDismiss }
 
   return (
     <div className={styles.row}>
@@ -44,11 +42,11 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
         className={styles.header}
       >
         <Stack gap={7} className={styles.main}>
-          <Cluster gap={10} align="baseline">
+          <Cluster gap={10} align="baseline" className={styles.titleGroup}>
             <span className={styles.title}>{job.title}</span>
             <Muted className={styles.company}>{job.company}</Muted>
           </Cluster>
-          <Cluster gap="2">
+          <Cluster gap="2" className={styles.tags}>
             <EligibilityBadge verdict={eligibility.verdict} regionLabel={eligibility.regionLabel} />
             <Tag tone="neutral">{CONTRACT_MODEL_LABELS[eligibility.contractModel]}</Tag>
             {job.skills.map((skill) => (
@@ -64,54 +62,22 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
           <Muted className={styles.meta}>
             {relativeTime(job.postedAt, now)} · {JOB_SOURCE_LABELS[job.source]}
           </Muted>
-          <Cluster gap="1" wrap={false}>
-            <Button
-              variant="secondary"
-              icon
-              size="sm"
-              title={saved ? 'Saved' : 'Save'}
-              aria-pressed={saved}
-              className={cx(saved && styles.saved)}
-              onClick={(event: React.MouseEvent) => {
-                event.stopPropagation()
-                onSave()
-              }}
-            >
-              <Bookmark width={14} height={14} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} aria-hidden />
-            </Button>
-            <Button
-              variant="secondary"
-              icon
-              size="sm"
-              title="Dismiss"
-              onClick={(event: React.MouseEvent) => {
-                event.stopPropagation()
-                onDismiss()
-              }}
-            >
-              <Icon icon={X} />
-            </Button>
-            <Button
-              as="a"
-              variant="primary"
-              icon
-              size="sm"
-              title="Apply"
-              href={job.applyUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              onClick={(event: React.MouseEvent) => event.stopPropagation()}
-            >
-              <Icon icon={ExternalLink} />
-            </Button>
-          </Cluster>
+          <JobActions variant="compact" className={styles.actionsInline} {...actionProps} />
         </Stack>
       </div>
 
       {expanded && eligibility.evidenceSnippet ? (
         <div className={styles.evidence}>
           <EvidenceCard
-            kicker={`Eligibility evidence · classifier ${eligibility.classifierVersion}`}
+            kicker={
+              <>
+                Eligibility evidence
+                <span className={styles.classifier}>
+                  {' · classifier '}
+                  {eligibility.classifierVersion}
+                </span>
+              </>
+            }
             snippet={eligibility.evidenceSnippet}
             footer={
               <>
@@ -128,6 +94,7 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
               </>
             }
           />
+          <JobActions variant="expanded" className={styles.actionsPanel} {...actionProps} />
         </div>
       ) : null}
     </div>

@@ -1,0 +1,18 @@
+/* Desktop: three icon buttons stacked under the salary in the row's right
+   column. */
+.compact {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Mobile: the designs move the actions into the expanded panel and give Apply
+   a label and the remaining width, since it is the primary action. */
+.expanded {
+  display: grid;
+  grid-template-columns: var(--touch-target) var(--touch-target) 1fr;
+  gap: var(--space-2);
+}
+
+.saved {
+  color: var(--color-accent-700);
+}
