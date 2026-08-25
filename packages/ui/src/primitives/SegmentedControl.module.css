@@ -1,0 +1,29 @@
+.fill {
+  display: flex;
+  width: 100%;
+}
+.fill .option {
+  flex: 1;
+  justify-content: center;
+}
+
+.sm .option {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* Below --bp-md the mobile designs stretch the seniority, cadence and
+   sign-in switches to the full width with a 40px target. The Feed's sort
+   switch stays compact, which is why this is opt-in per instance rather than
+   a blanket rule. */
+@media (max-width: 768px) {
+  .fillMobile {
+    display: flex;
+    width: 100%;
+  }
+  .fillMobile .option {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+  }
+}

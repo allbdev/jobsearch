@@ -1,6 +1,7 @@
 'use client'
 
 import { cx } from '../lib/cx'
+import styles from './SegmentedControl.module.css'
 
 export interface SegmentedOption<T extends string> {
   value: T
@@ -13,6 +14,10 @@ export interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void
   /** Stretch each option to fill the track — used by the Login mode switch. */
   fill?: boolean
+  /** Stretch only below the mobile breakpoint, as the mobile designs do. */
+  fillMobile?: boolean
+  /** `sm` is the compact form used by the Feed's sort switch on mobile. */
+  size?: 'md' | 'sm'
   ariaLabel?: string
   className?: string
 }
@@ -30,24 +35,27 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   fill = false,
+  fillMobile = false,
+  size = 'md',
   ariaLabel,
   className,
 }: SegmentedControlProps<T>) {
   return (
     <div
-      className={cx('seg', className)}
+      className={cx(
+        'seg',
+        fill && styles.fill,
+        fillMobile && styles.fillMobile,
+        size === 'sm' && styles.sm,
+        className,
+      )}
       role="radiogroup"
       aria-label={ariaLabel}
-      style={fill ? { display: 'flex', width: '100%' } : undefined}
     >
       {options.map((option) => {
         const selected = option.value === value
         return (
-          <label
-            key={option.value}
-            className="seg-opt"
-            style={fill ? { flex: 1, justifyContent: 'center' } : undefined}
-          >
+          <label key={option.value} className={cx('seg-opt', styles.option)}>
             <input
               type="radio"
               checked={selected}

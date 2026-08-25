@@ -8,3 +8,9 @@
 .on {
   border-color: var(--color-accent);
 }
+
+@media (max-width: 768px) {
+  .chip {
+    min-height: var(--touch-target-sm);
+  }
+}
