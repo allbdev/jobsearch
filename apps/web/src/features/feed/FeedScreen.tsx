@@ -20,9 +20,10 @@ import {
   SignOutButton,
   Stack,
   Tag,
+  cx,
 } from '@jobsearch/ui'
 import { FeedDefinitionDialog } from './FeedDefinitionDialog'
-import { color, hairline } from '@jobsearch/design-system/tokens'
+import styles from './FeedScreen.module.css'
 
 const SORT_OPTIONS = [
   { value: 'best_match', label: 'Best match' },
@@ -80,21 +81,10 @@ export function FeedScreen({
       linkComponent={Link}
       bare
     >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 1240,
-          margin: '0 auto',
-          padding: 'var(--space-6) var(--space-4)',
-          display: 'grid',
-          gridTemplateColumns: '264px minmax(0,1fr)',
-          gap: 'var(--space-6)',
-          alignItems: 'start',
-        }}
-      >
-        <Stack as="aside" gap="4" style={{ position: 'sticky', top: 76 }}>
+      <div className={styles.layout}>
+        <Stack as="aside" gap="4" className={styles.sidebar}>
           <div>
-            <h6 style={{ marginBottom: 'var(--space-2)' }}>Your feeds</h6>
+            <h6 className={styles.sidebarHeading}>Your feeds</h6>
             <Stack gap={6}>
               {feeds.map((entry) => {
                 const active = entry.id === feed.id
@@ -102,19 +92,9 @@ export function FeedScreen({
                   <Link
                     key={entry.id}
                     href={`/feed?feed=${entry.id}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      padding: '8px 12px',
-                      textDecoration: 'none',
-                      background: active ? color.accentStep(100) : 'transparent',
-                      border: `1px solid ${active ? color.accent : color.divider}`,
-                      color: color.text,
-                    }}
+                    className={cx(styles.feedLink, active && styles.feedLinkActive)}
                   >
-                    <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 15 }}>
+                    <span className={styles.feedName}>
                       {entry.definition.name}
                     </span>
                     <Tag tone="neutral" size="sm">
@@ -124,15 +104,15 @@ export function FeedScreen({
                 )
               })}
             </Stack>
-            <Button variant="ghost" onClick={() => setDialogOpen(true)} style={{ marginTop: 'var(--space-2)' }}>
+            <Button variant="ghost" onClick={() => setDialogOpen(true)} className={styles.newFeed}>
               <Icon icon={Plus} />
               New feed
             </Button>
           </div>
 
-          <Blueprint style={{ padding: 'var(--space-3)' }}>
-            <Overline style={{ marginBottom: 'var(--space-2)' }}>Feed definition</Overline>
-            <Stack gap={9} style={{ fontSize: 13 }}>
+          <Blueprint className={styles.definition}>
+            <Overline className={styles.definitionTitle}>Feed definition</Overline>
+            <Stack gap={9} className={styles.definitionRows}>
               {definitionRows.map(([label, value]) => (
                 <div key={label}>
                   <Overline>{label}</Overline>
@@ -144,40 +124,31 @@ export function FeedScreen({
               variant="secondary"
               block
               onClick={() => setDialogOpen(true)}
-              style={{ marginTop: 'var(--space-3)' }}
+              className={styles.editDefinition}
             >
               <Icon icon={Pencil} />
               Edit definition
             </Button>
           </Blueprint>
 
-          <Muted as="div" style={{ fontSize: 12 }}>
+          <Muted as="div" className={styles.digest}>
             <Icon icon={Mail} size={13} />{' '}
-            <span style={{ verticalAlign: 2 }}>
+            <span className={styles.digestLabel}>
               Weekly digest active · <Link href="/profile#digest">change</Link>
             </span>
           </Muted>
         </Stack>
 
-        <main
-          style={{
-            minWidth: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            height: 'calc(100vh - 62px - var(--space-6) * 2)',
-            position: 'sticky',
-            top: 'calc(62px + var(--space-6))',
-          }}
-        >
+        <main className={styles.main}>
           <Cluster
             justify="space-between"
             align="flex-end"
             gap="3"
-            style={{ marginBottom: 'var(--space-3)', flex: 'none' }}
+            className={styles.header}
           >
             <div>
-              <h2 style={{ marginBottom: 2 }}>{definition.name}</h2>
-              <Muted style={{ fontSize: 13 }}>
+              <h2 className={styles.title}>{definition.name}</h2>
+              <Muted className={styles.subtitle}>
                 {jobs.length} matched positions · index updated{' '}
                 {Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))}h ago
               </Muted>
@@ -190,10 +161,8 @@ export function FeedScreen({
             />
           </Cluster>
 
-          <Blueprint
-            style={{ background: 'transparent', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-          >
-            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <Blueprint className={styles.list}>
+            <div className={styles.scroll}>
               {jobs.map((job) => (
                 <JobRow
                   key={job.id}
@@ -209,19 +178,13 @@ export function FeedScreen({
             </div>
             <Cluster
               justify="space-between"
-              className="text-muted"
-              style={{
-                padding: 'var(--space-3) var(--space-4)',
-                fontSize: 12,
-                flex: 'none',
-                borderTop: hairline,
-              }}
+              className={cx('text-muted', styles.footer)}
             >
               <span>
                 Evaluated {stats.evaluated} postings for this feed · {stats.confirmed} confirmed ·{' '}
                 {stats.needsCheck} to confirm · {dismissedCount} dismissed by you
               </span>
-              <Button variant="ghost" style={{ fontSize: 13 }}>
+              <Button variant="ghost" className={styles.loadMore}>
                 Load more
               </Button>
             </Cluster>

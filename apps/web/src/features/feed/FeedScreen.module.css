@@ -1,0 +1,122 @@
+.layout {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 76px;
+}
+
+.sidebarHeading {
+  margin-bottom: var(--space-2);
+}
+
+.feedLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  color: var(--color-text);
+}
+.feedLink:hover {
+  border-color: var(--color-accent);
+}
+
+.feedLinkActive {
+  background: var(--color-accent-100);
+  border-color: var(--color-accent);
+}
+
+.feedName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.newFeed {
+  margin-top: var(--space-2);
+}
+
+.definition {
+  padding: var(--space-3);
+}
+
+.definitionTitle {
+  margin-bottom: var(--space-2);
+}
+
+.definitionRows {
+  font-size: 13px;
+}
+
+.editDefinition {
+  margin-top: var(--space-3);
+}
+
+.digest {
+  font-size: 12px;
+}
+
+.digestLabel {
+  vertical-align: 2px;
+}
+
+/* The list scrolls inside its own frame rather than with the page, so the
+   feed header and footer stay put while the jobs move. */
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 62px - var(--space-6) * 2);
+  position: sticky;
+  top: calc(62px + var(--space-6));
+}
+
+.header {
+  margin-bottom: var(--space-3);
+  flex: none;
+}
+
+.title {
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 13px;
+}
+
+.list {
+  background: transparent;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.footer {
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  flex: none;
+  border-top: 1px solid var(--color-divider);
+}
+
+.loadMore {
+  font-size: 13px;
+}

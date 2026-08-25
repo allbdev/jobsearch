@@ -1,0 +1,106 @@
+.languageSelect {
+  width: auto;
+  min-height: 30px;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+
+.footer {
+  border-top: 1px solid var(--color-divider);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-8);
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  align-items: center;
+}
+
+.headline {
+  font-size: 52px;
+  max-width: 9em;
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.lede {
+  font-size: 16px;
+  max-width: 34em;
+  margin: 0;
+}
+
+.evidence {
+  max-width: 440px;
+}
+
+.panel {
+  padding: var(--space-6);
+  background: transparent;
+  max-width: 420px;
+  width: 100%;
+  justify-self: center;
+}
+
+.modeSwitch {
+  margin-bottom: var(--space-4);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.registerFields {
+  margin-bottom: var(--space-3);
+}
+
+.forgot {
+  font-size: 12px;
+}
+
+.submit {
+  margin-top: 0;
+}
+
+.divider {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dividerRule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.oauth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.swapNote {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  text-align: center;
+}
+
+.swapButton {
+  font: inherit;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

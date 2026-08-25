@@ -32,6 +32,7 @@ apps/web                 Next.js — routes, data fetching, screen composition
 | It is… | It lives in… |
 |---|---|
 | A token, or a DS component class | `packages/design-system` (re-synced, not authored) |
+| Component styling | a co-located `Component.module.css` |
 | A modifier the DS lacks but the design uses | `packages/ui/src/styles/extensions.css` |
 | Any reusable markup | `packages/ui/src/primitives` or `.../components` |
 | A domain type or option list | `packages/shared` |
@@ -71,13 +72,17 @@ wrong in one of the two places.
 
 ## 4. Conventions
 
-**Tokens only, through typed accessors.** No raw hex, font name, or spacing
-value a token already carries — and no hand-written `var(--color-…)` strings
-either. Everything goes through `@jobsearch/design-system/tokens`
-(`color.accent`, `color.accentStep(700)`, `tint(color.text, 8)`, `hairline`),
-so a token rename is a compile error and a typo cannot silently render as
-`initial`. There are currently zero raw `var(--color-*)` strings outside the
-vendored stylesheet and the extension layer; keep it that way.
+**Tokens only.** No raw hex, font name, or spacing value that a token already
+carries. Reference them as CSS variables — `var(--color-accent)`,
+`var(--space-3)` — from the component's `.module.css`.
+
+There was briefly a typed accessor module (`@jobsearch/design-system/tokens`)
+that wrapped these as TypeScript constants. It existed because styles lived in
+inline `style` props, where a token reference is just a string and a typo
+renders as `initial`. Once styling moved to CSS Modules it had no callers, so
+it was deleted rather than kept as an unused abstraction. If JavaScript ever
+genuinely needs a token value, read it from the computed style rather than
+reintroducing a second source of truth.
 
 **Spacing is unambiguous by type.** `gap="3"` is a scale step
 (`var(--space-3)`); `gap={3}` is 3 pixels. An earlier build accepted a number

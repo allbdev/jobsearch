@@ -19,8 +19,9 @@ import {
   StatRow,
   Tag,
   toOptions,
+  cx,
 } from '@jobsearch/ui'
-import { color, hairline } from '@jobsearch/design-system/tokens'
+import styles from './AuthScreen.module.css'
 
 type Mode = 'login' | 'register'
 
@@ -49,7 +50,7 @@ export function AuthScreen() {
           aria-label="Language"
           options={toOptions(LANGUAGES)}
           defaultValue="English"
-          style={{ width: 'auto', minHeight: 30, padding: '3px 8px', fontSize: 13 }}
+          className={styles.languageSelect}
         />
       }
       linkComponent={Link}
@@ -58,12 +59,7 @@ export function AuthScreen() {
         <Cluster
           as="footer"
           justify="space-between"
-          className="text-muted"
-          style={{
-            borderTop: hairline,
-            padding: 'var(--space-3) var(--space-4)',
-            fontSize: 12,
-          }}
+          className={cx('text-muted', styles.footer)}
         >
           <span>© 2026 JobSearch — geographic eligibility, verified and cited.</span>
           <span>
@@ -72,30 +68,18 @@ export function AuthScreen() {
         </Cluster>
       }
     >
-      <div
-        style={{
-          flex: 1,
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
-          gap: 'var(--space-8)',
-          maxWidth: 1080,
-          width: '100%',
-          margin: '0 auto',
-          padding: 'var(--space-8) var(--space-4)',
-          alignItems: 'center',
-        }}
-      >
+      <div className={styles.layout}>
         <Stack as="section" gap="4">
-          <h1 style={{ fontSize: 52, maxWidth: '9em', textWrap: 'pretty', margin: 0 }}>
+          <h1 className={styles.headline}>
             Remote jobs you are actually eligible for.
           </h1>
-          <Muted as="p" style={{ fontSize: 16, maxWidth: '34em', margin: 0 }}>
+          <Muted as="p" className={styles.lede}>
             Most boards say “Remote”. We verify whether the company hires from <em>your</em> country —
             and quote the line in the posting that proves it. Any profession, one feed, one weekly
             email.
           </Muted>
 
-          <div style={{ maxWidth: 440 }}>
+          <div className={styles.evidence}>
             <EvidenceCard
               variant="framed"
               kicker="Eligibility evidence · example"
@@ -115,15 +99,9 @@ export function AuthScreen() {
         <Blueprint
           as="section"
           elevation="sm"
-          style={{
-            padding: 'var(--space-6)',
-            background: 'transparent',
-            maxWidth: 420,
-            width: '100%',
-            justifySelf: 'center',
-          }}
+          className={styles.panel}
         >
-          <div style={{ marginBottom: 'var(--space-4)' }}>
+          <div className={styles.modeSwitch}>
             <SegmentedControl
               options={MODE_OPTIONS}
               value={mode}
@@ -134,14 +112,7 @@ export function AuthScreen() {
           </div>
 
           {!isLogin && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-3)',
-              }}
-            >
+            <div className={cx(styles.pair, styles.registerFields)}>
               <Field label="Full name" htmlFor="name">
                 <Input id="name" placeholder="Ana Souza" />
               </Field>
@@ -163,7 +134,7 @@ export function AuthScreen() {
               htmlFor="password"
               labelAside={
                 isLogin ? (
-                  <a href="/forgot" style={{ fontSize: 12 }}>
+                  <a href="/forgot" className={styles.forgot}>
                     Forgot?
                   </a>
                 ) : undefined
@@ -179,22 +150,21 @@ export function AuthScreen() {
               </Checkbox>
             )}
 
-            <Button as={Link} variant="primary" block href="/feed" style={{ marginTop: 0 }}>
+            <Button as={Link} variant="primary" block href="/feed" className={styles.submit}>
               {isLogin ? 'Sign in' : 'Create my feed'}
             </Button>
 
             <Cluster
               gap={10}
-              className="text-muted"
-              style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}
+              className={cx('text-muted', styles.divider)}
               wrap={false}
             >
-              <span style={{ flex: 1, height: 1, background: color.divider }} />
+              <span className={styles.dividerRule} />
               or
-              <span style={{ flex: 1, height: 1, background: color.divider }} />
+              <span className={styles.dividerRule} />
             </Cluster>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
+            <div className={styles.oauth}>
               <Button as={Link} variant="secondary" href="/feed">
                 <BrandIcon brand="google" />
                 Google
@@ -205,21 +175,12 @@ export function AuthScreen() {
               </Button>
             </div>
 
-            <Muted as="p" style={{ margin: 'var(--space-2) 0 0', fontSize: 12, textAlign: 'center' }}>
+            <Muted as="p" className={styles.swapNote}>
               {isLogin ? 'New here?' : 'Already have an account?'}{' '}
               <button
                 type="button"
                 onClick={() => setMode(isLogin ? 'register' : 'login')}
-                style={{
-                  font: 'inherit',
-                  background: 'none',
-                  border: 'none',
-                  color: color.accent,
-                  cursor: 'pointer',
-                  padding: 0,
-                  textDecoration: 'underline',
-                  textUnderlineOffset: 3,
-                }}
+                className={styles.swapButton}
               >
                 {isLogin ? 'Create an account' : 'Sign in instead'}
               </button>
