@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Deliberately unfiltered by base branch: stacked PRs target another feature
+  # branch rather than main, and they need the same gates as anything else.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
