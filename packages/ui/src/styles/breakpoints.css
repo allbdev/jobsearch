@@ -1,0 +1,29 @@
+/**
+ * Breakpoint scale.
+ *
+ * CSS custom properties cannot be used inside an `@media` condition, so these
+ * cannot be real tokens the way colors and spacing are. They are literal
+ * values, declared here once, and every media query in the codebase must use
+ * one of them verbatim. Do not invent a new breakpoint inside a component.
+ *
+ *   480px   --bp-sm   phone, portrait
+ *   768px   --bp-md   where the desktop two-column layouts collapse
+ *  1024px   --bp-lg   full desktop layout
+ *
+ * The mobile designs are drawn at 390x844 and cap their container at 480px,
+ * so `max-width: 768px` is the switch between the mobile and desktop designs.
+ *
+ * The custom properties below exist only so JavaScript can read the same
+ * numbers without a second source of truth. They do not drive the queries.
+ */
+:root {
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+
+  /* Minimum touch target (WCAG 2.5.5 Target Size). The mobile designs apply
+     this to inputs and buttons; chips get a smaller 32px target because they
+     sit in dense multi-select rows. */
+  --touch-target: 44px;
+  --touch-target-sm: 32px;
+}

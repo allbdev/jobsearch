@@ -3,6 +3,8 @@
 import { useEffect, type ReactNode } from 'react'
 import { Blueprint } from './Blueprint'
 import { Button } from './Button'
+import { Icon } from './Icon'
+import { X } from './icons'
 import { cx } from '../lib/cx'
 import styles from './Dialog.module.css'
 
@@ -13,13 +15,16 @@ export interface DialogProps {
   children: ReactNode
   /** Action row. Falls back to a single Close button when omitted. */
   actions?: ReactNode
+  /** Desktop width. Ignored below the mobile breakpoint, where it is a sheet. */
   width?: number
 }
 
 /**
- * Modal at the top elevation. Owns the behaviour the design prototype only
- * mimicked: Escape to close, backdrop click to close, click-through guard on
- * the panel, and body scroll lock.
+ * Modal at the top elevation on desktop; a bottom sheet below `--bp-md`.
+ *
+ * Owns the behaviour the design prototype only mimicked: Escape to close,
+ * backdrop click to close, click-through guard on the panel, and body scroll
+ * lock.
  */
 export function Dialog({ open, onClose, title, children, actions, width = 440 }: DialogProps) {
   useEffect(() => {
@@ -49,7 +54,19 @@ export function Dialog({ open, onClose, title, children, actions, width = 440 }:
         onClick={(event: React.MouseEvent) => event.stopPropagation()}
         style={{ width: `min(${width}px, 100%)` }}
       >
-        <div className="dialog-title">{title}</div>
+        <div className={cx('dialog-title', styles.title)}>
+          {title}
+          <Button
+            variant="secondary"
+            icon
+            className={styles.close}
+            title="Close"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <Icon icon={X} size={15} />
+          </Button>
+        </div>
         {children}
         <div className="dialog-actions">
           {actions ?? (
