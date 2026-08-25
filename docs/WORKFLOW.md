@@ -51,9 +51,14 @@ is, the hooks are the real floor, and they only apply on machines that have run
 ./scripts/worktree.sh new feat/api-eligibility-classifier
 ```
 
-That creates `~/Dev/jobsearch-worktrees/feat-api-eligibility-classifier`,
-branched from a freshly fetched `origin/main`, runs `pnpm install`, and assigns
-a stable free port.
+That creates `.claude/worktrees/feat-api-eligibility-classifier` **inside the
+project**, branched from a freshly fetched `origin/main`, runs `pnpm install`,
+and assigns a stable free port.
+
+`.claude/worktrees/` is gitignored, so nested checkouts never show up in
+`git status`. Because the script resolves the repo root through
+`--git-common-dir` rather than the current directory, worktrees always land
+under the *primary* checkout and never nest inside one another.
 
 ### Why worktrees rather than branch switching
 
@@ -66,14 +71,29 @@ a stable free port.
 - **The primary checkout is always a known-good reference** you can diff
   against when something looks wrong.
 
-### Two things that bite
+### Three things that bite
 
 **Dependencies are not shared.** Each worktree needs its own `pnpm install`.
-The script does it for you.
+The script does it for you. This is also why worktrees are not free: each one
+costs roughly 400-600MB of `node_modules` and build output. Run
+`./scripts/worktree.sh done <branch>` once a PR is merged.
 
 **Dev servers collide on port 3000.** The script writes a per-branch `PORT` to
 `.env.local`, so two worktrees never fight. This is why `apps/web`'s `dev`
 script reads `${PORT:-3000}`.
+
+**Tooling must be told to skip them.** Because the worktrees live inside the
+project, anything that walks the tree can find a second copy of every file.
+Three guards exist and must stay in place:
+
+| Tool | Guard |
+|---|---|
+| git | `.claude/worktrees/` in `.gitignore` |
+| dependency-cruiser | `.claude/worktrees` in the `exclude` path |
+| Next dev server | `webpack.watchOptions.ignored` + `outputFileTracingExcludes` |
+
+pnpm and Turborepo need no guard: their workspace globs are `apps/*` and
+`packages/*`, which do not reach into `.claude/`.
 
 ### Cleaning up
 
