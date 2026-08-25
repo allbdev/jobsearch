@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Blocks the two mistakes that are expensive to undo: committing on main, and
+# committing a secret. See CLAUDE.md §1.1 and §1.8.
+set -euo pipefail
+
+die() { printf '\033[31m✗ blocked:\033[0m %s\n' "$1" >&2; exit 1; }
+
+branch="$(git branch --show-current)"
+
+if [ "$branch" = "main" ]; then
+  die "you are committing directly to main.
+
+  All work goes through a worktree and a pull request:
+    ./scripts/worktree.sh new feat/<scope>-<description>
+
+  If this is genuinely an emergency, bypass with --no-verify — and open a PR after."
+fi
+
+staged="$(git diff --cached --name-only --diff-filter=ACM)"
+[ -z "$staged" ] && exit 0
+
+# Never commit secrets or build output.
+while IFS= read -r file; do
+  case "$file" in
+    .env|.env.*|*/.env|*/.env.*)
+      [ "${file##*/}" = ".env.example" ] && continue
+      die "$file looks like a secrets file. Add the key name to .env.example instead." ;;
+    node_modules/*|*/node_modules/*|.next/*|*/.next/*|dist/*|*/dist/*)
+      die "$file is a build artifact or dependency — it must not be committed." ;;
+  esac
+
+  # Files over 1MB are almost always a mistake in this repo.
+  if [ -f "$file" ]; then
+    size=$(wc -c < "$file" | tr -d ' ')
+    [ "$size" -gt 1048576 ] && die "$file is $((size / 1024))KB — too large to commit. Use an asset host."
+  fi
+done <<< "$staged"
+
+# Obvious credential shapes in the staged diff.
+if git diff --cached -U0 | grep -nE '^\+.*(sk-ant-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' >/dev/null; then
+  die "a credential appears in the staged diff. Remove it and rotate the key."
+fi
+
+# The vendored design system is regenerated, not edited (PLAN.md D10).
+if grep -q '^packages/design-system/src/styles\.css$' <<< "$staged"; then
+  printf '\033[33m⚠ warning:\033[0m packages/design-system/src/styles.css is vendored from Claude Design.\n'
+  printf '  Hand edits are overwritten on the next sync. App CSS belongs in packages/ui/src/styles/extensions.css.\n'
+fi
+
+exit 0
