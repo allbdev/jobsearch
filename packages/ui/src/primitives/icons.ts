@@ -6,4 +6,15 @@
  * (Lucide, stroke-width 1.5) and the app never picks an off-system glyph by
  * accident. Add to this list deliberately.
  */
-export { Bookmark, ExternalLink, Mail, Pencil, Plus, X } from 'lucide-react'
+export {
+  Bookmark,
+  ChevronLeft,
+  ExternalLink,
+  Filter,
+  Mail,
+  Pencil,
+  Plus,
+  Rows3,
+  User,
+  X,
+} from 'lucide-react'

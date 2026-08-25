@@ -1,0 +1,19 @@
+/* A single-line horizontally scrolling strip. The mobile designs use it for
+   the Feed's feed picker and the Profile's section nav, both of which replace
+   a desktop sidebar. The scrollbar is hidden because the row is short and the
+   chips are self-evidently scrollable. */
+.row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.row > * {
+  flex: none;
+}

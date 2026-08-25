@@ -26,4 +26,8 @@
      sit in dense multi-select rows. */
   --touch-target: 44px;
   --touch-target-sm: 32px;
+
+  /* Space the fixed mobile tab bar occupies, reserved by the shell so content
+     is never hidden behind it. */
+  --mobile-tabbar-height: 60px;
 }
