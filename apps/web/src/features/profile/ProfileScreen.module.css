@@ -1,0 +1,83 @@
+.layout {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.nav {
+  position: sticky;
+  top: 76px;
+  font-size: 14px;
+}
+
+.navHeading {
+  margin-bottom: var(--space-2);
+}
+
+.navLink {
+  text-decoration: none;
+  padding: 5px 0;
+}
+
+.main {
+  min-width: 0;
+}
+
+/* Two equal fields side by side — the recurring form row in this screen. */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.pairNarrow {
+  max-width: 640px;
+}
+
+.jobTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.sendOn {
+  width: 130px;
+}
+
+.sendAt {
+  width: 100px;
+}
+
+.emailLanguage {
+  max-width: 260px;
+}
+
+.accountActions {
+  margin-top: var(--space-4);
+}
+
+.dangerAction {
+  color: var(--color-neutral-700);
+}
+
+.historyHeader {
+  margin-bottom: var(--space-3);
+}
+
+.historyTitle {
+  margin: 0;
+}
+
+/* Sits above the page bottom so the save actions stay reachable while
+   scrolling a long settings form. */
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-3) 0;
+  background: linear-gradient(transparent, var(--color-bg) 30%);
+}

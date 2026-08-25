@@ -37,9 +37,10 @@ import {
   Tag,
   toOptions,
   toggleInList,
+  cx,
   type Column,
 } from '@jobsearch/ui'
-import { color } from '@jobsearch/design-system/tokens'
+import styles from './ProfileScreen.module.css'
 
 const SETTINGS_NAV = [
   ['profile', 'Profile & matching'],
@@ -82,7 +83,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
       key: 'title',
       header: 'Position',
       render: (row) => (
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 15 }}>
+        <span className={styles.jobTitle}>
           {row.title}
         </span>
       ),
@@ -117,33 +118,24 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
       bare
     >
       <div
-        style={{
-          width: '100%',
-          maxWidth: 1080,
-          margin: '0 auto',
-          padding: 'var(--space-6) var(--space-4)',
-          display: 'grid',
-          gridTemplateColumns: '200px minmax(0,1fr)',
-          gap: 'var(--space-8)',
-          alignItems: 'start',
-        }}
+        className={styles.layout}
       >
-        <Stack as="aside" gap="1" style={{ position: 'sticky', top: 76, fontSize: 14 }}>
-          <h6 style={{ marginBottom: 'var(--space-2)' }}>Settings</h6>
+        <Stack as="aside" gap="1" className={styles.nav}>
+          <h6 className={styles.navHeading}>Settings</h6>
           {SETTINGS_NAV.map(([id, label]) => (
-            <a key={id} href={`#${id}`} style={{ textDecoration: 'none', padding: '5px 0' }}>
+            <a key={id} href={`#${id}`} className={styles.navLink}>
               {label}
             </a>
           ))}
         </Stack>
 
-        <Stack as="main" gap="8" style={{ minWidth: 0 }}>
+        <Stack as="main" gap="8" className={styles.main}>
           <SectionCard
             id="profile"
             title="Profile & matching"
             description="Where you live decides which postings you are eligible for. Everything else tunes relevance, never blocks a match."
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+            <div className={styles.pair}>
               <Field label="Country of residence" htmlFor="residence">
                 <Select
                   id="residence"
@@ -199,11 +191,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             </Field>
 
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 'var(--space-3)',
-              }}
+              className={styles.pair}
             >
               <Field label="Target roles" htmlFor="roles">
                 <Input
@@ -266,7 +254,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               <Field label="Send on" htmlFor="send-on">
                 <Select
                   id="send-on"
-                  style={{ width: 130 }}
+                  className={styles.sendOn}
                   options={toOptions(['Monday', 'Wednesday', 'Friday'])}
                   value={draft.digest.sendOn}
                   onChange={(event) => update('digest', { ...draft.digest, sendOn: event.target.value })}
@@ -275,14 +263,14 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               <Field label="At" htmlFor="send-at">
                 <Select
                   id="send-at"
-                  style={{ width: 100 }}
+                  className={styles.sendAt}
                   options={toOptions(['08:00', '12:00', '18:00'])}
                   value={draft.digest.sendAt}
                   onChange={(event) => update('digest', { ...draft.digest, sendAt: event.target.value })}
                 />
               </Field>
             </Cluster>
-            <div style={{ maxWidth: 260 }}>
+            <div className={styles.emailLanguage}>
               <Field label="Email language" htmlFor="digest-lang">
                 <Select
                   id="digest-lang"
@@ -296,7 +284,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
 
           <SectionCard id="account" title="Account & security">
             <div
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', maxWidth: 640 }}
+              className={cx(styles.pair, styles.pairNarrow)}
             >
               <Field label="Email" htmlFor="email">
                 <Input
@@ -315,18 +303,18 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                 />
               </Field>
             </div>
-            <Cluster gap="2" style={{ marginTop: 'var(--space-4)' }}>
+            <Cluster gap="2" className={styles.accountActions}>
               <Button variant="secondary">Change password</Button>
               <Button variant="secondary">Connected accounts (Google, GitHub)</Button>
-              <Button variant="ghost" style={{ color: color.neutral(700) }}>
+              <Button variant="ghost" className={styles.dangerAction}>
                 Delete account…
               </Button>
             </Cluster>
           </SectionCard>
 
           <section id="history">
-            <Cluster justify="space-between" align="baseline" style={{ marginBottom: 'var(--space-3)' }}>
-              <h3 style={{ margin: 0 }}>Job history</h3>
+            <Cluster justify="space-between" align="baseline" className={styles.historyHeader}>
+              <h3 className={styles.historyTitle}>Job history</h3>
               <SegmentedControl
                 options={HISTORY_TABS}
                 value={historyTab}
@@ -345,12 +333,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
           <Cluster
             justify="flex-end"
             gap="2"
-            style={{
-              position: 'sticky',
-              bottom: 0,
-              padding: 'var(--space-3) 0',
-              background: `linear-gradient(transparent, ${color.bg} 30%)`,
-            }}
+            className={styles.saveBar}
           >
             <Button variant="secondary" onClick={() => setDraft(profile)}>
               Discard changes
