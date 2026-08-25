@@ -1,12 +1,20 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Blueprint } from './Blueprint'
+import { cx } from '../lib/cx'
 import styles from './Table.module.css'
 
 export interface Column<Row> {
   key: string
   header: string
-  /** Right-align numeric and date columns, matching the design. */
+  /** Right-align numeric and date columns. Desktop only — a card has no columns. */
   align?: 'left' | 'right'
+  /**
+   * Where this cell sits in the mobile card, matching a name in the table's
+   * `mobileAreas` template. Ignored on desktop, where the cell is a table-cell.
+   */
+  mobileArea?: string
+  /** Drop this column from the mobile card — usually because context implies it. */
+  hideOnMobile?: boolean
   render: (row: Row) => ReactNode
 }
 
@@ -15,18 +23,33 @@ export interface DataTableProps<Row> {
   rows: readonly Row[]
   rowKey: (row: Row) => string
   emptyMessage?: string
+  /**
+   * `grid-template-areas` for the mobile card, e.g.
+   * `'"title date" "company badge"'`. Without it the cells simply stack.
+   */
+  mobileAreas?: string
 }
 
-/** Data table inside a blueprint frame — the only table pattern in the system. */
+/** Data table inside a blueprint frame; a stack of cards below `--bp-md`. */
 export function DataTable<Row>({
   columns,
   rows,
   rowKey,
   emptyMessage = 'Nothing here yet.',
+  mobileAreas,
 }: DataTableProps<Row>) {
+  const areaStyle = mobileAreas
+    ? ({ '--mobile-areas': mobileAreas } as CSSProperties)
+    : undefined
+
+  const cellStyle = (column: Column<Row>): CSSProperties | undefined =>
+    column.mobileArea ? { gridArea: column.mobileArea } : undefined
+
+  const visible = columns.filter((column) => !column.hideOnMobile)
+
   return (
     <Blueprint className={styles.frame}>
-      <table className="table">
+      <table className={cx('table', styles.table)} style={areaStyle}>
         <thead>
           <tr>
             {columns.map((column) => (
@@ -39,7 +62,7 @@ export function DataTable<Row>({
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="text-muted">
+              <td colSpan={visible.length} className="text-muted">
                 {emptyMessage}
               </td>
             </tr>
@@ -49,7 +72,14 @@ export function DataTable<Row>({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    style={column.align === 'right' ? { textAlign: 'right' } : undefined}
+                    className={cx(
+                      column.align === 'right' && styles.alignRight,
+                      column.hideOnMobile && styles.hideOnMobile,
+                    )}
+                    style={{
+                      ...(column.align === 'right' ? { textAlign: 'right' as const } : {}),
+                      ...cellStyle(column),
+                    }}
                   >
                     {column.render(row)}
                   </td>
