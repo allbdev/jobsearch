@@ -36,6 +36,10 @@ export { SectionCard } from './components/SectionCard'
 export { SkillsInput } from './components/SkillsInput'
 export { StatFigure, StatRow } from './components/StatFigure'
 export { JobRow } from './components/JobRow'
+export { JobActions } from './components/JobActions'
+export { ScrollRow } from './components/ScrollRow'
+export { MobileTabBar } from './components/MobileTabBar'
+export type { MobileTab } from './components/MobileTabBar'
 
 // helpers
 export { cx } from './lib/cx'

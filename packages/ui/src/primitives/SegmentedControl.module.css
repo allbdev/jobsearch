@@ -7,10 +7,6 @@
   justify-content: center;
 }
 
-.sm .option {
-  padding: 5px 10px;
-  font-size: 12px;
-}
 
 /* Below --bp-md the mobile designs stretch the seniority, cadence and
    sign-in switches to the full width with a 40px target. The Feed's sort
@@ -25,5 +21,13 @@
     flex: 1;
     justify-content: center;
     min-height: 40px;
+  }
+
+  /* The Feed's sort switch shares a row with the match count, so it compacts
+     rather than stretching. Mobile-only by definition — the desktop design
+     draws it at the default size. */
+  .compactMobile .option {
+    padding: 5px 10px;
+    font-size: 12px;
   }
 }

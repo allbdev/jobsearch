@@ -25,6 +25,16 @@ export interface AppShellProps {
   footer?: ReactNode
   /** Feed pins its own scroll areas, so the shell must not add page padding. */
   bare?: boolean
+  /**
+   * Replaces the top bar below the mobile breakpoint. Each screen's mobile
+   * chrome differs — the Feed has a filter header and feed picker, the Profile
+   * a title and section nav — so the shell only provides the slot.
+   */
+  mobileHeader?: ReactNode
+  /** Fixed bottom navigation, rendered below the content on mobile only. */
+  mobileTabs?: ReactNode
+  /** Constrains the whole shell, matching the mobile designs' 480px cap. */
+  mobileMaxWidth?: number
 }
 
 export function Brand() {
@@ -50,11 +60,14 @@ export function AppShell({
   children,
   footer,
   bare = false,
+  mobileHeader,
+  mobileTabs,
 }: AppShellProps) {
   const Link = (linkComponent ?? 'a') as ElementType
 
   return (
-    <div className={styles.shell}>
+    <div className={cx(styles.shell, Boolean(mobileTabs) && styles.withTabs)}>
+      {mobileHeader ? <div className={styles.mobileHeader}>{mobileHeader}</div> : null}
       <nav className={cx('nav', styles.bar)}>
         <Brand />
         {nav.map((item) => (
@@ -67,11 +80,15 @@ export function AppShell({
       {bare ? (
         children
       ) : (
-        <div className={cx('app-main', styles.content)} style={{ maxWidth }}>
+        <div
+          className={cx('app-main', styles.content, Boolean(mobileTabs) && styles.withTabs)}
+          style={{ maxWidth }}
+        >
           {children}
         </div>
       )}
       {footer}
+      {mobileTabs}
     </div>
   )
 }

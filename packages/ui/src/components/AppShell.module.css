@@ -24,3 +24,35 @@
   width: 100%;
   margin: 0 auto;
 }
+
+/* The mobile designs replace the desktop top bar entirely: the Feed gets a
+   brand + filter header with a feed picker, the Profile a title + section nav.
+   Each screen supplies its own via `mobileHeader`. */
+.mobileHeader {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bar {
+    display: none;
+  }
+  .mobileHeader {
+    display: block;
+    flex: none;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .content {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  /* Reserve the fixed tab bar's space on the shell itself. An extra wrapper
+     around `children` would break the layouts that rely on being a direct
+     flex child of the shell -- the landing page's `flex: 1` column, for one. */
+  .withTabs {
+    padding-bottom: calc(var(--mobile-tabbar-height) + env(safe-area-inset-bottom));
+  }
+}

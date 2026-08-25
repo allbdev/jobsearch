@@ -8,7 +8,7 @@ export interface EvidenceCardProps {
   snippet: string
   /** Rendered under the quote — source link, verification date, classifier version. */
   footer?: ReactNode
-  kicker?: string
+  kicker?: ReactNode
   /**
    * `inline` sits inside an already-framed container (the feed row's evidence
    * panel) and uses a tinted hairline box. `framed` stands alone on the page

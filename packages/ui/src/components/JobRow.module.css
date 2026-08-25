@@ -48,10 +48,88 @@
   white-space: nowrap;
 }
 
-.saved {
-  color: var(--color-accent-700);
-}
-
 .evidence {
   padding: 0 var(--space-4) var(--space-3);
+}
+
+.classifier {
+  display: inline;
+}
+
+/* Actions live in the row on desktop and in the expanded panel on mobile —
+   two different DOM parents. Server rendering rules out branching on viewport
+   in JS, so both slots are rendered and one is hidden per breakpoint. It is
+   the same `JobActions` component in both, so there is still one
+   implementation; `display:none` also removes the hidden one from the
+   accessibility tree and the tab order. */
+.actionsPanel {
+  display: none;
+}
+
+/* Below --bp-md the row reflows to the mobile design: title beside salary,
+   company beside the posted/source line, tags on their own row. The wrappers
+   become `display: contents` so their children join the row's grid directly,
+   which avoids duplicating any markup to achieve the regrouping. */
+@media (max-width: 768px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'title   salary'
+      'company meta'
+      'tags    tags';
+    gap: 8px var(--space-3);
+    padding: var(--space-3);
+    align-items: baseline;
+  }
+
+  .main,
+  .aside,
+  .titleGroup {
+    display: contents;
+  }
+
+  .title {
+    grid-area: title;
+    font-size: 16.5px;
+  }
+  .company {
+    grid-area: company;
+  }
+  .salary {
+    grid-area: salary;
+    font-size: 14px;
+  }
+  .meta {
+    grid-area: meta;
+  }
+  .tags {
+    grid-area: tags;
+  }
+
+  .actionsInline {
+    display: none;
+  }
+  .actionsPanel {
+    display: grid;
+  }
+
+  .evidence {
+    padding: 0 var(--space-3) var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  /* The row is a touch target, so the desktop hover tint would stick after a
+     tap. Use the active state instead, as the mobile design does. */
+  .header:hover {
+    background: none;
+  }
+  .header:active {
+    background: color-mix(in srgb, var(--color-text) 4%, transparent);
+  }
+
+  .classifier {
+    display: none;
+  }
 }

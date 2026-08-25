@@ -1,0 +1,42 @@
+.bar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 0 11px;
+  text-decoration: none;
+  color: var(--color-text);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-height: var(--touch-target);
+}
+
+.current {
+  color: var(--color-accent-700);
+}
+
+@media (max-width: 768px) {
+  /* The design draws this inside a 100vh flex column. Pinning it with
+     `position: fixed` instead avoids the mobile-browser 100vh problem, where
+     the collapsing address bar makes a 100vh container taller than the
+     visible area and pushes the bar off screen. `--mobile-tabbar-height`
+     lets the shell reserve space so the last row is never covered. */
+  .bar {
+    display: grid;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    margin: 0 auto;
+    max-width: 480px;
+    border-top: 1px solid var(--color-divider);
+    background: var(--color-bg);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

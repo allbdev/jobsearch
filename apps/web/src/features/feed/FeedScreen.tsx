@@ -9,17 +9,22 @@ import {
   Blueprint,
   Button,
   Cluster,
+  Filter,
   Icon,
   JobRow,
   Mail,
+  MobileTabBar,
   Muted,
   Overline,
   Pencil,
   Plus,
+  Rows3,
+  ScrollRow,
   SegmentedControl,
   SignOutButton,
   Stack,
   Tag,
+  User,
   cx,
 } from '@jobsearch/ui'
 import { FeedDefinitionDialog } from './FeedDefinitionDialog'
@@ -80,6 +85,58 @@ export function FeedScreen({
       navAside={<SignOutButton href="/" linkComponent={Link} />}
       linkComponent={Link}
       bare
+      mobileHeader={
+        <>
+          <div className={cx('nav', styles.mobileHeader)}>
+            <div className={cx('nav-brand', styles.mobileBrand)}>JOBSEARCH</div>
+            <Button
+              variant="secondary"
+              icon
+              title="Edit feed definition"
+              aria-label="Edit feed definition"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Icon icon={Filter} size={16} />
+            </Button>
+          </div>
+          <ScrollRow className={styles.feedChips}>
+            {feeds.map((entry) => {
+              const active = entry.id === feed.id
+              return (
+                <Link
+                  key={entry.id}
+                  href={`/feed?feed=${entry.id}`}
+                  className={cx(styles.feedChip, active && styles.feedChipActive)}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <span className={styles.feedChipName}>{entry.definition.name}</span>
+                  <Tag tone="neutral" size="sm">
+                    {entry.matchedCount}
+                  </Tag>
+                </Link>
+              )
+            })}
+            <button
+              type="button"
+              title="New feed"
+              aria-label="New feed"
+              className={styles.newFeedChip}
+              onClick={() => setDialogOpen(true)}
+            >
+              <Icon icon={Plus} size={15} />
+            </button>
+          </ScrollRow>
+        </>
+      }
+      mobileTabs={
+        <MobileTabBar
+          linkComponent={Link}
+          tabs={[
+            { href: '/feed', label: 'Feed', icon: Rows3, current: true },
+            { href: '/profile', label: 'Profile', icon: User },
+          ]}
+        />
+      }
     >
       <div className={styles.layout}>
         <Stack as="aside" gap="4" className={styles.sidebar}>
@@ -149,7 +206,8 @@ export function FeedScreen({
             <div>
               <h2 className={styles.title}>{definition.name}</h2>
               <Muted className={styles.subtitle}>
-                {jobs.length} matched positions · index updated{' '}
+                {jobs.length} matched<span className={styles.longWord}> positions</span> ·{' '}
+                <span className={styles.longWord}>index </span>updated{' '}
                 {Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))}h ago
               </Muted>
             </div>
@@ -157,6 +215,7 @@ export function FeedScreen({
               options={SORT_OPTIONS}
               value={sort}
               onChange={setSort}
+              compactMobile
               ariaLabel="Sort positions"
             />
           </Cluster>

@@ -16,8 +16,8 @@ export interface SegmentedControlProps<T extends string> {
   fill?: boolean
   /** Stretch only below the mobile breakpoint, as the mobile designs do. */
   fillMobile?: boolean
-  /** `sm` is the compact form used by the Feed's sort switch on mobile. */
-  size?: 'md' | 'sm'
+  /** Compact padding below the mobile breakpoint only — the Feed sort switch. */
+  compactMobile?: boolean
   ariaLabel?: string
   className?: string
 }
@@ -36,7 +36,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   fill = false,
   fillMobile = false,
-  size = 'md',
+  compactMobile = false,
   ariaLabel,
   className,
 }: SegmentedControlProps<T>) {
@@ -46,7 +46,7 @@ export function SegmentedControl<T extends string>({
         'seg',
         fill && styles.fill,
         fillMobile && styles.fillMobile,
-        size === 'sm' && styles.sm,
+        compactMobile && styles.compactMobile,
         className,
       )}
       role="radiogroup"
