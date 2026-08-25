@@ -11,6 +11,8 @@ user a personalized feed plus an email digest.
 
 | | |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | **Operating rules for AI agents — read first** |
+| [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Worktrees, branching, PR size budget, review |
 | [`docs/PLAN.md`](docs/PLAN.md) | Product, architecture, decision log, milestones, open questions |
 | [`docs/FRONTEND.md`](docs/FRONTEND.md) | Component library rules and inventory |
 | [`packages/design-system/README.md`](packages/design-system/README.md) | The "Industry" design system and how to re-sync it |
@@ -21,11 +23,14 @@ Milestone **M0**, in progress. The frontend is built against fixtures; the
 backend does not exist yet. See `PLAN.md` §8.
 
 ```bash
-pnpm install
-pnpm --filter @jobsearch/web dev    # http://localhost:3000
-pnpm typecheck
-pnpm boundaries                      # architectural rules, CI-enforced
+pnpm install                         # also installs the git hooks
+./scripts/worktree.sh new feat/<scope>-<description>   # all work happens here
+pnpm --filter @jobsearch/web dev     # http://localhost:3000 (PORT= to change)
+pnpm typecheck && pnpm boundaries && pnpm build        # the gates
 ```
+
+**Never commit to `main`.** Every change goes through a worktree and a pull
+request — see [`docs/WORKFLOW.md`](docs/WORKFLOW.md).
 
 ## Layout
 
