@@ -12,8 +12,12 @@
 #
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-WORKTREE_HOME="$(cd "$REPO_ROOT/.." && pwd)/jobsearch-worktrees"
+# --show-toplevel would give the *current* worktree, so running this from
+# inside one would nest worktrees inside each other. --git-common-dir always
+# points at the primary checkout's .git, from either place.
+GIT_COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+REPO_ROOT="$(dirname "$GIT_COMMON_DIR")"
+WORKTREE_HOME="$(dirname "$REPO_ROOT")/jobsearch-worktrees"
 
 die() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 info() { printf '\033[36m%s\033[0m\n' "$*"; }
