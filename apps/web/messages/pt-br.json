@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "title": "JobSearch — vagas remotas para as quais você é realmente elegível",
+    "description": "A maioria dos sites diz \"Remoto\". Nós verificamos se a empresa contrata de onde você mora — e citamos o trecho da vaga que comprova. Qualquer profissão."
+  },
+  "nav": {
+    "feed": "Vagas",
+    "profile": "Perfil",
+    "signOut": "Sair",
+    "language": "Idioma",
+    "primary": "Principal"
+  }
+}

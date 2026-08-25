@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import {
   AppShell,
   Blueprint,
-  Brand,
   BrandIcon,
   Button,
   Checkbox,
@@ -31,8 +32,6 @@ const MODE_OPTIONS = [
   { value: 'register', label: 'Create account' },
 ] as const
 
-const LANGUAGES = ['English', 'Português (BR)', 'Español']
-
 const STATS = [
   { value: '38k', label: 'postings classified' },
   { value: '190+', label: 'countries covered' },
@@ -47,26 +46,10 @@ export function AuthScreen() {
     <AppShell
       nav={[]}
       navAside={
-        <Select
-          aria-label="Language"
-          options={toOptions(LANGUAGES)}
-          defaultValue="English"
-          className={styles.languageSelect}
-        />
+        <LocaleSwitcher className={styles.languageSelect} />
       }
       linkComponent={Link}
       bare
-      mobileHeader={
-        <div className={cx('nav', styles.mobileNav)}>
-          <Brand />
-          <Select
-            aria-label="Language"
-            options={toOptions(LANGUAGES)}
-            defaultValue="English"
-            className={styles.languageSelect}
-          />
-        </div>
-      }
       footer={
         <Cluster
           as="footer"

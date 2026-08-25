@@ -33,9 +33,13 @@
 }
 
 @media (max-width: 768px) {
-  .bar {
+  /* Only screens that supply their own mobile chrome hide the top bar. A
+     screen whose mobile header would just be the same bar keeps it, rather
+     than rendering a second copy of every control inside it. */
+  .withMobileHeader .bar {
     display: none;
   }
+
   .mobileHeader {
     display: block;
     flex: none;

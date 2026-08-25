@@ -115,10 +115,6 @@
 }
 
 @media (max-width: 768px) {
-  .mobileNav {
-    padding: var(--space-3);
-  }
-
   /* The compact desktop height is below the chip touch target on a phone. */
   .languageSelect {
     min-height: var(--touch-target-sm);

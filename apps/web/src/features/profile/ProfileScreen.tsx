@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import type {
   ContractModel,
   DigestCadence,
@@ -78,6 +80,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
     profile.minCompensation ? profile.minCompensation.toLocaleString('en-US') : '',
   )
   const [historyTab, setHistoryTab] = useState<JobInteraction>('saved')
+  const t = useTranslations('nav')
 
   const update = <K extends keyof Profile>(key: K, value: Profile[K]) =>
     setDraft((current) => ({ ...current, [key]: value }))
@@ -129,8 +132,8 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
   return (
     <AppShell
       nav={[
-        { href: '/feed', label: 'Feed' },
-        { href: '/profile', label: 'Profile', current: true },
+        { href: '/feed', label: t('feed') },
+        { href: '/profile', label: t('profile'), current: true },
       ]}
       navAside={<SignOutButton href="/" linkComponent={Link} />}
       linkComponent={Link}
@@ -138,7 +141,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
       mobileHeader={
         <>
           <div className={cx('nav', styles.mobileHeader)}>
-            <div className={cx('nav-brand', styles.mobileTitle)}>Profile</div>
+            <div className={cx('nav-brand', styles.mobileTitle)}>{t('profile')}</div>
             <SignOutButton href="/" linkComponent={Link} />
           </div>
           <ScrollRow className={styles.sectionChips}>
@@ -330,13 +333,12 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                   onChange={(event) => update('email', event.target.value)}
                 />
               </Field>
-              <Field label="Interface language" htmlFor="ui-lang">
-                <Select
-                  id="ui-lang"
-                  options={toOptions(['English', 'Português (BR)', 'Español'])}
-                  value={draft.interfaceLanguage}
-                  onChange={(event) => update('interfaceLanguage', event.target.value)}
-                />
+              {/* The real control: with locale-prefixed routes the interface
+                  language is the URL, so this navigates rather than editing a
+                  profile field. The digest language below stays a stored
+                  preference -- it decides what the emails are written in. */}
+              <Field label="Interface language">
+                <LocaleSwitcher />
               </Field>
             </div>
             <Cluster gap="2" className={styles.accountActions}>
@@ -383,7 +385,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
       <div className={styles.mobileSaveBar}>
         <Button as={Link} variant="secondary" href="/feed">
           <Icon icon={ChevronLeft} size={16} />
-          Feed
+          {t('feed')}
         </Button>
         <Button variant="primary" className={styles.saveAction}>
           Save profile
