@@ -24,8 +24,8 @@ DS class name inline.
 ## Rules taken from the system's own readme
 
 - Link the one stylesheet; take every color, font, spacing, radius and shadow
-  from its variables. Never hard-code a hex, a font name, or a px value the
-  tokens already carry.
+  from its variables (`var(--color-*)`, `var(--space-*)`, …). Never hard-code a
+  hex, a font name, or a px value the tokens already carry.
 - Cards, figures and primary buttons are **blueprint objects**: square corners,
   hairline border, and four `+` registration marks. Never drop the marks from a
   framed element; never round or surface-fill a card.
