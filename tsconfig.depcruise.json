@@ -1,0 +1,19 @@
+{
+  // Path resolution for `pnpm boundaries` only -- never used to compile.
+  //
+  // dependency-cruiser runs from the repo root, so it needs a tsconfig whose
+  // `paths` are root-relative. apps/web's own tsconfig declares `@/*` relative
+  // to itself, which resolved to nothing from here: every `@/`-prefixed import
+  // silently failed to resolve and was invisible to every rule.
+  //
+  // This mirrors the alias in apps/web/tsconfig.json. Keep the two in step --
+  // the `no-unresolvable` rule fails the build if they drift.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/web/src/*"]
+    }
+  },
+  "include": ["apps/**/*", "packages/**/*"]
+}

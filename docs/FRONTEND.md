@@ -106,8 +106,18 @@ kind of bug that only shows up in a screenshot.
 library re-exports a blessed set and forces `strokeWidth={1.5}`, which the
 design system requires and Lucide's default (2.0) violates.
 
-**The library is framework-agnostic.** `packages/ui` may not import `next`;
-CI enforces it. Screens inject the router's link via `linkComponent`.
+**The library is framework-agnostic.** `packages/ui` may not import `next`, nor
+a Next-coupled runtime such as `next-intl`. CI enforces it. Screens inject the
+router's link via `linkComponent`, and translated strings arrive through
+`UiLabelsProvider`.
+
+**Library strings go through `UiLabels`.** Anything the library says out loud —
+"Save", "NEEDS CHECK", "2d ago" — is declared in
+`packages/ui/src/i18n/labels.tsx` with an English default, and the app supplies
+translations via context. That is the consequence of the rule above: the library
+cannot call a translation hook, and threading thirty props into `JobRow` was the
+alternative. Placeholders are `{name}`, filled by `formatLabel` — deliberately
+no ICU, no plurals.
 
 **Polymorphism over near-duplicates.** `<Button as={Link}>` rather than a
 separate `LinkButton`. Same for `Blueprint`, `Tag`, `Stack`, `Cluster`.

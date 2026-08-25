@@ -1,7 +1,10 @@
+'use client'
+
 import type { ElementType } from 'react'
 import { cx } from '../lib/cx'
 import { Icon, type LucideIcon } from '../primitives/Icon'
 import styles from './MobileTabBar.module.css'
+import { useUiLabels } from '../i18n/labels'
 
 export interface MobileTab {
   href: string
@@ -22,12 +25,13 @@ export interface MobileTabBarProps {
  * over.
  */
 export function MobileTabBar({ tabs, linkComponent, className }: MobileTabBarProps) {
+  const labels = useUiLabels()
   const Link = (linkComponent ?? 'a') as ElementType
   return (
     <nav
       className={cx(styles.bar, className)}
       style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
-      aria-label="Primary"
+      aria-label={labels.primaryNavigation}
     >
       {tabs.map((tab) => (
         <Link

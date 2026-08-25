@@ -41,6 +41,9 @@ export { ScrollRow } from './components/ScrollRow'
 export { MobileTabBar } from './components/MobileTabBar'
 export type { MobileTab } from './components/MobileTabBar'
 
+export { UiLabelsProvider, defaultUiLabels, formatLabel } from './i18n/labels'
+export type { UiLabels } from './i18n/labels'
+
 // helpers
 export { cx } from './lib/cx'
 export { relativeTime, verifiedLabel } from './lib/format'

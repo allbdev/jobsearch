@@ -30,9 +30,23 @@ module.exports = {
       name: 'ui-must-not-depend-on-next',
       severity: 'error',
       comment:
-        'The component library stays router-agnostic. Pass `linkComponent` instead of importing next/link.',
+        'The component library stays framework-agnostic: no `next`, and no Next-coupled ' +
+        'runtime such as `next-intl` either. Pass `linkComponent` instead of next/link, and ' +
+        'supply translated strings through UiLabelsProvider instead of a translation hook. ' +
+        'The pattern matches the bare module name as well as a node_modules path, because an ' +
+        'import of a package the library does not depend on resolves to neither.',
       from: { path: '^packages/ui' },
-      to: { path: 'node_modules/next' },
+      to: { path: '(^|/node_modules/)next(-|/|$)' },
+    },
+    {
+      name: 'no-unresolvable',
+      severity: 'error',
+      comment:
+        'An import that does not resolve is a bug -- and it silently escapes every other rule ' +
+        'here, since those match on the resolved path. A `next-intl` import inside packages/ui ' +
+        'passed CI for exactly this reason.',
+      from: {},
+      to: { couldNotResolve: true },
     },
     {
       name: 'no-circular',
@@ -65,10 +79,14 @@ module.exports = {
     // `.claude/worktrees` holds nested checkouts of this same repo -- cruising
     // into them would report every module twice.
     exclude: { path: '(node_modules|\\.next|dist|\\.claude/worktrees)' },
-    tsConfig: { fileName: 'tsconfig.base.json' },
+    // See tsconfig.depcruise.json for why this is not tsconfig.base.json.
+    tsConfig: { fileName: 'tsconfig.depcruise.json' },
     // Follow `import type` edges — without this, type-only modules read as orphans.
     tsPreCompilationDeps: true,
-    enhancedResolveOptions: { exportsFields: ['exports'], conditionNames: ['import', 'require', 'node', 'default'] },
+    enhancedResolveOptions: {
+      exportsFields: ['exports'],
+      conditionNames: ['import', 'require', 'node', 'default'],
+    },
     reporterOptions: { text: { highlightFocused: true } },
   },
 }

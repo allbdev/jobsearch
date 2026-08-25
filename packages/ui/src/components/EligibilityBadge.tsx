@@ -1,5 +1,8 @@
+'use client'
+
 import type { Eligibility, EligibilityVerdict } from '@jobsearch/shared'
 import { Tag } from '../primitives/Tag'
+import { formatLabel, useUiLabels } from '../i18n/labels'
 import styles from './EligibilityBadge.module.css'
 
 export interface EligibilityBadgeProps {
@@ -15,23 +18,25 @@ export interface EligibilityBadgeProps {
  * "needs check" cannot land in one surface and miss the other two.
  */
 export function EligibilityBadge({ verdict, regionLabel }: EligibilityBadgeProps) {
+  const labels = useUiLabels()
+
   if (verdict === 'confirmed') {
     return (
       <Tag tone="accent" className={styles.badge}>
-        {`ELIGIBLE · ${regionLabel.toUpperCase()}`}
+        {formatLabel(labels.eligible, { region: regionLabel.toUpperCase() })}
       </Tag>
     )
   }
   if (verdict === 'needs_check') {
     return (
       <Tag tone="outline" className={styles.badge}>
-        NEEDS CHECK
+        {labels.needsCheck}
       </Tag>
     )
   }
   return (
     <Tag tone="neutral" className={styles.badge}>
-      NOT ELIGIBLE
+      {labels.notEligible}
     </Tag>
   )
 }

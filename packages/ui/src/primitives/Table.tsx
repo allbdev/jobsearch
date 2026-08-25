@@ -1,7 +1,10 @@
+'use client'
+
 import type { CSSProperties, ReactNode } from 'react'
 import { Blueprint } from './Blueprint'
 import { cx } from '../lib/cx'
 import styles from './Table.module.css'
+import { useUiLabels } from '../i18n/labels'
 
 export interface Column<Row> {
   key: string
@@ -35,9 +38,10 @@ export function DataTable<Row>({
   columns,
   rows,
   rowKey,
-  emptyMessage = 'Nothing here yet.',
+  emptyMessage,
   mobileAreas,
 }: DataTableProps<Row>) {
+  const labels = useUiLabels()
   const areaStyle = mobileAreas
     ? ({ '--mobile-areas': mobileAreas } as CSSProperties)
     : undefined
@@ -63,7 +67,7 @@ export function DataTable<Row>({
           {rows.length === 0 ? (
             <tr>
               <td colSpan={visible.length} className="text-muted">
-                {emptyMessage}
+                {emptyMessage ?? labels.emptyTable}
               </td>
             </tr>
           ) : (
