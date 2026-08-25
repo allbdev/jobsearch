@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Blocks pushes to main and force-pushes to shared branches.
+# See CLAUDE.md §1.1 and §1.6.
+set -euo pipefail
+
+die() { printf '\033[31m✗ blocked:\033[0m %s\n' "$1" >&2; exit 1; }
+
+while read -r local_ref _local_sha remote_ref _remote_sha; do
+  [ -z "${remote_ref:-}" ] && continue
+
+  case "$remote_ref" in
+    refs/heads/main)
+      die "pushing to main is not allowed.
+
+  Open a pull request instead:
+    ./scripts/worktree.sh new feat/<scope>-<description>
+    gh pr create --fill" ;;
+  esac
+
+  # A delete push has an all-zero local sha.
+  case "$local_ref" in
+    '(delete)') die "deleting a remote branch via push is not allowed. Use the GitHub UI or gh." ;;
+  esac
+done
+
+exit 0

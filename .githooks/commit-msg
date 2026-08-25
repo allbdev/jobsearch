@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Enforces Conventional Commits. See CLAUDE.md §2.
+set -euo pipefail
+
+msg_file="$1"
+subject="$(head -1 "$msg_file")"
+
+# Let git's own generated messages through.
+case "$subject" in
+  "Merge "*|"Revert "*|fixup!*|squash!*|"#"*) exit 0 ;;
+esac
+
+pattern='^(feat|fix|refactor|docs|test|chore|ci|build|perf|style)(\([a-z0-9-]+\))?!?: .{1,}$'
+
+if ! printf '%s' "$subject" | grep -qE "$pattern"; then
+  printf '\033[31m✗ blocked:\033[0m commit message does not follow Conventional Commits.\n\n' >&2
+  printf '  got:      %s\n\n' "$subject" >&2
+  printf '  expected: <type>(<scope>): <imperative summary>\n' >&2
+  printf '  type:     feat | fix | refactor | docs | test | chore | ci | build | perf | style\n' >&2
+  printf '  scope:    web | ui | shared | api | worker | db | core | sources | design-system | repo\n\n' >&2
+  printf '  example:  feat(core): add deterministic eligibility pre-filter\n\n' >&2
+  exit 1
+fi
+
+if [ "${#subject}" -gt 72 ]; then
+  printf '\033[31m✗ blocked:\033[0m subject is %s chars (max 72). Put detail in the body.\n' "${#subject}" >&2
+  exit 1
+fi
+
+exit 0
