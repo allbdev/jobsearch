@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { localeMeta, routing } from '@/i18n/routing'
 import { localeAlternates, siteUrl } from '@/i18n/metadata'
+import { AppUiLabels } from '@/components/AppUiLabels'
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
@@ -57,7 +58,9 @@ export default async function LocaleLayout({
   return (
     <html lang={localeMeta[locale].hreflang}>
       <body style={{ margin: 0 }}>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <AppUiLabels>{children}</AppUiLabels>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

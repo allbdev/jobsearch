@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import type { Feed, FeedResult, FeedSort } from '@jobsearch/shared'
 import { CONTRACT_MODEL_LABELS } from '@jobsearch/shared'
@@ -31,11 +31,6 @@ import {
 import { FeedDefinitionDialog } from './FeedDefinitionDialog'
 import styles from './FeedScreen.module.css'
 
-const SORT_OPTIONS = [
-  { value: 'best_match', label: 'Best match' },
-  { value: 'newest', label: 'Newest' },
-] as const
-
 export function FeedScreen({
   feeds,
   result,
@@ -51,6 +46,13 @@ export function FeedScreen({
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
   const [dialogOpen, setDialogOpen] = useState(false)
   const t = useTranslations('nav')
+  const f = useTranslations('feed')
+  const locale = useLocale()
+
+  const sortOptions = [
+    { value: 'best_match', label: f('bestMatch') },
+    { value: 'newest', label: f('newest') },
+  ] as const
 
   const { feed, stats } = result
   const { definition } = feed
@@ -64,18 +66,19 @@ export function FeedScreen({
   }, [result.jobs, dismissed, sort])
 
   const dismissedCount = result.jobs.filter((job) => dismissed[job.id]).length
+  const hours = Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))
 
   const definitionRows: Array<[string, string]> = [
-    ['Job families', definition.jobFamilies.join(', ') || 'All families'],
-    ['Eligible from', definition.eligibleFrom.join(' · ')],
-    ['Contract', definition.contractModels.map((c) => CONTRACT_MODEL_LABELS[c]).join(' · ')],
+    [f('jobFamilies'), definition.jobFamilies.join(', ') || f('allFamilies')],
+    [f('eligibleFrom'), definition.eligibleFrom.join(' · ')],
+    [f('contract'), definition.contractModels.map((c) => CONTRACT_MODEL_LABELS[c]).join(' · ')],
     [
-      'Min compensation',
+      f('minCompensation'),
       definition.minCompensation
-        ? `≥ ${definition.minCompensation.toLocaleString('en-US')} ${definition.currency}`
-        : 'No minimum',
+        ? `≥ ${definition.minCompensation.toLocaleString(locale)} ${definition.currency}`
+        : f('noMinimum'),
     ],
-    ['Freshness', `Last ${definition.freshnessDays} days`],
+    [f('freshness'), f('lastDays', { days: definition.freshnessDays })],
   ]
 
   return (
@@ -94,8 +97,8 @@ export function FeedScreen({
             <Button
               variant="secondary"
               icon
-              title="Edit feed definition"
-              aria-label="Edit feed definition"
+              title={f('editFeedDefinition')}
+              aria-label={f('editFeedDefinition')}
               onClick={() => setDialogOpen(true)}
             >
               <Icon icon={Filter} size={16} />
@@ -120,8 +123,8 @@ export function FeedScreen({
             })}
             <button
               type="button"
-              title="New feed"
-              aria-label="New feed"
+              title={f('newFeed')}
+              aria-label={f('newFeed')}
               className={styles.newFeedChip}
               onClick={() => setDialogOpen(true)}
             >
@@ -143,7 +146,7 @@ export function FeedScreen({
       <div className={styles.layout}>
         <Stack as="aside" gap="4" className={styles.sidebar}>
           <div>
-            <h6 className={styles.sidebarHeading}>Your feeds</h6>
+            <h6 className={styles.sidebarHeading}>{f('yourFeeds')}</h6>
             <Stack gap={6}>
               {feeds.map((entry) => {
                 const active = entry.id === feed.id
@@ -165,12 +168,12 @@ export function FeedScreen({
             </Stack>
             <Button variant="ghost" onClick={() => setDialogOpen(true)} className={styles.newFeed}>
               <Icon icon={Plus} />
-              New feed
+              {f('newFeed')}
             </Button>
           </div>
 
           <Blueprint className={styles.definition}>
-            <Overline className={styles.definitionTitle}>Feed definition</Overline>
+            <Overline className={styles.definitionTitle}>{f('definition')}</Overline>
             <Stack gap={9} className={styles.definitionRows}>
               {definitionRows.map(([label, value]) => (
                 <div key={label}>
@@ -186,14 +189,14 @@ export function FeedScreen({
               className={styles.editDefinition}
             >
               <Icon icon={Pencil} />
-              Edit definition
+              {f('editDefinition')}
             </Button>
           </Blueprint>
 
           <Muted as="div" className={styles.digest}>
             <Icon icon={Mail} size={13} />{' '}
             <span className={styles.digestLabel}>
-              Weekly digest active · <Link href="/profile#digest">change</Link>
+              {f('digestActive')} · <Link href="/profile#digest">{f('change')}</Link>
             </span>
           </Muted>
         </Stack>
@@ -208,13 +211,21 @@ export function FeedScreen({
             <div>
               <h2 className={styles.title}>{definition.name}</h2>
               <Muted className={styles.subtitle}>
-                {jobs.length} matched<span className={styles.longWord}> positions</span> ·{' '}
-                <span className={styles.longWord}>index </span>updated{' '}
-                {Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))}h ago
+                {/* Two complete sentences, not one sentence assembled from
+                    fragments: "{count} matched" + " positions" composes only in
+                    English. Portuguese and Spanish put the noun first, which
+                    produced "7 compatíveis vagas". One of the pair is hidden
+                    per breakpoint. */}
+                <span className={styles.shortForm}>
+                  {f('matchedShort', { count: jobs.length })} · {f('updatedShort', { hours })}
+                </span>
+                <span className={styles.longForm}>
+                  {f('matchedLong', { count: jobs.length })} · {f('updatedLong', { hours })}
+                </span>
               </Muted>
             </div>
             <SegmentedControl
-              options={SORT_OPTIONS}
+              options={sortOptions}
               value={sort}
               onChange={setSort}
               compactMobile
@@ -242,11 +253,15 @@ export function FeedScreen({
               className={cx('text-muted', styles.footer)}
             >
               <span>
-                Evaluated {stats.evaluated} postings for this feed · {stats.confirmed} confirmed ·{' '}
-                {stats.needsCheck} to confirm · {dismissedCount} dismissed by you
+                {f('stats', {
+                  evaluated: stats.evaluated,
+                  confirmed: stats.confirmed,
+                  needsCheck: stats.needsCheck,
+                  dismissed: dismissedCount,
+                })}
               </span>
               <Button variant="ghost" className={styles.loadMore}>
-                Load more
+                {f('loadMore')}
               </Button>
             </Cluster>
           </Blueprint>

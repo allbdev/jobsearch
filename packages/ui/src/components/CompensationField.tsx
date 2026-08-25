@@ -4,6 +4,7 @@ import { Field } from '../primitives/Field'
 import { Input } from '../primitives/Input'
 import { Select, toOptions } from '../primitives/Select'
 import styles from './CompensationField.module.css'
+import { useUiLabels } from '../i18n/labels'
 
 export const CURRENCIES = ['USD', 'EUR', 'BRL'] as const
 export type Currency = (typeof CURRENCIES)[number]
@@ -14,6 +15,7 @@ export interface CompensationFieldProps {
   onAmountChange: (value: string) => void
   onCurrencyChange: (value: string) => void
   label?: string
+  currencyLabel?: string
   maxWidth?: number
 }
 
@@ -27,12 +29,14 @@ export function CompensationField({
   currency,
   onAmountChange,
   onCurrencyChange,
-  label = 'Minimum compensation (yearly)',
+  label,
+  currencyLabel,
   maxWidth,
 }: CompensationFieldProps) {
+  const labels = useUiLabels()
   return (
     <div className={styles.grid} style={{ maxWidth }}>
-      <Field label={label} htmlFor="comp-amount">
+      <Field label={label ?? labels.minCompensation} htmlFor="comp-amount">
         <Input
           id="comp-amount"
           inputMode="numeric"
@@ -40,7 +44,7 @@ export function CompensationField({
           onChange={(event) => onAmountChange(event.target.value)}
         />
       </Field>
-      <Field label="Currency" htmlFor="comp-currency">
+      <Field label={currencyLabel ?? labels.currency} htmlFor="comp-currency">
         <Select
           id="comp-currency"
           options={toOptions(CURRENCIES)}

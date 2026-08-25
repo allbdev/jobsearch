@@ -111,6 +111,14 @@ a Next-coupled runtime such as `next-intl`. CI enforces it. Screens inject the
 router's link via `linkComponent`, and translated strings arrive through
 `UiLabelsProvider`.
 
+**Never assemble a sentence from fragments.** A message is one complete
+sentence per locale, even when two variants are needed. The Feed's match count
+was briefly `"{count} matched"` + `" positions"` so mobile could drop the
+suffix — which produced *"7 compatíveis vagas"* in Portuguese and *"7
+coincidencias vacantes"* in Spanish, because Romance languages put the noun
+first. It is now `matchedShort` and `matchedLong`, two full strings, with one
+hidden per breakpoint.
+
 **Library strings go through `UiLabels`.** Anything the library says out loud —
 "Save", "NEEDS CHECK", "2d ago" — is declared in
 `packages/ui/src/i18n/labels.tsx` with an English default, and the app supplies
