@@ -120,3 +120,123 @@
 .loadMore {
   font-size: 13px;
 }
+
+/* ── Mobile ────────────────────────────────────────────────────────────────
+   Per `Feed Mobile.dc.html`: the sidebar is replaced by a scrolling feed
+   picker in the header and a filter button that opens the definition sheet;
+   navigation moves to a bottom tab bar. */
+
+.mobileHeader {
+  padding: var(--space-3);
+}
+
+.mobileBrand {
+  letter-spacing: 0.04em;
+  font-size: 17px;
+}
+
+.feedChips {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.feedChip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: inherit;
+  cursor: pointer;
+  min-height: 38px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.feedChipActive {
+  background: var(--color-accent-100);
+  border-color: var(--color-accent);
+}
+
+.feedChipName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.newFeedChip {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px dashed var(--color-divider);
+  color: var(--color-accent-700);
+  cursor: pointer;
+}
+
+/* Text the mobile design shortens: "matched positions" -> "matched",
+   "index updated" -> "updated". */
+.longWord {
+  display: inline;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    display: block;
+    max-width: 480px;
+    padding: 0;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  /* The desktop main column pins its own scroll area inside the viewport.
+     On mobile the page scrolls normally and the shell owns the chrome. */
+  .main {
+    position: static;
+    height: auto;
+    display: block;
+  }
+
+  .header {
+    margin-bottom: 0;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .title {
+    display: none;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .longWord {
+    display: none;
+  }
+
+  .list {
+    border: none;
+    display: block;
+  }
+
+  .list > i {
+    display: none;
+  }
+
+  .scroll {
+    overflow-y: visible;
+  }
+
+  .footer {
+    justify-content: center;
+    text-align: center;
+    border-top: none;
+    padding: var(--space-3);
+  }
+}
