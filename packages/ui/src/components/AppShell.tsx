@@ -66,7 +66,13 @@ export function AppShell({
   const Link = (linkComponent ?? 'a') as ElementType
 
   return (
-    <div className={cx(styles.shell, Boolean(mobileTabs) && styles.withTabs)}>
+    <div
+      className={cx(
+        styles.shell,
+        Boolean(mobileTabs) && styles.withTabs,
+        Boolean(mobileHeader) && styles.withMobileHeader,
+      )}
+    >
       {mobileHeader ? <div className={styles.mobileHeader}>{mobileHeader}</div> : null}
       <nav className={cx('nav', styles.bar)}>
         <Brand />

@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "title": "JobSearch — empleos remotos para los que realmente eres elegible",
+    "description": "La mayoría de los portales dice \"Remoto\". Nosotros verificamos si la empresa contrata desde tu país — y citamos la línea de la oferta que lo demuestra. Cualquier profesión."
+  },
+  "nav": {
+    "feed": "Vacantes",
+    "profile": "Perfil",
+    "signOut": "Cerrar sesión",
+    "language": "Idioma",
+    "primary": "Principal"
+  }
+}

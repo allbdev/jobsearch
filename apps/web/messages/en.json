@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "title": "JobSearch — remote jobs you are actually eligible for",
+    "description": "Most boards say \"Remote\". We verify whether the company hires from your country — and quote the line in the posting that proves it. Any profession."
+  },
+  "nav": {
+    "feed": "Feed",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "language": "Language",
+    "primary": "Primary"
+  }
+}
