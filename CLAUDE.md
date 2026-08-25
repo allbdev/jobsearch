@@ -20,7 +20,8 @@ commit to `main`, you do not push to `main`, you do not merge to `main` locally.
 ### 1.2 Never work in the primary checkout
 
 `/Users/vinicius.albuquerque/Dev/jobsearch` is the reference checkout. It stays
-on `main` and stays clean. **All work happens in a git worktree.**
+on `main` and stays clean. **All work happens in a git worktree**, created
+inside the project at `.claude/worktrees/<branch-slug>` (gitignored).
 
 ```bash
 ./scripts/worktree.sh new feat/api-eligibility-classifier
