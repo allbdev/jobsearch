@@ -51,6 +51,8 @@ export interface UiLabels {
   notVerified: string
 
   /** Controls */
+  minCompensation: string
+  currency: string
   close: string
   /** Takes {item}. */
   remove: string
@@ -84,6 +86,8 @@ export const defaultUiLabels: UiLabels = {
   yesterday: 'yesterday',
   notVerified: 'not verified',
 
+  minCompensation: 'Minimum compensation (yearly)',
+  currency: 'Currency',
   close: 'Close',
   remove: 'Remove {item}',
   addSkill: 'Add a skill…',
