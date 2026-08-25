@@ -1,0 +1,11 @@
+{
+  "name": "@jobsearch/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Industry — vendored from Claude Design. Do not hand-edit; re-sync from the design project.",
+  "files": ["src"],
+  "exports": {
+    "./styles.css": "./src/styles.css",
+    "./tokens": "./src/tokens.ts"
+  }
+}

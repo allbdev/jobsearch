@@ -1,0 +1,65 @@
+/**
+ * UI extension layer — the small set of modifiers the app needs that the
+ * vendored Industry stylesheet does not ship.
+ *
+ * WHY THIS FILE EXISTS: the design screens express these as one-off inline
+ * styles (`style="font-size:13px;padding:5px 12px"` on the nav button,
+ * `font-size:9px;padding:1px 6px` on the BETA tag, and so on). Repeating those
+ * inline is exactly the duplication we are eliminating, and editing
+ * `@jobsearch/design-system` would break the re-sync diff. So they live here,
+ * as named modifiers, built only from design tokens.
+ *
+ * RULES
+ * - Every value must come from a token. No raw hexes, no invented spacing.
+ * - Only add a modifier that appears in at least one design screen.
+ * - If the design system later ships an equivalent, delete it from here.
+ */
+
+/* — button sizes — */
+.btn-sm {
+  font-size: 13px;
+  padding: 5px 12px;
+}
+.btn-icon.btn-sm {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+/* — tag sizes — */
+.tag-sm {
+  font-size: 10px;
+  padding: 1px 7px;
+}
+.tag-xs {
+  font-size: 9px;
+  padding: 1px 6px;
+}
+
+/* — a field label rendered above a non-input control (chip rows, seg groups) — */
+.field-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+
+/* — the eyebrow used above grouped controls in the sidebar — */
+.overline {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* — square checkbox: Industry's `.radio .dot` is round; the checkbox variant
+     in the design squares it off (Feed dialog, Login register) — */
+.radio .dot-square {
+  border-radius: 0;
+}
+
+/* — app shell — */
+.app-main {
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
