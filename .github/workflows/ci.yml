@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Architectural boundaries
+        run: pnpm boundaries
+
+      - name: Build
+        run: pnpm build
+
+  reviewability:
+    name: Reviewability
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: PR title follows Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|refactor|docs|test|chore|ci|build|perf|style)(\([a-z0-9-]+\))?!?: .{1,}$'
+          if ! printf '%s' "$TITLE" | grep -qE "$pattern"; then
+            echo "::error::PR title must follow Conventional Commits: <type>(<scope>): <summary>"
+            echo "got: $TITLE"
+            exit 1
+          fi
+
+      - name: PR is small enough to review
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          # Generated and vendored files do not count against the budget —
+          # nobody reviews a lockfile line by line.
+          CHANGED=$(git diff --numstat "$BASE...$HEAD" -- \
+            . ':(exclude)pnpm-lock.yaml' \
+            ':(exclude)**/*.snap' \
+            ':(exclude)packages/design-system/src/styles.css' \
+            | awk '{ added += $1; removed += $2 } END { print added + removed + 0 }')
+
+          echo "Reviewable lines changed: $CHANGED"
+          echo "### Reviewable diff: **$CHANGED** lines" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ ",$LABELS," == *",large-mechanical,"* ]]; then
+            echo "Labelled 'large-mechanical' — size budget waived."
+            exit 0
+          fi
+
+          if [ "$CHANGED" -gt 800 ]; then
+            echo "::error::$CHANGED changed lines exceeds the 800-line hard limit."
+            echo "Split this PR by functionality, or label it 'large-mechanical' if it is a codemod or generated migration."
+            exit 1
+          fi
+
+          if [ "$CHANGED" -gt 400 ]; then
+            echo "::warning::$CHANGED changed lines is above the 400-line target. Justify it in the description or split it."
+          fi
+
+      - name: No merge commits on the branch
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          MERGES=$(git rev-list --merges "$BASE...$HEAD" | wc -l | tr -d ' ')
+          if [ "$MERGES" != "0" ]; then
+            echo "::warning::branch contains $MERGES merge commit(s) — rebase on main for a linear, readable history."
+          fi
