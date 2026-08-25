@@ -6,3 +6,8 @@ dist/
 .env
 .env.local
 .DS_Store
+
+# Git worktrees live inside the project (see scripts/worktree.sh). Each one is
+# a full checkout with its own node_modules, so it must never be tracked.
+# Everything else under .claude/ (settings, skills) stays trackable.
+.claude/worktrees/

@@ -62,7 +62,9 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '(node_modules|\\.next|dist)' },
+    // `.claude/worktrees` holds nested checkouts of this same repo -- cruising
+    // into them would report every module twice.
+    exclude: { path: '(node_modules|\\.next|dist|\\.claude/worktrees)' },
     tsConfig: { fileName: 'tsconfig.base.json' },
     // Follow `import type` edges — without this, type-only modules read as orphans.
     tsPreCompilationDeps: true,
