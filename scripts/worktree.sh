@@ -17,7 +17,12 @@ set -euo pipefail
 # points at the primary checkout's .git, from either place.
 GIT_COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
 REPO_ROOT="$(dirname "$GIT_COMMON_DIR")"
-WORKTREE_HOME="$(dirname "$REPO_ROOT")/jobsearch-worktrees"
+
+# Worktrees live inside the project, under a gitignored directory. Because
+# REPO_ROOT always resolves to the primary checkout (via --git-common-dir),
+# this path is the same whether the script runs from the primary checkout or
+# from inside a worktree -- worktrees never nest inside each other.
+WORKTREE_HOME="$REPO_ROOT/.claude/worktrees"
 
 die() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 info() { printf '\033[36m%s\033[0m\n' "$*"; }
@@ -94,14 +99,28 @@ EOF
 }
 
 cmd_list() {
+  printf 'Worktrees under %s\n\n' "$WORKTREE_HOME"
   git -C "$REPO_ROOT" worktree list
+}
+
+# Resolve a worktree's path from its branch, via git's own registry. Deriving
+# the path from the branch name breaks as soon as a branch is renamed after the
+# worktree was created.
+worktree_dir_for_branch() {
+  git -C "$REPO_ROOT" worktree list --porcelain | awk -v want="refs/heads/$1" '
+    /^worktree /  { dir = substr($0, 10) }
+    /^branch /    { if (substr($0, 8) == want) { print dir; exit } }
+  '
 }
 
 cmd_done() {
   local branch="${1:-}"
   [ -n "$branch" ] || die "usage: worktree.sh done <branch>"
-  local dir="$WORKTREE_HOME/$(slug "$branch")"
-  [ -d "$dir" ] || die "no worktree at $dir"
+  local dir; dir="$(worktree_dir_for_branch "$branch")"
+  [ -n "$dir" ] || die "no worktree checked out for branch '$branch'
+Run './scripts/worktree.sh list' to see what exists."
+  [ -d "$dir" ] || die "worktree for '$branch' is registered at $dir but missing on disk.
+Run 'git worktree prune' to clean up the stale entry."
 
   if [ -n "$(git -C "$dir" status --porcelain)" ]; then
     die "worktree has uncommitted changes — commit or discard them first:
