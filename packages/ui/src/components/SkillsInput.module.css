@@ -28,3 +28,26 @@
   min-width: 110px;
   color: var(--color-text);
 }
+
+/* On a touch screen the remove control and the free-text input were 10px and
+   22px tall -- unusable. The mobile design pads the remove button and floors
+   the input; both stay inside the chip row's 32px rhythm. */
+@media (max-width: 768px) {
+  /* `all: unset` on the base rule resets display to inline, so padding alone
+     cannot reach a touch target -- it needs an explicit box. Negative margins
+     keep the chip itself at its designed 32px. */
+  .remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-target-sm);
+    min-width: 26px;
+    padding: 0 6px;
+    margin: -6px -8px -6px 0;
+  }
+
+  .input {
+    min-height: var(--touch-target-sm);
+    min-width: 100px;
+  }
+}

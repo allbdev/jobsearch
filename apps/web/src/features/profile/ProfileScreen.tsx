@@ -21,6 +21,7 @@ import {
 import {
   AppShell,
   Button,
+  ChevronLeft,
   ChipToggleGroup,
   Cluster,
   CompensationField,
@@ -28,6 +29,8 @@ import {
   EligibilityBadge,
   Field,
   Input,
+  Icon,
+  ScrollRow,
   SectionCard,
   SegmentedControl,
   Select,
@@ -42,13 +45,14 @@ import {
 } from '@jobsearch/ui'
 import styles from './ProfileScreen.module.css'
 
+/** id, desktop label, mobile chip label. */
 const SETTINGS_NAV = [
-  ['profile', 'Profile & matching'],
-  ['occupation', 'Occupation & skills'],
-  ['contract', 'Contract & compensation'],
-  ['digest', 'Email digest'],
-  ['account', 'Account & security'],
-  ['history', 'Job history'],
+  ['profile', 'Profile & matching', 'Matching'],
+  ['occupation', 'Occupation & skills', 'Occupation'],
+  ['contract', 'Contract & compensation', 'Contract'],
+  ['digest', 'Email digest', 'Digest'],
+  ['account', 'Account & security', 'Account'],
+  ['history', 'Job history', 'History'],
 ] as const
 
 const SENIORITY_OPTIONS = (Object.keys(SENIORITY_LABELS) as Seniority[]).map((value) => ({
@@ -82,16 +86,23 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
     {
       key: 'title',
       header: 'Position',
+      mobileArea: 'title',
       render: (row) => (
         <span className={styles.jobTitle}>
           {row.title}
         </span>
       ),
     },
-    { key: 'company', header: 'Company', render: (row) => row.company },
+    {
+      key: 'company',
+      header: 'Company',
+      mobileArea: 'company',
+      render: (row) => <span className="text-muted">{row.company}</span>,
+    },
     {
       key: 'eligibility',
       header: 'Eligibility',
+      mobileArea: 'eligibility',
       render: (row) => (
         <EligibilityBadge
           verdict={row.confirmed ? 'confirmed' : 'needs_check'}
@@ -102,9 +113,17 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
     {
       key: 'status',
       header: 'Status',
+      // Dropped from the mobile card: the selected tab already states it.
+      hideOnMobile: true,
       render: (row) => <Tag tone="neutral">{row.status}</Tag>,
     },
-    { key: 'date', header: 'Date', align: 'right', render: (row) => <span className="text-muted">{row.date}</span> },
+    {
+      key: 'date',
+      header: 'Date',
+      align: 'right',
+      mobileArea: 'date',
+      render: (row) => <span className="text-muted">{row.date}</span>,
+    },
   ]
 
   return (
@@ -116,6 +135,21 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
       navAside={<SignOutButton href="/" linkComponent={Link} />}
       linkComponent={Link}
       bare
+      mobileHeader={
+        <>
+          <div className={cx('nav', styles.mobileHeader)}>
+            <div className={cx('nav-brand', styles.mobileTitle)}>Profile</div>
+            <SignOutButton href="/" linkComponent={Link} />
+          </div>
+          <ScrollRow className={styles.sectionChips}>
+            {SETTINGS_NAV.map(([id, label, shortLabel]) => (
+              <Tag key={id} as="a" href={`#${id}`} tone="neutral" className={styles.sectionChip}>
+                {shortLabel}
+              </Tag>
+            ))}
+          </ScrollRow>
+        </>
+      }
     >
       <div
         className={styles.layout}
@@ -202,6 +236,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               </Field>
               <Field label="Seniority">
                 <SegmentedControl
+                  fillMobile
                   options={SENIORITY_OPTIONS}
                   value={draft.seniority}
                   onChange={(value) => update('seniority', value)}
@@ -242,9 +277,10 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             title="Email digest"
             description="New matched positions, delivered in your timezone. One-click unsubscribe in every email."
           >
-            <Cluster gap="4" align="flex-end">
+            <Cluster gap="4" align="flex-end" className={styles.digestRow}>
               <Field label="Cadence">
                 <SegmentedControl
+                  fillMobile
                   options={CADENCE_OPTIONS}
                   value={draft.digest.cadence}
                   onChange={(cadence) => update('digest', { ...draft.digest, cadence })}
@@ -327,6 +363,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               rows={history.filter((row) => row.status === historyTab)}
               rowKey={(row) => row.jobId}
               emptyMessage={`No ${historyTab} positions yet.`}
+              mobileAreas={'"title date" "company eligibility"'}
             />
           </section>
 
@@ -341,6 +378,16 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             <Button variant="primary">Save profile</Button>
           </Cluster>
         </Stack>
+      </div>
+
+      <div className={styles.mobileSaveBar}>
+        <Button as={Link} variant="secondary" href="/feed">
+          <Icon icon={ChevronLeft} size={16} />
+          Feed
+        </Button>
+        <Button variant="primary" className={styles.saveAction}>
+          Save profile
+        </Button>
       </div>
     </AppShell>
   )

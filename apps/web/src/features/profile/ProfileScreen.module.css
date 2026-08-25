@@ -81,3 +81,123 @@
   padding: var(--space-3) 0;
   background: linear-gradient(transparent, var(--color-bg) 30%);
 }
+
+/* ── Mobile ────────────────────────────────────────────────────────────────
+   Per `Profile Mobile.dc.html`: the sidebar becomes a scrolling section nav
+   in the header, form rows stack, and the save actions pin to the bottom. */
+
+.mobileHeader {
+  padding: var(--space-3);
+}
+
+.mobileTitle {
+  letter-spacing: 0.04em;
+  font-size: 17px;
+}
+
+.sectionChips {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.sectionChip {
+  text-decoration: none;
+  padding: 6px 12px;
+}
+
+/* Pinned save bar. Fixed rather than sticky so it cannot be pushed off screen
+   by the mobile address bar, matching the reasoning behind MobileTabBar. */
+.mobileSaveBar {
+  display: none;
+}
+
+.historyTitle {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    display: block;
+    max-width: 480px;
+    padding: var(--space-4) var(--space-3) 96px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  /* Every two-column form row becomes a single column; the currency and the
+     digest send-time pairs keep their split because both halves are short. */
+  .pair {
+    grid-template-columns: 1fr;
+  }
+
+  .pairKeepSplit {
+    grid-template-columns: 1fr 100px;
+  }
+
+  /* Cadence takes the full width; the send day and time sit side by side,
+     as the mobile design lays them out. */
+  .digestRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-2);
+    align-items: end;
+  }
+
+  .digestRow > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .sendOn,
+  .sendAt {
+    width: 100%;
+  }
+
+  .emailLanguage {
+    max-width: none;
+  }
+
+  .accountActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* The section chips are anchor links and the header is sticky, so without
+     this the target heading scrolls underneath it. */
+  .main > * {
+    scroll-margin-top: 120px;
+  }
+
+  .historyHeader {
+    flex-wrap: nowrap;
+  }
+
+  .historyTitle {
+    font-size: 20px;
+  }
+
+  /* The desktop save row sits at the end of the form; on mobile it pins. */
+  .saveBar {
+    display: none;
+  }
+
+  .mobileSaveBar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    margin: 0 auto;
+    max-width: 480px;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .saveAction {
+    flex: 1;
+  }
+}

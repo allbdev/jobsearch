@@ -50,7 +50,12 @@ export interface ClusterOwnProps extends StackOwnProps {
 export function Cluster<E extends ElementType = 'div'>({
   as,
   gap = '2',
-  align = 'center',
+  /**
+   * Left undefined by default so the `align-items: center` default lives in
+   * CSS and stays overridable by a media query. Emitting it inline made
+   * responsive alignment impossible.
+   */
+  align,
   justify,
   wrap = true,
   className,

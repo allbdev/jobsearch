@@ -1,3 +1,50 @@
 .frame {
   padding: 0;
 }
+
+/* Below --bp-md the table becomes a stack of cards, as the mobile designs
+   draw it. Rather than rendering a second markup tree, the row itself becomes
+   a grid: each cell keeps its `grid-area` (set inline, and ignored while the
+   cell is a real table-cell on desktop) and the header row is dropped.
+   Columns marked `hideOnMobile` are removed from the card entirely. */
+@media (max-width: 768px) {
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: grid;
+    /* A card is a label column plus a trailing-meta column: the first stretches,
+       the second shrinks to its content and lands on the right edge. */
+    grid-template-columns: 1fr auto;
+    grid-template-areas: var(--mobile-areas);
+    gap: 6px var(--space-2);
+    padding: var(--space-3);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+    align-items: baseline;
+  }
+
+  .table td {
+    padding: 0;
+    border: none;
+  }
+
+  /* Must out-specify `.table td { display: block }` above, which would
+     otherwise win and keep the cell visible. */
+  .table td.hideOnMobile {
+    display: none;
+  }
+
+  /* Right alignment is a desktop column convention; in a card the cell simply
+     sits where its area puts it. */
+  .alignRight {
+    text-align: left;
+  }
+}
