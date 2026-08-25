@@ -123,8 +123,11 @@ gh pr create --fill
 When done and merged:
 
 ```bash
-./scripts/worktree.sh done feat/ui-job-card
+./scripts/worktree.sh done feat/ui-job-card   # this branch
+./scripts/worktree.sh prune                   # every merged branch
 ```
+
+Worktrees cost 400–600MB each. Prune after a batch of PRs lands.
 
 ### Branch naming
 

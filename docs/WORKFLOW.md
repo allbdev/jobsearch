@@ -98,11 +98,20 @@ pnpm and Turborepo need no guard: their workspace globs are `apps/*` and
 ### Cleaning up
 
 ```bash
-./scripts/worktree.sh done feat/api-eligibility-classifier
+./scripts/worktree.sh done feat/api-eligibility-classifier   # one branch
+./scripts/worktree.sh prune                                  # everything merged
 ```
 
-Refuses to run if there are uncommitted or unpushed changes, then deletes the
-branch if it has been merged.
+`done` refuses to run if there are uncommitted or unpushed changes, then deletes
+the branch if its pull request is merged. `prune` does the same sweep across
+every branch at once — worth running whenever a batch of PRs lands, since each
+worktree costs 400–600MB.
+
+**Merged is decided by GitHub, not by git.** This repo squash-merges (merge
+commits are disabled and linear history is required), so a merged branch's
+commits never appear in `main`'s ancestry and `git branch --merged` can never
+see them. The scripts ask `gh` instead, and delete with `-D` because `-d` would
+refuse a branch git believes is unmerged.
 
 ---
 
