@@ -63,3 +63,35 @@
   margin: 0 auto;
   padding: var(--space-6) var(--space-4);
 }
+
+/* ── Touch targets ─────────────────────────────────────────────────────────
+   Below --bp-md, controls grow to the WCAG 2.5.5 minimum. The mobile designs
+   set `min-height:44px` on every input and button individually; doing it once
+   here keeps it off every call site and makes it impossible to forget. */
+@media (max-width: 768px) {
+  .input,
+  .btn {
+    min-height: var(--touch-target);
+  }
+
+  .btn-icon {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+
+  /* Chips sit in dense multi-select rows, so they take the smaller target
+     rather than the full 44px -- as drawn in the mobile designs. */
+  .tag {
+    min-height: var(--touch-target-sm);
+  }
+
+  /* The compact modifiers exist for desktop chrome; on a touch screen they
+     must not shrink below the target. */
+  .btn-sm {
+    min-height: var(--touch-target);
+  }
+  .btn-icon.btn-sm {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}

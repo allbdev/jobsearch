@@ -1,4 +1,5 @@
 import '@jobsearch/design-system/styles.css'
+import './styles/breakpoints.css'
 import './styles/extensions.css'
 
 // primitives

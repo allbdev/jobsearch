@@ -84,6 +84,19 @@ it was deleted rather than kept as an unused abstraction. If JavaScript ever
 genuinely needs a token value, read it from the computed style rather than
 reintroducing a second source of truth.
 
+**Breakpoints are literal, and there are three.** `480px` / `768px` / `1024px`,
+declared and explained in `packages/ui/src/styles/breakpoints.css`. CSS custom
+properties cannot be used inside an `@media` condition, so unlike colors and
+spacing these cannot be real tokens — every media query must repeat the literal
+value. Do not invent a fourth breakpoint inside a component.
+
+`768px` is the switch between the desktop and mobile designs, which are drawn
+at 1400px and 390px respectively.
+
+**Touch targets are automatic below `768px`.** Inputs and buttons grow to 44px
+(WCAG 2.5.5), chips to 32px, applied once in `extensions.css` rather than at
+every call site.
+
 **Spacing is unambiguous by type.** `gap="3"` is a scale step
 (`var(--space-3)`); `gap={3}` is 3 pixels. An earlier build accepted a number
 for both and silently turned the design's 6px feed-list gap into 20.4px — the
