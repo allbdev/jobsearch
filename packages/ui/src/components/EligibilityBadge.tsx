@@ -1,5 +1,6 @@
 import type { Eligibility, EligibilityVerdict } from '@jobsearch/shared'
 import { Tag } from '../primitives/Tag'
+import styles from './EligibilityBadge.module.css'
 
 export interface EligibilityBadgeProps {
   verdict: EligibilityVerdict
@@ -16,20 +17,20 @@ export interface EligibilityBadgeProps {
 export function EligibilityBadge({ verdict, regionLabel }: EligibilityBadgeProps) {
   if (verdict === 'confirmed') {
     return (
-      <Tag tone="accent" style={{ fontWeight: 500 }}>
+      <Tag tone="accent" className={styles.badge}>
         {`ELIGIBLE · ${regionLabel.toUpperCase()}`}
       </Tag>
     )
   }
   if (verdict === 'needs_check') {
     return (
-      <Tag tone="outline" style={{ fontWeight: 500 }}>
+      <Tag tone="outline" className={styles.badge}>
         NEEDS CHECK
       </Tag>
     )
   }
   return (
-    <Tag tone="neutral" style={{ fontWeight: 500 }}>
+    <Tag tone="neutral" className={styles.badge}>
       NOT ELIGIBLE
     </Tag>
   )

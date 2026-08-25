@@ -1,5 +1,5 @@
 import { Muted } from '../primitives/Text'
-import { color } from '@jobsearch/design-system/tokens'
+import styles from './StatFigure.module.css'
 
 export interface StatFigureProps {
   value: string
@@ -10,15 +10,7 @@ export interface StatFigureProps {
 export function StatFigure({ value, label }: StatFigureProps) {
   return (
     <div>
-      <span
-        style={{
-          fontFamily: 'var(--font-heading)',
-          fontWeight: 600,
-          fontSize: 22,
-          color: color.text,
-          display: 'block',
-        }}
-      >
+      <span className={styles.value}>
         {value}
       </span>
       {label}
@@ -28,7 +20,7 @@ export function StatFigure({ value, label }: StatFigureProps) {
 
 export function StatRow({ stats }: { stats: readonly StatFigureProps[] }) {
   return (
-    <Muted as="div" style={{ display: 'flex', gap: 'var(--space-6)', fontSize: 13 }}>
+    <Muted as="div" className={styles.row}>
       {stats.map((stat) => (
         <StatFigure key={stat.label} {...stat} />
       ))}

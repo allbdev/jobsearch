@@ -1,0 +1,7 @@
+.backdrop {
+  z-index: 50;
+}
+
+.panel {
+  background: var(--color-bg);
+}

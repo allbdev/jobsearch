@@ -1,17 +1,18 @@
 'use client'
 
-import { Bookmark, ExternalLink, X } from 'lucide-react'
 import type { Job } from '@jobsearch/shared'
 import { CONTRACT_MODEL_LABELS, JOB_SOURCE_LABELS } from '@jobsearch/shared'
 import { Button } from '../primitives/Button'
 import { Cluster, Stack } from '../primitives/Stack'
 import { Icon } from '../primitives/Icon'
+import { Bookmark, ExternalLink, X } from '../primitives/icons'
 import { Muted } from '../primitives/Text'
 import { Tag } from '../primitives/Tag'
 import { EligibilityBadge } from './EligibilityBadge'
 import { EvidenceCard } from './EvidenceCard'
 import { relativeTime, verifiedLabel } from '../lib/format'
-import { color, tint } from '@jobsearch/design-system/tokens'
+import { cx } from '../lib/cx'
+import styles from './JobRow.module.css'
 
 export interface JobRowProps {
   job: Job
@@ -28,7 +29,7 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
   const { eligibility } = job
 
   return (
-    <div style={{ borderBottom: `1px solid ${tint(color.text, 8)}` }}>
+    <div className={styles.row}>
       <div
         role="button"
         tabIndex={0}
@@ -40,37 +41,27 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
             onToggle()
           }
         }}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0,1fr) auto',
-          gap: 'var(--space-2) var(--space-4)',
-          padding: 'var(--space-3) var(--space-4)',
-          cursor: 'pointer',
-        }}
+        className={styles.header}
       >
-        <Stack gap={7} style={{ minWidth: 0 }}>
+        <Stack gap={7} className={styles.main}>
           <Cluster gap={10} align="baseline">
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, lineHeight: 1.15 }}>
-              {job.title}
-            </span>
-            <Muted style={{ fontSize: 13 }}>{job.company}</Muted>
+            <span className={styles.title}>{job.title}</span>
+            <Muted className={styles.company}>{job.company}</Muted>
           </Cluster>
           <Cluster gap="2">
             <EligibilityBadge verdict={eligibility.verdict} regionLabel={eligibility.regionLabel} />
             <Tag tone="neutral">{CONTRACT_MODEL_LABELS[eligibility.contractModel]}</Tag>
             {job.skills.map((skill) => (
-              <Tag key={skill} tone="neutral" style={{ opacity: 0.8 }}>
+              <Tag key={skill} tone="neutral" className={styles.skill}>
                 {skill}
               </Tag>
             ))}
           </Cluster>
         </Stack>
 
-        <Stack gap="2" align="flex-end">
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap' }}>
-            {job.compensation.label}
-          </span>
-          <Muted style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+        <Stack gap="2" className={styles.aside}>
+          <span className={styles.salary}>{job.compensation.label}</span>
+          <Muted className={styles.meta}>
             {relativeTime(job.postedAt, now)} · {JOB_SOURCE_LABELS[job.source]}
           </Muted>
           <Cluster gap="1" wrap={false}>
@@ -80,11 +71,11 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
               size="sm"
               title={saved ? 'Saved' : 'Save'}
               aria-pressed={saved}
+              className={cx(saved && styles.saved)}
               onClick={(event: React.MouseEvent) => {
                 event.stopPropagation()
                 onSave()
               }}
-              style={{ color: saved ? color.accentStep(700) : 'inherit' }}
             >
               <Bookmark width={14} height={14} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} aria-hidden />
             </Button>
@@ -118,7 +109,7 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss 
       </div>
 
       {expanded && eligibility.evidenceSnippet ? (
-        <div style={{ padding: '0 var(--space-4) var(--space-3)' }}>
+        <div className={styles.evidence}>
           <EvidenceCard
             kicker={`Eligibility evidence · classifier ${eligibility.classifierVersion}`}
             snippet={eligibility.evidenceSnippet}

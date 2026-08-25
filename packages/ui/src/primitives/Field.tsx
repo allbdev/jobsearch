@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cx } from '../lib/cx'
+import styles from './Field.module.css'
 
 export interface FieldProps {
   label: ReactNode
@@ -18,7 +19,7 @@ export interface FieldProps {
  */
 export function Field({ label, labelAside, hint, htmlFor, className, children }: FieldProps) {
   const labelContent = labelAside ? (
-    <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+    <span className={styles.labelRow}>
       <span>{label}</span>
       {labelAside}
     </span>
@@ -35,7 +36,7 @@ export function Field({ label, labelAside, hint, htmlFor, className, children }:
       )}
       {children}
       {hint ? (
-        <p className="text-muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+        <p className={cx('text-muted', styles.hint)}>
           {hint}
         </p>
       ) : null}

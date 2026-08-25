@@ -1,0 +1,13 @@
+.value {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--color-text);
+  display: block;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-6);
+  font-size: 13px;
+}

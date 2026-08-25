@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Blueprint } from '../primitives/Blueprint'
 import { Stack } from '../primitives/Stack'
+import { cx } from '../lib/cx'
+import styles from './SectionCard.module.css'
 
 export interface SectionCardProps {
   id?: string
@@ -15,10 +17,10 @@ export interface SectionCardProps {
  */
 export function SectionCard({ id, title, description, children }: SectionCardProps) {
   return (
-    <Blueprint as="section" id={id} style={{ padding: 'var(--space-6)' }}>
-      <h3 style={{ marginBottom: 4 }}>{title}</h3>
+    <Blueprint as="section" id={id} className={styles.section}>
+      <h3 className={styles.title}>{title}</h3>
       {description ? (
-        <p className="text-muted" style={{ fontSize: 13, marginBottom: 'var(--space-4)' }}>
+        <p className={cx('text-muted', styles.description)}>
           {description}
         </p>
       ) : null}

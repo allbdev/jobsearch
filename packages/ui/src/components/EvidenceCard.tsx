@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Blueprint } from '../primitives/Blueprint'
 import { Kicker, Muted } from '../primitives/Text'
 import { Stack } from '../primitives/Stack'
-import { color, hairline, tint } from '@jobsearch/design-system/tokens'
+import styles from './EvidenceCard.module.css'
 
 export interface EvidenceCardProps {
   snippet: string
@@ -31,9 +31,9 @@ export function EvidenceCard({
   const body = (
     <>
       <Kicker>{kicker}</Kicker>
-      <p style={{ margin: 0, fontSize: 13.5, fontStyle: 'italic' }}>{`“${snippet}”`}</p>
+      <p className={styles.quote}>{`“${snippet}”`}</p>
       {footer ? (
-        <Muted as="div" style={{ fontSize: 12 }}>
+        <Muted as="div" className={styles.footer}>
           {footer}
         </Muted>
       ) : null}
@@ -42,21 +42,14 @@ export function EvidenceCard({
 
   if (variant === 'framed') {
     return (
-      <Blueprint style={{ padding: 'var(--space-3)' }}>
+      <Blueprint className={styles.framed}>
         <Stack gap="2">{body}</Stack>
       </Blueprint>
     )
   }
 
   return (
-    <Stack
-      gap="2"
-      style={{
-        border: hairline,
-        padding: 'var(--space-3)',
-        background: tint(color.accent, 4),
-      }}
-    >
+    <Stack gap="2" className={styles.inline}>
       {body}
     </Stack>
   )
