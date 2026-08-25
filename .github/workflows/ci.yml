@@ -53,6 +53,45 @@ jobs:
             exit 1
           fi
 
+      - name: No other PR merged into this branch
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          SELF: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Merging one PR into another defeats the size budget: the base PR
+          # silently inherits the other PR's diff and blows past the limit.
+          # GitHub stamps a squash-merge subject with "(#N)", which is what we
+          # look for here.
+          failed=0
+          while IFS= read -r subject; do
+            num=$(printf '%s' "$subject" | sed -nE 's/.*\(#([0-9]+)\)$/\1/p')
+            [ -z "$num" ] && continue
+            [ "$num" = "$SELF" ] && continue
+            # Only a real pull request counts -- plain issue references are fine.
+            if gh pr view "$num" --repo "$GITHUB_REPOSITORY" --json number >/dev/null 2>&1; then
+              echo "::error::this branch contains PR #$num (\"$subject\")"
+              failed=1
+            fi
+          done < <(git log --format=%s "$BASE...$HEAD")
+
+          if [ "$failed" = "1" ]; then
+            echo ""
+            echo "Another pull request was merged into this branch."
+            echo ""
+            echo "That inflates this PR with a diff already reviewed elsewhere and"
+            echo "pushes it past the size budget. Do not merge PRs into each other."
+            echo ""
+            echo "Fix:"
+            echo "  1. Drop the merged commit from this branch"
+            echo "  2. Re-target the other PR at main"
+            echo ""
+            echo "Stack a PR only when it genuinely cannot compile or run without"
+            echo "the parent. Otherwise open both against main in parallel."
+            exit 1
+          fi
+
       - name: PR is small enough to review
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
@@ -78,6 +117,7 @@ jobs:
           if [ "$CHANGED" -gt 800 ]; then
             echo "::error::$CHANGED changed lines exceeds the 800-line hard limit."
             echo "Split this PR by functionality, or label it 'large-mechanical' if it is a codemod or generated migration."
+            echo "If this jumped suddenly, check whether another PR was merged into this branch."
             exit 1
           fi
 
