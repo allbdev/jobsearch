@@ -103,6 +103,25 @@ cmd_list() {
   git -C "$REPO_ROOT" worktree list
 }
 
+# Is this branch's pull request merged?
+#
+# `git branch --merged` cannot answer this: the repo squash-merges (merge
+# commits are disabled and linear history is required), so a merged branch's
+# commits never appear in main's ancestry. GitHub is the only source of truth,
+# with the ancestry check kept as a fallback for when gh is unavailable.
+branch_is_merged() {
+  local branch="$1"
+  if command -v gh >/dev/null 2>&1; then
+    local merged
+    merged=$(gh pr list --head "$branch" --state merged --json number --jq 'length' 2>/dev/null || echo "")
+    if [ -n "$merged" ]; then
+      [ "$merged" != "0" ]
+      return
+    fi
+  fi
+  git -C "$REPO_ROOT" branch --merged origin/main | grep -qx "  $branch"
+}
+
 # Resolve a worktree's path from its branch, via git's own registry. Deriving
 # the path from the branch name breaks as soon as a branch is renamed after the
 # worktree was created.
@@ -134,21 +153,52 @@ Run 'git worktree prune' to clean up the stale entry."
   git -C "$REPO_ROOT" worktree remove "$dir"
   ok "removed worktree $dir"
 
-  if git -C "$REPO_ROOT" branch --merged origin/main | grep -qx "  $branch"; then
-    git -C "$REPO_ROOT" branch -d "$branch"
+  if branch_is_merged "$branch"; then
+    # -D rather than -d: a squash merge leaves no ancestry, so git itself
+    # cannot tell the branch is merged and -d would refuse.
+    git -C "$REPO_ROOT" branch -D "$branch" >/dev/null
     ok "deleted merged branch $branch"
   else
-    info "branch $branch kept (not merged into origin/main yet)"
+    info "branch $branch kept (its pull request is not merged)"
   fi
 }
 
+cmd_prune() {
+  info "Fetching origin..."
+  git -C "$REPO_ROOT" fetch origin --quiet --prune
+
+  local removed=0
+  while read -r branch; do
+    [ -z "$branch" ] && continue
+    [ "$branch" = "main" ] && continue
+    if branch_is_merged "$branch"; then
+      local dir; dir="$(worktree_dir_for_branch "$branch")"
+      if [ -n "$dir" ] && [ -d "$dir" ]; then
+        if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+          info "skipped $branch -- worktree has uncommitted changes"
+          continue
+        fi
+        git -C "$REPO_ROOT" worktree remove "$dir"
+        ok "removed worktree $dir"
+      fi
+      git -C "$REPO_ROOT" branch -D "$branch" >/dev/null
+      ok "deleted merged branch $branch"
+      removed=$((removed + 1))
+    fi
+  done <<< "$(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' refs/heads/)"
+
+  [ "$removed" = "0" ] && info "nothing to prune" || ok "pruned $removed branch(es)"
+}
+
 case "${1:-}" in
-  new)  shift; cmd_new "$@" ;;
-  list) shift; cmd_list "$@" ;;
-  done) shift; cmd_done "$@" ;;
-  *) die "usage: worktree.sh {new|list|done} [args]
+  new)   shift; cmd_new "$@" ;;
+  list)  shift; cmd_list "$@" ;;
+  done)  shift; cmd_done "$@" ;;
+  prune) shift; cmd_prune "$@" ;;
+  *) die "usage: worktree.sh {new|list|done|prune} [args]
 
   new <branch> [base]   create an isolated worktree, install deps, assign a port
   list                  show all worktrees
-  done <branch>         remove the worktree and clean up the branch" ;;
+  done <branch>         remove the worktree and clean up the branch
+  prune                 remove every worktree and branch whose PR is merged" ;;
 esac
