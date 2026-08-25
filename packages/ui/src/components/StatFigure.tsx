@@ -1,4 +1,5 @@
 import { Muted } from '../primitives/Text'
+import { cx } from '../lib/cx'
 import styles from './StatFigure.module.css'
 
 export interface StatFigureProps {
@@ -18,9 +19,15 @@ export function StatFigure({ value, label }: StatFigureProps) {
   )
 }
 
-export function StatRow({ stats }: { stats: readonly StatFigureProps[] }) {
+export function StatRow({
+  stats,
+  className,
+}: {
+  stats: readonly StatFigureProps[]
+  className?: string
+}) {
   return (
-    <Muted as="div" className={styles.row}>
+    <Muted as="div" className={cx(styles.row, className)}>
       {stats.map((stat) => (
         <StatFigure key={stat.label} {...stat} />
       ))}
