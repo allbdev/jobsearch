@@ -31,6 +31,17 @@ export interface FetchContext {
   config: unknown
   http: HttpClient
   log: (message: string, detail?: Record<string, unknown>) => void
+  /**
+   * Report a failure the adapter recovered from — a dead board, an unparseable
+   * response — so the caller can judge the run as a whole.
+   *
+   * Logging alone is not enough. An adapter that swallows every failure and
+   * yields nothing looks identical to a source that legitimately has no new
+   * postings, and the run gets recorded as a success. That is precisely the
+   * silent rot PLAN.md §7 is about, and it happened: all five boards failed and
+   * the source still reported healthy.
+   */
+  reportFailure: (scope: string, error: unknown) => void
 }
 
 export interface SourceAdapter {

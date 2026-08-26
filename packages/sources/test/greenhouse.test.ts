@@ -18,9 +18,24 @@ function httpReturning(byUrl: Record<string, unknown>): HttpClient {
 const URL_FOR = (board: string) =>
   `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`
 
-function contextWith(http: HttpClient, config: unknown): FetchContext & { logs: unknown[] } {
+function contextWith(
+  http: HttpClient,
+  config: unknown,
+): FetchContext & { logs: unknown[]; failures: unknown[] } {
   const logs: unknown[] = []
-  return { config, http, log: (m, d) => logs.push([m, d]), logs }
+  const failures: unknown[] = []
+  return {
+    config,
+    http,
+    log: (m, d) => {
+      logs.push([m, d])
+    },
+    reportFailure: (scope, error) => {
+      failures.push([scope, String(error)])
+    },
+    logs,
+    failures,
+  }
 }
 
 async function collect(iterable: AsyncIterable<unknown>) {
@@ -89,6 +104,8 @@ describe('greenhouse adapter', () => {
 
     expect(postings).toHaveLength(fixture.jobs.length)
     expect(ctx.logs.some(([m]: any) => m === 'board fetch failed')).toBe(true)
+    // Logging is not enough: the caller has to be able to judge the run.
+    expect(ctx.failures).toEqual([['board:dead', expect.stringContaining('404')]])
   })
 
   it('skips a board whose response does not match the expected shape', async () => {
@@ -99,6 +116,7 @@ describe('greenhouse adapter', () => {
     const postings = await collect(greenhouseAdapter.fetch(ctx))
 
     expect(postings).toHaveLength(fixture.jobs.length)
+    expect(ctx.failures).toHaveLength(1)
   })
 
   it('rejects a config it cannot use, instead of fetching nothing quietly', async () => {
@@ -126,5 +144,40 @@ describe('content hash', () => {
     expect(greenhouseContentHash({ ...job, updated_at: '2099-01-01T00:00:00-00:00' })).toBe(
       greenhouseContentHash(job),
     )
+  })
+})
+
+describe('base url configuration', () => {
+  it('defaults to the public Greenhouse API', async () => {
+    const http = httpReturning({
+      'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true': fixture,
+    })
+    const ctx = contextWith(http, { boards: ['acme'] })
+
+    // Resolving means the default was applied; an unexpected URL throws.
+    await expect(collect(greenhouseAdapter.fetch(ctx))).resolves.toHaveLength(fixture.jobs.length)
+  })
+
+  it('uses a baseUrl from the source config, so a mock can be pointed at', async () => {
+    const http = httpReturning({
+      'https://mock.test/v1/boards/acme/jobs?content=true': fixture,
+    })
+    const ctx = contextWith(http, { boards: ['acme'], baseUrl: 'https://mock.test/v1' })
+
+    await expect(collect(greenhouseAdapter.fetch(ctx))).resolves.toHaveLength(fixture.jobs.length)
+  })
+
+  it('tolerates a trailing slash on the configured baseUrl', async () => {
+    const http = httpReturning({
+      'https://mock.test/v1/boards/acme/jobs?content=true': fixture,
+    })
+    const ctx = contextWith(http, { boards: ['acme'], baseUrl: 'https://mock.test/v1/' })
+
+    await expect(collect(greenhouseAdapter.fetch(ctx))).resolves.toHaveLength(fixture.jobs.length)
+  })
+
+  it('rejects a baseUrl that is not a URL, rather than building a broken request', async () => {
+    const ctx = contextWith(httpReturning({}), { boards: ['acme'], baseUrl: 'not-a-url' })
+    await expect(collect(greenhouseAdapter.fetch(ctx))).rejects.toBeInstanceOf(SourceConfigError)
   })
 })
