@@ -40,12 +40,41 @@ builder.
 Dimension is 1024 for Cohere `embed-v4.0` (PLAN.md D13). pgvector 0.8.6 caps
 HNSW at 2000 dimensions for `vector`, so there is headroom.
 
+## ⚠️ Prisma drops raw-SQL indexes
+
+**Every migration silently drops any index Prisma cannot see in
+`schema.prisma`.** It diffs indexes; the HNSW and GIN indexes are raw SQL
+because Prisma has no `vector` or `tsvector` type, so it reads them as drift and
+drops them in the `DropIndex` block it generates.
+
+This is not hypothetical — the second migration dropped both, and it turned up
+only because the index list was checked by hand afterwards. Nothing failed; the
+database simply became slower in a way that would surface as a mysterious
+performance problem months later.
+
+Triggers and CHECK constraints survive, because Prisma does not diff those.
+
+**So: after generating any migration, read the `DropIndex` lines, and re-create
+anything raw at the bottom of the same migration.** `pnpm db:verify` asserts the
+expected objects exist and runs as part of `pnpm db:migrate`, and CI runs
+migrations against a real Postgres so a dropped index fails the build rather
+than being noticed later.
+
+## One database across worktrees
+
+`docker-compose.yml` pins `name: jobsearch`. Compose otherwise derives the
+project name from the directory, and all work happens in git worktrees under
+`.claude/worktrees/<branch>` — so each branch created its own volume while
+sharing one container name, silently reusing whichever database existed first.
+`down -v` from one worktree then did not reset what another had created.
+
 ## Changing the schema
 
 ```bash
 pnpm --filter @jobsearch/db exec prisma migrate dev --name what_changed --create-only
-# edit the generated SQL if it needs anything Prisma cannot express
-pnpm db:migrate
+# 1. read the DropIndex lines — re-create any raw-SQL index it dropped
+# 2. add anything else Prisma cannot express
+pnpm db:migrate   # applies, then runs db:verify
 ```
 
 `--create-only` first, always: it is the only chance to review what Prisma

@@ -117,9 +117,18 @@ model RawPosting {
 
   fetchedAt DateTime @default(now())
 
-  job Job?
+  /// The job this posting normalised into. Null means "not normalised yet",
+  /// which is how the normalize stage finds its work.
+  ///
+  /// Many-to-one, not one-to-one: dedup is the point (PLAN.md §5). The same
+  /// posting arrives from RemoteOK, We Work Remotely and the company's own
+  /// Greenhouse board, and must appear once — so several raw postings share a
+  /// job, and each still records which source it came from.
+  jobId String?
+  job   Job?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
   @@unique([sourceId, externalId])
+  @@index([jobId])
   @@index([contentHash])
   @@index([fetchedAt])
   @@map("raw_postings")
@@ -130,8 +139,9 @@ model RawPosting {
 model Job {
   id String @id @default(cuid())
 
-  rawPostingId String     @unique
-  rawPosting   RawPosting @relation(fields: [rawPostingId], references: [id], onDelete: Cascade)
+  /// Every raw posting that normalised into this job — usually one, more when
+  /// the same role was found through several sources.
+  rawPostings RawPosting[]
 
   companyId String
   company   Company @relation(fields: [companyId], references: [id])

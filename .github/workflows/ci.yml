@@ -15,6 +15,29 @@ jobs:
   gates:
     name: Gates
     runs-on: ubuntu-latest
+
+    # A real Postgres, so migrations actually run and `db:verify` can assert
+    # that the raw-SQL indexes survived. Prisma drops anything it cannot see in
+    # schema.prisma; that happened once and was caught only by inspecting the
+    # index list by hand afterwards.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: jobsearch
+          POSTGRES_PASSWORD: jobsearch
+          POSTGRES_DB: jobsearch
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U jobsearch -d jobsearch"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://jobsearch:jobsearch@localhost:5433/jobsearch?schema=public
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,11 +47,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      - name: Migrate and verify the schema
+        run: pnpm db:migrate
+
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Architectural boundaries
         run: pnpm boundaries
+
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build

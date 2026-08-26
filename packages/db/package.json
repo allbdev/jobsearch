@@ -14,7 +14,8 @@
     "migrate:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "studio": "prisma studio",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "tsx src/verify.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.3.0"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/node": "^22.20.1",
     "prisma": "^6.3.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "tsx": "^4.19.2"
   }
 }
