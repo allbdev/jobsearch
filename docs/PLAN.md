@@ -40,6 +40,7 @@ Each decision is recorded with its rationale so we can revisit it deliberately r
 | D10 | Design system "Industry", authored in Claude Design, vendored unmodified; every component written exactly once in `@jobsearch/ui` | ✅ implemented |
 | D11 | i18n via locale-prefixed routes (`/en`, `/pt-br`, `/es`) with next-intl; changing language navigates | ✅ implemented |
 | D12 | Occupation taxonomy: homegrown, 33 families with permanent ids and a growth policy — not ESCO or O*NET | ✅ implemented |
+| D13 | Embeddings: Cohere `embed-v4.0` at 1024 dimensions; vectors generated from M3, not before | ✅ agreed |
 
 ### D1 — Global crawl, per-user query
 
@@ -230,6 +231,49 @@ An `esco_code` column stays available as a nullable, unpopulated escape hatch �
 if we ever want ESCO's skill graph or need to interoperate with an EU board,
 that is a backfill rather than a migration.
 
+### D13 — Cohere `embed-v4.0`, 1024 dimensions
+
+Vector similarity is what makes matching work outside tech, where skills are
+prose rather than standardised tags (D9). This is the model that produces those
+vectors.
+
+**Why a second AI vendor at all.** Anthropic has no embeddings API, so Claude
+handling classification does not remove the need for an embedding provider.
+
+**Why Cohere over OpenAI.** Retrieval here is inherently cross-lingual: most
+postings are in English, many users describe themselves in Portuguese or
+Spanish. Cohere's embed models are built for that, and they distinguish
+`search_document` from `search_query` — which matches what we actually do, a
+profile searching against postings rather than two like things compared.
+
+**Why v4 and not `embed-multilingual-v3.0`.** Context length, and it is not a
+marginal difference. v3 caps at **512 tokens**; a job posting is routinely
+800–2,000. The eligibility language is usually near the bottom of a posting —
+*"open to candidates anywhere in the world"*, *"we hire via Deel"* — so v3 would
+silently truncate away the exact sentences this product exists to find. v4
+carries **128k tokens**.
+
+v4 also supports Matryoshka output dimensions (256 / 512 / 1024 / 1536), so the
+dimension is a choice rather than whatever the model emits.
+
+**Why 1024 rather than the 1536 default.** pgvector's HNSW index caps at 2000
+dimensions for the `vector` type, so 1024 leaves real headroom, and Matryoshka
+means dropping to 512 later needs no change of model. (Verify the cap against
+the pgvector version actually deployed.)
+
+**Deferred to M3.** No vectors are generated before then. The schema carries the
+column from M0, but there is no corpus to embed until ingestion runs, and
+deciding against real postings beats deciding against a guess.
+
+**The hedge that matters more than the model choice:** `embedding_model` and
+`embedding_dimension` are stored per row, exactly like `classifier_version`
+(§4). Swapping models is then a filtered re-embed rather than archaeology, and
+two models can run side by side on real data before either is committed to.
+
+Practical notes for whoever implements it: batches cap at **96 texts per call**,
+and `int8` / `binary` output types are available if index size ever becomes the
+constraint.
+
 ---
 
 ## 3. Sources
@@ -411,7 +455,6 @@ Note on D9 vs. sequencing: the *schema and pipeline* are profession-agnostic fro
 - [ ] Match scoring: weighting between vector similarity, stack overlap, seniority, salary, freshness. Needs tuning against real data — cannot be decided upfront.
 - [ ] Cold start: how does a brand-new user get a decent feed before we have any interaction signal from them?
 - [ ] Company curation for Tier 2 — how do we build and maintain the ATS company list? Manual seed, then grown from jobs discovered via Tier 1?
-- [ ] Embedding model + dimensions (affects the pgvector column type; changing it later means a re-embed of everything).
 - [ ] Auth provider — the Login screen is built but wired to nothing. Decides whether sessions live in the API only (per D5) or need a Next middleware component.
 - [ ] Job families ship as a compiled-in list (D12). That is right while it is 33 rows changed by deploy; it must become a fetched, versioned dataset once families are added in response to user feedback rather than by hand.
 - [ ] The family picker is a flat row of 33 chips ordered by group, with no section headers. Fine at 33; it needs grouped sections before the list grows much further.
