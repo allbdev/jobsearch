@@ -2,6 +2,13 @@
 #
 # The pgvector image rather than plain postgres: it ships the extension
 # preinstalled, and D13 puts job and profile embeddings in `vector` columns.
+# Fixed project name. Compose otherwise derives it from the directory, and all
+# work here happens in git worktrees under .claude/worktrees/<branch> -- so each
+# branch would get its own volume while sharing one container name, silently
+# reusing whichever database happened to exist. `down -v` from one worktree then
+# does not reset the database another created.
+name: jobsearch
+
 services:
   postgres:
     image: pgvector/pgvector:pg17
