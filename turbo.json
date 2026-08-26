@@ -29,7 +29,8 @@
     },
     "test": {
       "dependsOn": [
-        "^build"
+        "^build",
+        "generate"
       ]
     },
     "generate": {
