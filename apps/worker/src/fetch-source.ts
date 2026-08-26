@@ -7,6 +7,8 @@ export interface FetchResult {
   created: number
   updated: number
   unchanged: number
+  /** Failures the adapter recovered from — dead boards, unparseable responses. */
+  failures: number
 }
 
 /**
@@ -23,10 +25,20 @@ export async function fetchSource(slug: string): Promise<FetchResult> {
 
   const adapter = getAdapter(slug)
   const http = createHttpClient()
-  const result: FetchResult = { fetched: 0, created: 0, updated: 0, unchanged: 0 }
+  const result: FetchResult = { fetched: 0, created: 0, updated: 0, unchanged: 0, failures: 0 }
+  const failures: string[] = []
+  const reportFailure = (scope: string, error: unknown) => {
+    result.failures++
+    failures.push(`${scope}: ${String(error).slice(0, 200)}`)
+  }
 
   try {
-    for await (const posting of adapter.fetch({ config: source.config, http, log })) {
+    for await (const posting of adapter.fetch({
+      config: source.config,
+      http,
+      log,
+      reportFailure,
+    })) {
       result.fetched++
 
       const existing = await prisma.rawPosting.findUnique({
@@ -65,9 +77,26 @@ export async function fetchSource(slug: string): Promise<FetchResult> {
       result.updated++
     }
 
+    // A run that recovered from every failure and yielded nothing is not a
+    // success. It is indistinguishable from a source with no new postings, and
+    // treating it as healthy is how an index rots unnoticed — which it did:
+    // all five boards failed and the source still reported ok.
+    if (result.failures > 0 && result.fetched === 0) {
+      throw new Error(
+        `every unit failed and nothing was fetched (${result.failures} failures) — ${failures[0]}`,
+      )
+    }
+
     await prisma.source.update({
       where: { id: source.id },
-      data: { lastPolledAt: new Date(), failureStreak: 0, lastError: null },
+      data: {
+        lastPolledAt: new Date(),
+        failureStreak: 0,
+        // A partial failure still gets recorded. Some postings arrived, so the
+        // run is not a failure, but a board that has been dead for a month is
+        // worth seeing in `worker health`.
+        lastError: failures.length > 0 ? `partial: ${failures.length} failed — ${failures[0]}` : null,
+      },
     })
   } catch (error) {
     // A source that quietly stops returning results is how an index rots

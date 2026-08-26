@@ -1,4 +1,5 @@
 import { prisma } from '@jobsearch/db'
+import { GREENHOUSE_DEFAULT_BASE_URL } from '@jobsearch/sources'
 import { log } from './log'
 
 /**
@@ -27,11 +28,11 @@ export async function seed() {
       slug: 'greenhouse',
       kind: 'ats',
       name: 'Greenhouse job boards',
-      config: { boards: GREENHOUSE_BOARDS },
+      config: { boards: GREENHOUSE_BOARDS, baseUrl: GREENHOUSE_DEFAULT_BASE_URL },
       pollIntervalMinutes: 360,
     },
     // Re-seeding refreshes the board list without resetting health counters.
-    update: { config: { boards: GREENHOUSE_BOARDS } },
+    update: { config: { boards: GREENHOUSE_BOARDS, baseUrl: GREENHOUSE_DEFAULT_BASE_URL } },
   })
   log('source seeded', { slug: source.slug, boards: GREENHOUSE_BOARDS.length })
 }
