@@ -5,12 +5,11 @@ import { jobInteractionSchema } from './job'
 export const senioritySchema = z.enum(['junior', 'mid', 'senior', 'staff_plus'])
 export type Seniority = z.infer<typeof senioritySchema>
 
-export const SENIORITY_LABELS: Record<Seniority, string> = {
-  junior: 'Junior',
-  mid: 'Mid',
-  senior: 'Senior',
-  staff_plus: 'Staff+',
-}
+/**
+ * Display labels for these enums live in the app's message catalogs, not here.
+ * A shared package cannot hold a single English string per value once the UI
+ * speaks three languages -- shared owns the enum, the app owns the wording.
+ */
 
 export const digestCadenceSchema = z.enum(['daily', 'weekly', 'off'])
 export type DigestCadence = z.infer<typeof digestCadenceSchema>

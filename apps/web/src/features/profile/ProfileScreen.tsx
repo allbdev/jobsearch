@@ -13,7 +13,6 @@ import type {
   Seniority,
 } from '@jobsearch/shared'
 import {
-  SENIORITY_LABELS,
   TARGET_REGIONS,
   WORK_LANGUAGES,
   JOB_FAMILIES,
@@ -47,32 +46,17 @@ import {
 } from '@jobsearch/ui'
 import styles from './ProfileScreen.module.css'
 
-/** id, desktop label, mobile chip label. */
+/** Section ids. Long and short labels live in the `profile.nav` namespace. */
 const SETTINGS_NAV = [
-  ['profile', 'Profile & matching', 'Matching'],
-  ['occupation', 'Occupation & skills', 'Occupation'],
-  ['contract', 'Contract & compensation', 'Contract'],
-  ['digest', 'Email digest', 'Digest'],
-  ['account', 'Account & security', 'Account'],
-  ['history', 'Job history', 'History'],
+  'profile',
+  'occupation',
+  'contract',
+  'digest',
+  'account',
+  'history',
 ] as const
 
-const SENIORITY_OPTIONS = (Object.keys(SENIORITY_LABELS) as Seniority[]).map((value) => ({
-  value,
-  label: SENIORITY_LABELS[value],
-}))
-
-const CADENCE_OPTIONS: { value: DigestCadence; label: string }[] = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'off', label: 'Off' },
-]
-
-const HISTORY_TABS: { value: JobInteraction; label: string }[] = [
-  { value: 'saved', label: 'Saved' },
-  { value: 'applied', label: 'Applied' },
-  { value: 'dismissed', label: 'Dismissed' },
-]
+type SectionId = (typeof SETTINGS_NAV)[number]
 
 export function ProfileScreen({ profile, history }: { profile: Profile; history: HistoryEntry[] }) {
   const [draft, setDraft] = useState(profile)
@@ -81,6 +65,39 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
   )
   const [historyTab, setHistoryTab] = useState<JobInteraction>('saved')
   const t = useTranslations('nav')
+  const p = useTranslations('profile')
+
+  const seniorityOptions: { value: Seniority; label: string }[] = [
+    { value: 'junior', label: p('seniorityJunior') },
+    { value: 'mid', label: p('seniorityMid') },
+    { value: 'senior', label: p('senioritySenior') },
+    { value: 'staff_plus', label: p('seniorityStaffPlus') },
+  ]
+  const cadenceOptions: { value: DigestCadence; label: string }[] = [
+    { value: 'daily', label: p('cadenceDaily') },
+    { value: 'weekly', label: p('cadenceWeekly') },
+    { value: 'off', label: p('cadenceOff') },
+  ]
+  /** Desktop shows the full section title; the mobile chips show a short form. */
+  const sectionLabel: Record<SectionId, { long: string; short: string }> = {
+    profile: { long: p('matchingTitle'), short: p('nav.matching') },
+    occupation: { long: p('occupationTitle'), short: p('nav.occupation') },
+    contract: { long: p('contractTitle'), short: p('nav.contract') },
+    digest: { long: p('digestTitle'), short: p('nav.digest') },
+    account: { long: p('accountTitle'), short: p('nav.account') },
+    history: { long: p('historyTitle'), short: p('nav.history') },
+  }
+
+  const historyTabs: { value: JobInteraction; label: string }[] = [
+    { value: 'saved', label: p('statusSaved') },
+    { value: 'applied', label: p('statusApplied') },
+    { value: 'dismissed', label: p('statusDismissed') },
+  ]
+  const statusLabel: Record<JobInteraction, string> = {
+    saved: p('statusSaved'),
+    applied: p('statusApplied'),
+    dismissed: p('statusDismissed'),
+  }
 
   const update = <K extends keyof Profile>(key: K, value: Profile[K]) =>
     setDraft((current) => ({ ...current, [key]: value }))
@@ -88,7 +105,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
   const columns: Column<HistoryEntry>[] = [
     {
       key: 'title',
-      header: 'Position',
+      header: p('colPosition'),
       mobileArea: 'title',
       render: (row) => (
         <span className={styles.jobTitle}>
@@ -98,13 +115,13 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
     },
     {
       key: 'company',
-      header: 'Company',
+      header: p('colCompany'),
       mobileArea: 'company',
       render: (row) => <span className="text-muted">{row.company}</span>,
     },
     {
       key: 'eligibility',
-      header: 'Eligibility',
+      header: p('colEligibility'),
       mobileArea: 'eligibility',
       render: (row) => (
         <EligibilityBadge
@@ -115,14 +132,14 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
     },
     {
       key: 'status',
-      header: 'Status',
+      header: p('colStatus'),
       // Dropped from the mobile card: the selected tab already states it.
       hideOnMobile: true,
-      render: (row) => <Tag tone="neutral">{row.status}</Tag>,
+      render: (row) => <Tag tone="neutral">{statusLabel[row.status]}</Tag>,
     },
     {
       key: 'date',
-      header: 'Date',
+      header: p('colDate'),
       align: 'right',
       mobileArea: 'date',
       render: (row) => <span className="text-muted">{row.date}</span>,
@@ -145,9 +162,9 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             <SignOutButton href="/" linkComponent={Link} />
           </div>
           <ScrollRow className={styles.sectionChips}>
-            {SETTINGS_NAV.map(([id, label, shortLabel]) => (
+            {SETTINGS_NAV.map((id) => (
               <Tag key={id} as="a" href={`#${id}`} tone="neutral" className={styles.sectionChip}>
-                {shortLabel}
+                {sectionLabel[id].short}
               </Tag>
             ))}
           </ScrollRow>
@@ -158,10 +175,10 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
         className={styles.layout}
       >
         <Stack as="aside" gap="1" className={styles.nav}>
-          <h6 className={styles.navHeading}>Settings</h6>
-          {SETTINGS_NAV.map(([id, label]) => (
+          <h6 className={styles.navHeading}>{p('settings')}</h6>
+          {SETTINGS_NAV.map((id) => (
             <a key={id} href={`#${id}`} className={styles.navLink}>
-              {label}
+              {sectionLabel[id].long}
             </a>
           ))}
         </Stack>
@@ -169,11 +186,11 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
         <Stack as="main" gap="8" className={styles.main}>
           <SectionCard
             id="profile"
-            title="Profile & matching"
-            description="Where you live decides which postings you are eligible for. Everything else tunes relevance, never blocks a match."
+            title={p('matchingTitle')}
+            description={p('matchingDescription')}
           >
             <div className={styles.pair}>
-              <Field label="Country of residence" htmlFor="residence">
+              <Field label={p('residence')} htmlFor="residence">
                 <Select
                   id="residence"
                   options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal'])}
@@ -181,7 +198,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                   onChange={(event) => update('residenceCountry', event.target.value)}
                 />
               </Field>
-              <Field label="Timezone" htmlFor="timezone">
+              <Field label={p('timezone')} htmlFor="timezone">
                 <Select
                   id="timezone"
                   options={toOptions(['UTC−3 · Brasília', 'UTC−5 · Bogotá', 'UTC+0 · Lisbon'])}
@@ -191,79 +208,79 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               </Field>
             </div>
 
-            <Field label="Target regions — companies hiring from">
+            <Field label={p('targetRegions')}>
               <ChipToggleGroup
                 options={chipOptions(TARGET_REGIONS)}
                 selected={draft.targetRegions}
                 onToggle={(value) => update('targetRegions', toggleInList(draft.targetRegions, value))}
-                ariaLabel="Target regions"
+                ariaLabel={p('targetRegions')}
               />
             </Field>
 
             <Field
-              label="Languages you work in"
-              hint="Postings in these languages appear in your feed. Timezone overlap requirements never block a match — only residence does."
+              label={p('workLanguages')}
+              hint={p('languagesHint')}
             >
               <ChipToggleGroup
                 options={chipOptions(WORK_LANGUAGES)}
                 selected={draft.languages}
                 onToggle={(value) => update('languages', toggleInList(draft.languages, value))}
-                ariaLabel="Languages"
+                ariaLabel={p('workLanguages')}
               />
             </Field>
           </SectionCard>
 
           <SectionCard
             id="occupation"
-            title="Occupation & skills"
-            description="Any profession — pick your families, then the roles and skills that describe you."
+            title={p('occupationTitle')}
+            description={p('occupationDescription')}
           >
-            <Field label="Job families">
+            <Field label={p('jobFamilies')}>
               <ChipToggleGroup
                 options={chipOptions(JOB_FAMILIES)}
                 selected={draft.jobFamilies}
                 onToggle={(value) => update('jobFamilies', toggleInList(draft.jobFamilies, value))}
-                ariaLabel="Job families"
+                ariaLabel={p('jobFamilies')}
               />
             </Field>
 
             <div
               className={styles.pair}
             >
-              <Field label="Target roles" htmlFor="roles">
+              <Field label={p('targetRoles')} htmlFor="roles">
                 <Input
                   id="roles"
                   value={draft.targetRoles}
                   onChange={(event) => update('targetRoles', event.target.value)}
                 />
               </Field>
-              <Field label="Seniority">
+              <Field label={p('seniority')}>
                 <SegmentedControl
                   fillMobile
-                  options={SENIORITY_OPTIONS}
+                  options={seniorityOptions}
                   value={draft.seniority}
                   onChange={(value) => update('seniority', value)}
-                  ariaLabel="Seniority"
+                  ariaLabel={p('seniority')}
                 />
               </Field>
             </div>
 
-            <Field label="Skills" hint="Free text is fine — matching is semantic, not exact-tag.">
+            <Field label={p('skills')} hint={p('skillsHint')}>
               <SkillsInput skills={draft.skills} onChange={(skills) => update('skills', skills)} />
             </Field>
           </SectionCard>
 
           <SectionCard
             id="contract"
-            title="Contract & compensation"
-            description="How you can be hired from your country."
+            title={p('contractTitle')}
+            description={p('contractDescription')}
           >
-            <Field label="Accepted contract models">
+            <Field label={p('contractModels')}>
               <ChipToggleGroup<ContractModel>
                 options={contractOptions}
                 selected={draft.contractModels}
                 onToggle={(value) => update('contractModels', toggleInList(draft.contractModels, value))}
-                ariaLabel="Contract models"
+                ariaLabel={p('contractModels')}
               />
             </Field>
             <CompensationField
@@ -277,20 +294,20 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
 
           <SectionCard
             id="digest"
-            title="Email digest"
-            description="New matched positions, delivered in your timezone. One-click unsubscribe in every email."
+            title={p('digestTitle')}
+            description={p('digestDescription')}
           >
             <Cluster gap="4" align="flex-end" className={styles.digestRow}>
-              <Field label="Cadence">
+              <Field label={p('cadence')}>
                 <SegmentedControl
                   fillMobile
-                  options={CADENCE_OPTIONS}
+                  options={cadenceOptions}
                   value={draft.digest.cadence}
                   onChange={(cadence) => update('digest', { ...draft.digest, cadence })}
-                  ariaLabel="Digest cadence"
+                  ariaLabel={p('cadence')}
                 />
               </Field>
-              <Field label="Send on" htmlFor="send-on">
+              <Field label={p('sendOn')} htmlFor="send-on">
                 <Select
                   id="send-on"
                   className={styles.sendOn}
@@ -299,7 +316,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                   onChange={(event) => update('digest', { ...draft.digest, sendOn: event.target.value })}
                 />
               </Field>
-              <Field label="At" htmlFor="send-at">
+              <Field label={p('sendAt')} htmlFor="send-at">
                 <Select
                   id="send-at"
                   className={styles.sendAt}
@@ -310,7 +327,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               </Field>
             </Cluster>
             <div className={styles.emailLanguage}>
-              <Field label="Email language" htmlFor="digest-lang">
+              <Field label={p('emailLanguage')} htmlFor="digest-lang">
                 <Select
                   id="digest-lang"
                   options={toOptions(['English', 'Português (BR)', 'Español'])}
@@ -321,11 +338,11 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             </div>
           </SectionCard>
 
-          <SectionCard id="account" title="Account & security">
+          <SectionCard id="account" title={p('accountTitle')}>
             <div
               className={cx(styles.pair, styles.pairNarrow)}
             >
-              <Field label="Email" htmlFor="email">
+              <Field label={p('email')} htmlFor="email">
                 <Input
                   id="email"
                   type="email"
@@ -337,34 +354,34 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                   language is the URL, so this navigates rather than editing a
                   profile field. The digest language below stays a stored
                   preference -- it decides what the emails are written in. */}
-              <Field label="Interface language">
+              <Field label={p('interfaceLanguage')}>
                 <LocaleSwitcher />
               </Field>
             </div>
             <Cluster gap="2" className={styles.accountActions}>
-              <Button variant="secondary">Change password</Button>
-              <Button variant="secondary">Connected accounts (Google, GitHub)</Button>
+              <Button variant="secondary">{p('changePassword')}</Button>
+              <Button variant="secondary">{p('connectedAccounts')}</Button>
               <Button variant="ghost" className={styles.dangerAction}>
-                Delete account…
+                {p('deleteAccount')}
               </Button>
             </Cluster>
           </SectionCard>
 
           <section id="history">
             <Cluster justify="space-between" align="baseline" className={styles.historyHeader}>
-              <h3 className={styles.historyTitle}>Job history</h3>
+              <h3 className={styles.historyTitle}>{p('historyTitle')}</h3>
               <SegmentedControl
-                options={HISTORY_TABS}
+                options={historyTabs}
                 value={historyTab}
                 onChange={setHistoryTab}
-                ariaLabel="History filter"
+                ariaLabel={p('historyTitle')}
               />
             </Cluster>
             <DataTable
               columns={columns}
               rows={history.filter((row) => row.status === historyTab)}
               rowKey={(row) => row.jobId}
-              emptyMessage={`No ${historyTab} positions yet.`}
+              emptyMessage={p('emptyHistory', { status: statusLabel[historyTab] })}
               mobileAreas={'"title date" "company eligibility"'}
             />
           </section>
@@ -375,9 +392,9 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             className={styles.saveBar}
           >
             <Button variant="secondary" onClick={() => setDraft(profile)}>
-              Discard changes
+              {p('discard')}
             </Button>
-            <Button variant="primary">Save profile</Button>
+            <Button variant="primary">{p('save')}</Button>
           </Cluster>
         </Stack>
       </div>
@@ -388,7 +405,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
           {t('feed')}
         </Button>
         <Button variant="primary" className={styles.saveAction}>
-          Save profile
+          {p('save')}
         </Button>
       </div>
     </AppShell>
