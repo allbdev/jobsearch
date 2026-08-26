@@ -5,10 +5,10 @@ import { useTranslations } from 'next-intl'
 import type { ContractModel, FeedDefinition } from '@jobsearch/shared'
 import {
   ELIGIBILITY_REGIONS,
-  JOB_FAMILIES,
   chipOptions,
   contractOptions,
 } from '@jobsearch/shared'
+import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import {
   Button,
   Checkbox,
@@ -31,6 +31,7 @@ export function FeedDefinitionDialog({
 }) {
   const [draft, setDraft] = useState(definition)
   const f = useTranslations('feed')
+  const familyOptions = useJobFamilyOptions()
   const [amount, setAmount] = useState(
     definition.minCompensation ? definition.minCompensation.toLocaleString('en-US') : '',
   )
@@ -65,7 +66,7 @@ export function FeedDefinitionDialog({
 
       <Field label={f('jobFamilies')}>
         <ChipToggleGroup
-          options={chipOptions(JOB_FAMILIES)}
+          options={familyOptions}
           selected={draft.jobFamilies}
           onToggle={(value) => update('jobFamilies', toggleInList(draft.jobFamilies, value))}
           ariaLabel={f('jobFamilies')}

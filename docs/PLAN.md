@@ -39,6 +39,7 @@ Each decision is recorded with its rationale so we can revisit it deliberately r
 | D9 | Profession-agnostic: any occupation, not tech-only. Architecture generic from day one; verticals expand as sources allow | ✅ agreed |
 | D10 | Design system "Industry", authored in Claude Design, vendored unmodified; every component written exactly once in `@jobsearch/ui` | ✅ implemented |
 | D11 | i18n via locale-prefixed routes (`/en`, `/pt-br`, `/es`) with next-intl; changing language navigates | ✅ implemented |
+| D12 | Occupation taxonomy: homegrown, 33 families with permanent ids and a growth policy — not ESCO or O*NET | ✅ implemented |
 
 ### D1 — Global crawl, per-user query
 
@@ -186,6 +187,48 @@ Authenticated screens (`/feed`, `/profile`) are `noindex` and carry no
 **Operational note:** `NEXT_PUBLIC_SITE_URL` must be set at **build** time. The
 landing pages are prerendered and `hreflang`/`canonical` are absolute URLs baked
 in at that point; without it they are emitted against `localhost` and ignored.
+
+### D12 — A homegrown occupation taxonomy
+
+**33 job families in 12 groups**, defined in `packages/shared/src/job-families.ts`.
+Not ESCO, not O\*NET.
+
+**Why not ESCO.** It was the early favourite: ~3,000 occupations, openly
+licensed, and published in ~28 languages, which looked like it would translate
+the taxonomy for free. Two things undercut that. Its Portuguese is European, not
+Brazilian, and our first users are Brazilian — so the translations would need
+editing anyway, which was the main reason to take it. And 3,000 classes is the
+wrong size for both consumers: nobody picks from a 3,000-item list, so a display
+grouping would be needed regardless, and an LLM choosing a family per posting is
+markedly less reliable across 3,000 near-identical options than across 33.
+
+**Why not O\*NET.** English-only and shaped around the US labour market, for a
+product whose entire premise is hiring across borders from Brazil and LATAM.
+
+**What made it decidable.** The taxonomy is not doing the matching. D3 puts
+relevance on vector similarity, so `job_family` is a filter and a label. That is
+a much smaller job than "be the semantic backbone", and it is the job a short
+curated list does best.
+
+**Designed to grow.** The list will change as we see real postings and real
+users, so the rules that make growth safe are part of the design:
+
+| Rule | Why |
+|---|---|
+| Ids are permanent, never renamed or reused | They are written into profiles, feed definitions and classified postings |
+| Labels live in the message catalogs | Rewording is a translation, not a migration |
+| Retire as `deprecated`, never delete | A saved profile never silently loses a selection |
+| Merges set `replacedBy`; reads follow it | A merge needs no backfill to be correct |
+| Splits bump `TAXONOMY_VERSION` | A split cannot be resolved by a pointer; the stamp identifies what to re-classify, which is cheap because `classify` replays from stored raw payloads (§4) |
+| `aliases` absorb feedback first | A recurring unmatched term becomes an alias — a one-line change — long before it becomes a family |
+
+The feedback loop that feeds this: when a user's typed role or a posting title
+matches nothing, log the raw term. Aggregated, recurring terms become aliases,
+and only persistent ones that clearly fit nowhere become new families.
+
+An `esco_code` column stays available as a nullable, unpopulated escape hatch —
+if we ever want ESCO's skill graph or need to interoperate with an EU board,
+that is a backfill rather than a migration.
 
 ---
 
@@ -370,9 +413,10 @@ Note on D9 vs. sequencing: the *schema and pipeline* are profession-agnostic fro
 - [ ] Company curation for Tier 2 — how do we build and maintain the ATS company list? Manual seed, then grown from jobs discovered via Tier 1?
 - [ ] Embedding model + dimensions (affects the pgvector column type; changing it later means a re-embed of everything).
 - [ ] Auth provider — the Login screen is built but wired to nothing. Decides whether sessions live in the API only (per D5) or need a Next middleware component.
-- [ ] The occupation taxonomy currently ships as a hardcoded list in `packages/shared/src/taxonomy.ts`. It must become fetched and versioned once the taxonomy question above is settled.
+- [ ] Job families ship as a compiled-in list (D12). That is right while it is 33 rows changed by deploy; it must become a fetched, versioned dataset once families are added in response to user feedback rather than by hand.
+- [ ] The family picker is a flat row of 33 chips ordered by group, with no section headers. Fine at 33; it needs grouped sections before the list grows much further.
+- [ ] Eligibility regions and contract models are still English display strings in `taxonomy.ts` — the same treatment job families just received.
 - [ ] Do we keep D8 (pg-boss) or move to Redis + BullMQ once we need Redis for rate-limit buckets anyway?
-- [ ] **Occupation taxonomy: ESCO vs O\*NET vs homegrown?** Blocks the schema — `job_family` is a foreign key. ESCO leads on multilingual + licensing.
 - [ ] **Multi-language postings** (PT/ES/DE/FR) — classify in the original language or translate first? Promoted from a footnote by D9; affects the embedding choice, since a multilingual model would let one vector space serve all languages.
 - [ ] **Which professions do we launch with**, and what is the source-coverage bar before a vertical is publicly listed? Showing a profession with 4 stale jobs is worse than not showing it.
 - [ ] **Country names are not localised.** The residence pickers list `Brazil`,
