@@ -29,6 +29,7 @@ import {
   cx,
 } from '@jobsearch/ui'
 import { FeedDefinitionDialog } from './FeedDefinitionDialog'
+import { useJobFamilyLabels } from '../shared/useJobFamilyOptions'
 import styles from './FeedScreen.module.css'
 
 export function FeedScreen({
@@ -48,6 +49,7 @@ export function FeedScreen({
   const t = useTranslations('nav')
   const f = useTranslations('feed')
   const locale = useLocale()
+  const familyLabels = useJobFamilyLabels()
 
   const sortOptions = [
     { value: 'best_match', label: f('bestMatch') },
@@ -69,7 +71,7 @@ export function FeedScreen({
   const hours = Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))
 
   const definitionRows: Array<[string, string]> = [
-    [f('jobFamilies'), definition.jobFamilies.join(', ') || f('allFamilies')],
+    [f('jobFamilies'), familyLabels(definition.jobFamilies).join(', ') || f('allFamilies')],
     [f('eligibleFrom'), definition.eligibleFrom.join(' · ')],
     [f('contract'), definition.contractModels.map((c) => CONTRACT_MODEL_LABELS[c]).join(' · ')],
     [

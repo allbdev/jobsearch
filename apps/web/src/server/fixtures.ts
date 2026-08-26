@@ -36,7 +36,7 @@ const FEED_SEEDS: { feed: Omit<Feed, 'matchedCount'>; jobs: Seed[] }[] = [
       id: 'frontend-worldwide',
       definition: {
         name: 'Frontend · Worldwide',
-        jobFamilies: ['Engineering — Frontend', 'Engineering — Fullstack'],
+        jobFamilies: ['engineering-frontend', 'engineering-fullstack'],
         eligibleFrom: ['Worldwide', 'LATAM', 'Americas'],
         contractModels: ['contractor_pj', 'eor'],
         minCompensation: 90_000,
@@ -60,7 +60,7 @@ const FEED_SEEDS: { feed: Omit<Feed, 'matchedCount'>; jobs: Seed[] }[] = [
       id: 'design-latam',
       definition: {
         name: 'Product Design · LATAM',
-        jobFamilies: ['Design — Product', 'Design — UX'],
+        jobFamilies: ['design-product', 'design-research'],
         eligibleFrom: ['LATAM', 'Brazil listed'],
         contractModels: ['contractor_pj', 'eor', 'local_entity'],
         minCompensation: 60_000,
@@ -150,7 +150,7 @@ export function profile(): Profile {
     timezone: 'UTC−3 · Brasília',
     targetRegions: ['USA', 'Canada', 'Europe'],
     languages: ['English', 'Português'],
-    jobFamilies: ['Engineering — Frontend', 'Engineering — Fullstack'],
+    jobFamilies: ['engineering-frontend', 'engineering-fullstack'],
     targetRoles: 'Product Engineer, Frontend Engineer, Fullstack Engineer',
     seniority: 'senior',
     skills: ['JavaScript', 'TypeScript', 'React', 'Next.js', 'React Native', 'Node.js', 'NestJS', 'PostgreSQL', 'Go'],

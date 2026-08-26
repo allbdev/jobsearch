@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
+import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import type {
   ContractModel,
   DigestCadence,
@@ -15,7 +16,6 @@ import type {
 import {
   TARGET_REGIONS,
   WORK_LANGUAGES,
-  JOB_FAMILIES,
   chipOptions,
   contractOptions,
 } from '@jobsearch/shared'
@@ -66,6 +66,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
   const [historyTab, setHistoryTab] = useState<JobInteraction>('saved')
   const t = useTranslations('nav')
   const p = useTranslations('profile')
+  const familyOptions = useJobFamilyOptions()
 
   const seniorityOptions: { value: Seniority; label: string }[] = [
     { value: 'junior', label: p('seniorityJunior') },
@@ -237,7 +238,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
           >
             <Field label={p('jobFamilies')}>
               <ChipToggleGroup
-                options={chipOptions(JOB_FAMILIES)}
+                options={familyOptions}
                 selected={draft.jobFamilies}
                 onToggle={(value) => update('jobFamilies', toggleInList(draft.jobFamilies, value))}
                 ariaLabel={p('jobFamilies')}

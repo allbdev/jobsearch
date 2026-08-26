@@ -1,26 +1,13 @@
 import { CONTRACT_MODEL_LABELS, type ContractModel } from './eligibility'
 
 /**
- * Placeholder option lists.
+ * Region and contract option lists.
  *
- * These are hardcoded here, once, so the Feed dialog and the Profile screen
- * cannot drift apart — the design source declares its own copy in each screen.
- *
- * They are a stand-in for the real occupation taxonomy (PLAN.md §9 open
- * question: ESCO vs O*NET vs homegrown). When that lands, these become a
- * fetched, versioned dataset; the component contract does not change.
+ * Job families used to live here as a placeholder; they now have their own
+ * module with stable ids and a growth policy — see `job-families.ts` and
+ * PLAN.md D12. These remaining lists are still display strings and still need
+ * the same treatment.
  */
-
-export const JOB_FAMILIES = [
-  'Engineering — Frontend',
-  'Engineering — Fullstack',
-  'Engineering — Backend',
-  'Design — Product',
-  'Marketing — Growth',
-  'Support / CX',
-  'Finance — Accounting',
-  'Operations',
-] as const
 
 export const ELIGIBILITY_REGIONS = [
   'Worldwide',
