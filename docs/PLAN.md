@@ -390,7 +390,7 @@ packages/
   design-system  ✅ "Industry" vendored from Claude Design — do not hand-edit
   ui             ✅ React component library — every component, written once
   shared         ✅ Zod schemas + inferred types      (shared with web)
-  db             ⬜ Prisma schema + migrations        (api + worker only)
+  db             ✅ Prisma schema + migrations        (api + worker only)
   core           ⬜ pure domain logic: eligibility rules, scoring, dedup
   sources        ⬜ one adapter per source, uniform interface
 ```
@@ -435,9 +435,9 @@ does not exist yet. Swapping to the live API changes that one file.
 
 ## 8. Milestones
 
-- **M0 — Skeleton.** 🟡 *in progress.* Monorepo, pnpm/Turborepo, boundary check in
-  CI, design system imported, component library and all three screens built
-  against fixtures. Remaining: Prisma schema, Postgres up.
+- **M0 — Skeleton.** ✅ *done.* Monorepo, pnpm/Turborepo, boundary checks in CI,
+  design system imported, all three screens built responsive and translated
+  against fixtures, Postgres running with the pipeline schema migrated.
 - **M1 — Ingestion.** Tier 1 sources + `raw_postings` → `jobs`, dedup, link check. Verified by row counts, no UI.
 - **M2 — Classification.** Rules pass + LLM pass, evidence stored, fixture corpus as regression suite.
 - **M3 — Accounts + feed.** Auth, profile, matching query, web feed with SSR job pages.
