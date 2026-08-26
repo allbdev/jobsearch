@@ -375,4 +375,10 @@ Note on D9 vs. sequencing: the *schema and pipeline* are profession-agnostic fro
 - [ ] **Occupation taxonomy: ESCO vs O\*NET vs homegrown?** Blocks the schema — `job_family` is a foreign key. ESCO leads on multilingual + licensing.
 - [ ] **Multi-language postings** (PT/ES/DE/FR) — classify in the original language or translate first? Promoted from a footnote by D9; affects the embedding choice, since a multilingual model would let one vector space serve all languages.
 - [ ] **Which professions do we launch with**, and what is the source-coverage bar before a vertical is publicly listed? Showing a profession with 4 stale jobs is worse than not showing it.
+- [ ] **Country names are not localised.** The residence pickers list `Brazil`,
+  `Argentina`, … in English in every locale, because `profiles.residenceCountry`
+  stores a display name rather than a code. The fix is ISO 3166-1 alpha-2 codes
+  in the schema plus `Intl.DisplayNames` for rendering — which localises every
+  country for free and is what `job_eligibility.eligibleCountries` already
+  assumes. A data-model change, not a translation one.
 - [ ] Tier 2 aggregator validation — which of Remotive / Working Nomads / Jobspresso / Remote.co / JustRemote / Pangian / Jobicy actually expose usable APIs with region metadata and permissive ToS?

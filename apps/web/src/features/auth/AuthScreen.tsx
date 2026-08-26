@@ -27,20 +27,21 @@ import styles from './AuthScreen.module.css'
 
 type Mode = 'login' | 'register'
 
-const MODE_OPTIONS = [
-  { value: 'login', label: 'Sign in' },
-  { value: 'register', label: 'Create account' },
-] as const
-
-const STATS = [
-  { value: '38k', label: 'postings classified' },
-  { value: '190+', label: 'countries covered' },
-  { value: '0', label: 'broken links tolerated' },
-]
-
 export function AuthScreen() {
   const [mode, setMode] = useState<Mode>('login')
   const isLogin = mode === 'login'
+  const a = useTranslations('auth')
+
+  const modeOptions = [
+    { value: 'login', label: a('signIn') },
+    { value: 'register', label: a('createAccount') },
+  ] as const
+
+  const stats = [
+    { value: '38k', label: a('statClassified') },
+    { value: '190+', label: a('statCountries') },
+    { value: '0', label: a('statBrokenLinks') },
+  ]
 
   return (
     <AppShell
@@ -56,41 +57,41 @@ export function AuthScreen() {
           justify="space-between"
           className={cx('text-muted', styles.footer)}
         >
-          <span>© 2026 JobSearch — geographic eligibility, verified and cited.</span>
+          {/* The year differs between a prerendered build and a client render
+              once January arrives, which React reports as a hydration error
+              until the next deploy. The text is cosmetic, so the warning is
+              suppressed rather than freezing the year at build time. */}
+          <span suppressHydrationWarning>
+            {a('copyright', { year: new Date().getFullYear() })}
+          </span>
           <span>
-            <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+            <a href="/privacy">{a('privacy')}</a> · <a href="/terms">{a('terms')}</a>
           </span>
         </Cluster>
       }
     >
       <div className={styles.layout}>
         <Stack as="section" gap="4" className={styles.hero}>
-          <h1 className={styles.headline}>
-            Remote jobs you are actually eligible for.
-          </h1>
+          <h1 className={styles.headline}>{a('headline')}</h1>
           <Muted as="p" className={styles.lede}>
-            Most boards say “Remote”. We verify whether the company hires from <em>your</em> country —
-            and quote the line in the posting that proves it. Any profession, one feed, one weekly
-            email.
+            {a.rich('lede', { em: (chunks) => <em>{chunks}</em> })}
           </Muted>
 
           <div className={styles.evidence}>
             <EvidenceCard
               variant="framed"
-              kicker="Eligibility evidence · example"
-              snippet="This role is open to candidates anywhere in Latin America. We hire via Deel."
+              kicker={a('exampleKicker')}
+              snippet={a('exampleQuote')}
               footer={
                 <Cluster gap="2">
-                  <Tag tone="accent">ELIGIBLE · LATAM</Tag>
-                  <span className={styles.evidenceNote}>
-                    quoted from the posting, link verified today
-                  </span>
+                  <Tag tone="accent">{a('exampleBadge')}</Tag>
+                  <span className={styles.evidenceNote}>{a('exampleNote')}</span>
                 </Cluster>
               }
             />
           </div>
 
-          <StatRow stats={STATS} className={styles.stats} />
+          <StatRow stats={stats} className={styles.stats} />
         </Stack>
 
         <Blueprint
@@ -100,20 +101,20 @@ export function AuthScreen() {
         >
           <div className={styles.modeSwitch}>
             <SegmentedControl
-              options={MODE_OPTIONS}
+              options={modeOptions}
               value={mode}
               onChange={setMode}
               fill
-              ariaLabel="Sign in or create an account"
+              ariaLabel={a('signIn')}
             />
           </div>
 
           {!isLogin && (
             <div className={cx(styles.pair, styles.registerFields)}>
-              <Field label="Full name" htmlFor="name">
-                <Input id="name" placeholder="Ana Souza" />
+              <Field label={a('fullName')} htmlFor="name">
+                <Input id="name" placeholder={a('fullNamePlaceholder')} />
               </Field>
-              <Field label="Country of residence" htmlFor="country">
+              <Field label={a('residence')} htmlFor="country">
                 <Select
                   id="country"
                   options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal', 'Other…'])}
@@ -123,16 +124,16 @@ export function AuthScreen() {
           )}
 
           <Stack gap="3">
-            <Field label="Email" htmlFor="email">
-              <Input id="email" type="email" placeholder="you@example.com" />
+            <Field label={a('email')} htmlFor="email">
+              <Input id="email" type="email" placeholder={a('emailPlaceholder')} />
             </Field>
             <Field
-              label="Password"
+              label={a('password')}
               htmlFor="password"
               labelAside={
                 isLogin ? (
                   <a href="/forgot" className={styles.forgot}>
-                    Forgot?
+                    {a('forgot')}
                   </a>
                 ) : undefined
               }
@@ -142,13 +143,12 @@ export function AuthScreen() {
 
             {!isLogin && (
               <Checkbox defaultChecked alignStart>
-                Send me the email digest of new matched positions (weekly by default — cadence is
-                yours to change)
+                {a('digestOptIn')}
               </Checkbox>
             )}
 
             <Button as={Link} variant="primary" block href="/feed" className={styles.submit}>
-              {isLogin ? 'Sign in' : 'Create my feed'}
+              {isLogin ? a('ctaSignIn') : a('ctaCreate')}
             </Button>
 
             <Cluster
@@ -157,7 +157,7 @@ export function AuthScreen() {
               wrap={false}
             >
               <span className={styles.dividerRule} />
-              or
+              {a('or')}
               <span className={styles.dividerRule} />
             </Cluster>
 
@@ -173,13 +173,13 @@ export function AuthScreen() {
             </div>
 
             <Muted as="p" className={styles.swapNote}>
-              {isLogin ? 'New here?' : 'Already have an account?'}{' '}
+              {isLogin ? a('newHere') : a('haveAccount')}{' '}
               <button
                 type="button"
                 onClick={() => setMode(isLogin ? 'register' : 'login')}
                 className={styles.swapButton}
               >
-                {isLogin ? 'Create an account' : 'Sign in instead'}
+                {isLogin ? a('goCreate') : a('goSignIn')}
               </button>
             </Muted>
           </Stack>
