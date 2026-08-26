@@ -1,0 +1,260 @@
+// The ingestion pipeline's tables (PLAN.md §4).
+//
+// The pipeline is four stages, each idempotent and independently replayable:
+//
+//   fetch → rawPostings → normalize → jobs → classify → jobEligibility → match
+//
+// That shape is why several columns exist that would otherwise look redundant.
+// `rawPostings` keeps the source's original response forever, so improving the
+// normaliser or the classifier is a re-run over stored data rather than a
+// re-crawl. The version stamps -- `classifierVersion`, `taxonomyVersion`,
+// `embeddingModel` -- are what identify which rows a given improvement
+// invalidated.
+//
+// The user-side tables (profiles, feeds, matches, digests) land with M3.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+// Values mirror the Zod schemas in @jobsearch/shared exactly, so nothing has to
+// translate between the wire format and the database.
+
+enum SourceKind {
+  ats
+  aggregator
+  vertical
+  community
+}
+
+enum EligibilityVerdict {
+  confirmed
+  needs_check
+  rejected
+}
+
+enum ContractModel {
+  contractor_pj
+  eor
+  local_entity
+  employee_relocation
+  unknown
+}
+
+// ─── Sources ─────────────────────────────────────────────────────────────────
+
+model Source {
+  id        String     @id @default(cuid())
+  kind      SourceKind
+  /// Stable slug, e.g. "greenhouse", "remoteok". Referenced in code and logs.
+  slug      String     @unique
+  name      String
+  /// Per-source settings: base URL, board list, rate limit. Shapes differ too
+  /// much between an ATS and an RSS feed to be worth normalising.
+  config    Json       @default("{}")
+  enabled   Boolean    @default(true)
+
+  pollIntervalMinutes Int       @default(60)
+  lastPolledAt        DateTime?
+  /// Consecutive failures. A source that quietly stops returning results is
+  /// how an index rots without anyone noticing (PLAN.md §7).
+  failureStreak       Int       @default(0)
+  lastError           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rawPostings RawPosting[]
+
+  @@map("sources")
+}
+
+// ─── Companies ───────────────────────────────────────────────────────────────
+
+model Company {
+  id         String  @id @default(cuid())
+  name       String
+  /// Canonical host, e.g. "layered.com". The dedup key across sources: the same
+  /// company arrives as "Layered", "Layered Inc." and "layered".
+  domain     String? @unique
+  atsType    String?
+  careersUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs Job[]
+
+  @@index([name])
+  @@map("companies")
+}
+
+// ─── Stage 1: fetch ──────────────────────────────────────────────────────────
+
+model RawPosting {
+  id String @id @default(cuid())
+
+  sourceId String
+  source   Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  /// The source's own id for this posting. With sourceId it makes re-fetching
+  /// idempotent: a second fetch updates rather than duplicates.
+  externalId String
+  /// The response exactly as received. Never edited -- this is what makes
+  /// normalize and classify replayable.
+  payload    Json
+  /// Hash of the meaningful payload fields, so an unchanged re-fetch is a
+  /// no-op instead of a pointless normalize + classify + re-embed.
+  contentHash String
+
+  fetchedAt DateTime @default(now())
+
+  job Job?
+
+  @@unique([sourceId, externalId])
+  @@index([contentHash])
+  @@index([fetchedAt])
+  @@map("raw_postings")
+}
+
+// ─── Stage 2: normalize ──────────────────────────────────────────────────────
+
+model Job {
+  id String @id @default(cuid())
+
+  rawPostingId String     @unique
+  rawPosting   RawPosting @relation(fields: [rawPostingId], references: [id], onDelete: Cascade)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  title       String
+  description String
+  /// Canonicalised: tracking parameters stripped, so the same posting reached
+  /// from two sources dedupes to one row.
+  applyUrl    String
+
+  /// A job family id from @jobsearch/shared (D12). Deliberately a plain string
+  /// rather than a foreign key: the taxonomy is compiled in for now, and a
+  /// posting classified under a family this deploy has retired must still
+  /// round-trip.
+  jobFamily       String?
+  taxonomyVersion String?
+  skills          String[] @default([])
+  seniority       String?
+  /// BCP-47 of the posting itself, which is often not the user's language.
+  language        String?
+
+  postedAt         DateTime
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String?
+  salaryPeriod     String?
+  /// The source's own wording, kept because it is frequently unparseable
+  /// ("competitive", "R$25-32k/mo") and still worth showing.
+  salaryLabel      String?
+
+  /// Full-text search vector, maintained by a trigger (see the migration).
+  /// Prisma has no tsvector type, so it is opaque here and queried with raw SQL.
+  searchVector Unsupported("tsvector")?
+
+  /// Cohere embed-v4.0 at 1024 dimensions (D13). Null until M3 -- there is no
+  /// corpus to embed before ingestion runs.
+  embedding          Unsupported("vector(1024)")?
+  /// Which model and size produced the vector above. Stored per row so
+  /// swapping models is a filtered re-embed rather than archaeology.
+  embeddingModel     String?
+  embeddingDimension Int?
+  embeddedAt         DateTime?
+
+  /// Link health (PLAN.md §4). The origin prompt's "no broken links" rule.
+  lastVerifiedAt DateTime?
+  httpStatus     Int?
+  /// Freshness cutoff; expired jobs drop out of feeds without being deleted.
+  expiresAt      DateTime?
+
+  /// Dedup key across sources: normalised company + title + canonical URL.
+  contentHash String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eligibility JobEligibility?
+
+  @@index([postedAt])
+  @@index([jobFamily])
+  @@index([expiresAt])
+  @@index([companyId])
+  @@map("jobs")
+}
+
+// ─── Stage 3: classify ───────────────────────────────────────────────────────
+
+model JobEligibility {
+  id String @id @default(cuid())
+
+  jobId String @unique
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  verdict EligibilityVerdict
+  /// Human-readable region for the badge: "Worldwide", "LATAM", "Brazil listed".
+  regionLabel String
+
+  /// ISO-3166 alpha-2. Empty means unbounded rather than unknown -- `verdict`
+  /// carries the unknown case.
+  eligibleCountries String[] @default([])
+  eligibleRegions   String[] @default([])
+  contractModel     ContractModel @default(unknown)
+  /// e.g. "3h overlap with EST". A preference, never a blocker: only residence
+  /// and work authorisation disqualify (PLAN.md §5).
+  timezoneRequirement String?
+
+  /// The quoted line from the posting that proves eligibility. This is the
+  /// product's core claim, not a nicety -- a `confirmed` verdict without one is
+  /// a bug, enforced in the Zod schema and by a CHECK constraint.
+  evidenceSnippet String?
+  evidenceUrl     String?
+
+  /// Which classifier produced this. Improving the prompt means re-running
+  /// classify over stored raw payloads; this identifies what is stale.
+  classifierVersion String
+  /// Whether the deterministic keyword pass settled it, or the LLM was needed.
+  /// Watching this ratio is how the classification cost stays predictable.
+  decidedByRules Boolean @default(false)
+
+  classifiedAt DateTime @default(now())
+
+  @@index([verdict])
+  @@index([classifierVersion])
+  @@map("job_eligibility")
+}
+
+// ─── Taxonomy feedback (D12) ─────────────────────────────────────────────────
+
+model UnmatchedTerm {
+  id String @id @default(cuid())
+
+  /// A role or title that matched no job family, lowercased and trimmed.
+  term        String  @unique
+  occurrences Int     @default(1)
+  /// "posting" or "profile" -- a term users type about themselves carries more
+  /// weight than one scraped from a job board.
+  origin      String
+  /// Set once a term has been folded into a family's aliases, so it stops
+  /// showing up as a candidate without losing the count.
+  resolvedTo  String?
+
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
+
+  @@index([occurrences])
+  @@map("unmatched_terms")
+}

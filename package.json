@@ -5,6 +5,11 @@
   "scripts": {
     "boundaries": "depcruise --config .dependency-cruiser.cjs apps packages",
     "build": "turbo run build",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @jobsearch/db exec prisma migrate deploy",
+    "db:reset": "docker compose down -v && docker compose up -d --wait && pnpm db:migrate",
+    "db:studio": "pnpm --filter @jobsearch/db exec prisma studio",
+    "db:up": "docker compose up -d --wait",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "prepare": "git config core.hooksPath .githooks || true",
