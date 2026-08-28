@@ -63,6 +63,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@jobsearch/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@jobsearch/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -82,6 +85,18 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
+
+  packages/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(tsx@4.23.12)
 
   packages/db:
     dependencies:
@@ -116,6 +131,9 @@ importers:
 
   packages/sources:
     dependencies:
+      '@jobsearch/core':
+        specifier: workspace:*
+        version: link:../core
       '@jobsearch/shared':
         specifier: workspace:*
         version: link:../shared
