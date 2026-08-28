@@ -6,6 +6,17 @@ Prisma schema and client for the ingestion pipeline (PLAN.md §4).
 is forbidden from depending on this package; CI enforces it
 (`pnpm boundaries`, rule `web-must-not-touch-db`). See PLAN.md D5.
 
+## Watching source health
+
+```bash
+pnpm --filter @jobsearch/worker worker health
+```
+
+Exits non-zero when a source is failing or overdue, so a scheduler can act on
+it. `failureStreak` and `lastError` were being recorded and read by nobody; a
+source that quietly stops returning results is how an index rots without anyone
+noticing (PLAN.md §7).
+
 ## Local database
 
 ```bash

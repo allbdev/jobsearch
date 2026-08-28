@@ -1,6 +1,7 @@
 import { prisma } from '@jobsearch/db'
 import { fetchSource } from './fetch-source'
 import { seed } from './seed'
+import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { log } from './log'
 
 /**
@@ -29,8 +30,17 @@ async function main() {
       break
     }
 
+    case 'health': {
+      const rows = await sourceHealth()
+      console.log(formatHealth(rows))
+      // Non-zero so a scheduler or CI job can act on it rather than needing a
+      // human to read the output.
+      if (isUnhealthy(rows)) process.exitCode = 1
+      break
+    }
+
     default:
-      console.error('usage: worker <seed|fetch <source-slug>>')
+      console.error('usage: worker <seed | fetch <source-slug> | health>')
       process.exitCode = 1
   }
 }

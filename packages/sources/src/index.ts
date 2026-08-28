@@ -1,6 +1,10 @@
 export * from './types'
 export { createHttpClient } from './http'
-export { greenhouseAdapter, greenhouseContentHash } from './greenhouse'
+export {
+  greenhouseAdapter,
+  greenhouseContentHash,
+  GREENHOUSE_DEFAULT_BASE_URL,
+} from './greenhouse'
 
 import { greenhouseAdapter } from './greenhouse'
 import type { SourceAdapter } from './types'

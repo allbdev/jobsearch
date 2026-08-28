@@ -13,6 +13,8 @@ import { SourceConfigError, type FetchContext, type FetchedPosting, type SourceA
  * The public board API needs no key and no scraping.
  */
 
+export const GREENHOUSE_DEFAULT_BASE_URL = 'https://boards-api.greenhouse.io/v1'
+
 const configSchema = z.object({
   /**
    * Greenhouse board tokens — the company slug in
@@ -20,6 +22,18 @@ const configSchema = z.object({
    * across borders (PLAN.md §3).
    */
   boards: z.array(z.string().min(1)).min(1),
+  /**
+   * Overridable per source row, so a staging environment can point at a mock
+   * and an endpoint move can be corrected without a deploy.
+   *
+   * Worth being clear about what this does and does not buy. It helps only if
+   * the *path shape* stays the same. If Greenhouse restructures the endpoint or
+   * changes the response, the parsing changes too and a code change is needed
+   * regardless — no amount of configurability avoids that. It lives in
+   * `sources.config` rather than an environment variable because config is
+   * per-source, and a dozen sources would otherwise mean a dozen global vars.
+   */
+  baseUrl: z.string().url().default(GREENHOUSE_DEFAULT_BASE_URL),
 })
 
 /**
@@ -46,8 +60,8 @@ const jobSchema = z
 
 const boardSchema = z.object({ jobs: z.array(jobSchema) })
 
-const BOARD_URL = (board: string) =>
-  `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs?content=true`
+const boardUrl = (baseUrl: string, board: string) =>
+  `${baseUrl.replace(/\/$/, '')}/boards/${encodeURIComponent(board)}/jobs?content=true`
 
 /**
  * Hash of the fields that change what we would conclude about a posting.
@@ -74,15 +88,18 @@ export const greenhouseAdapter: SourceAdapter = {
       throw new SourceConfigError('greenhouse', parsed.error.issues[0]?.message ?? 'unknown')
     }
 
-    for (const board of parsed.data.boards) {
+    const { boards, baseUrl } = parsed.data
+
+    for (const board of boards) {
       let raw: unknown
       try {
-        raw = await ctx.http.getJson(BOARD_URL(board))
+        raw = await ctx.http.getJson(boardUrl(baseUrl, board))
       } catch (error) {
         // One dead board must not abandon the rest of the crawl. Boards are
         // removed and renamed constantly; that is a curation problem to report,
         // not a reason to lose the other 40 companies in this run.
         ctx.log('board fetch failed', { board, error: String(error) })
+        ctx.reportFailure(`board:${board}`, error)
         continue
       }
 
@@ -92,6 +109,7 @@ export const greenhouseAdapter: SourceAdapter = {
           board,
           issue: board_.error.issues[0]?.message,
         })
+        ctx.reportFailure(`board:${board}`, board_.error)
         continue
       }
 
