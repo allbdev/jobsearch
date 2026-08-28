@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@jobsearch/core": "workspace:*",
     "@jobsearch/db": "workspace:*",
     "@jobsearch/shared": "workspace:*",
     "@jobsearch/sources": "workspace:*"
