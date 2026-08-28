@@ -2,6 +2,7 @@ import { prisma } from '@jobsearch/db'
 import { fetchSource } from './fetch-source'
 import { seed } from './seed'
 import { formatHealth, isUnhealthy, sourceHealth } from './health'
+import { normalizePostings } from './normalize'
 import { log } from './log'
 
 /**
@@ -30,6 +31,13 @@ async function main() {
       break
     }
 
+    case 'normalize': {
+      const started = Date.now()
+      const result = await normalizePostings(argument)
+      log('normalize complete', { source: argument ?? 'all', ...result, ms: Date.now() - started })
+      break
+    }
+
     case 'health': {
       const rows = await sourceHealth()
       console.log(formatHealth(rows))
@@ -40,7 +48,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <source-slug> | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] | health>')
       process.exitCode = 1
   }
 }
