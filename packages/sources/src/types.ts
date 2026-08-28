@@ -44,6 +44,23 @@ export interface FetchContext {
   reportFailure: (scope: string, error: unknown) => void
 }
 
+/**
+ * Stage 2's output: a posting in the shape `jobs` stores, before any
+ * classification. Nothing here is inferred — every field is read from the
+ * payload. Job family, skills and eligibility are the classifier's work.
+ */
+export interface NormalizedPosting {
+  title: string
+  companyName: string
+  applyUrl: string
+  description: string
+  postedAt: Date
+  /** The source's own words for location, kept verbatim for the classifier. */
+  locationRaw: string | null
+  /** BCP-47 of the posting itself, which is often not the reader's language. */
+  language: string | null
+}
+
 export interface SourceAdapter {
   /** Matches `sources.slug`. */
   slug: string
@@ -53,6 +70,16 @@ export interface SourceAdapter {
    * than holding a full crawl in memory.
    */
   fetch(ctx: FetchContext): AsyncIterable<FetchedPosting>
+
+  /**
+   * Stage 2: turn a stored payload into the canonical shape.
+   *
+   * Separate from `fetch` and pure, because normalize replays over
+   * `raw_postings` whenever this function improves — no network, no re-crawl
+   * (PLAN.md §4). Returns null for a payload it cannot make sense of, which is
+   * a skip rather than a crash.
+   */
+  normalize(payload: unknown): NormalizedPosting | null
 }
 
 export class SourceConfigError extends Error {

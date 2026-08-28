@@ -181,3 +181,65 @@ describe('base url configuration', () => {
     await expect(collect(greenhouseAdapter.fetch(ctx))).rejects.toBeInstanceOf(SourceConfigError)
   })
 })
+
+describe('greenhouse normalize', () => {
+  const base = fixture.jobs[0]! as Record<string, unknown>
+
+  it('turns a stored payload into the canonical shape', () => {
+    const result = greenhouseAdapter.normalize(base)!
+
+    expect(result.title).toBe((base as any).title)
+    expect(result.companyName).toBe((base as any).company_name)
+    expect(result.applyUrl).toBe((base as any).absolute_url)
+    expect(result.postedAt.toISOString()).toBe(
+      new Date((base as any).first_published).toISOString(),
+    )
+  })
+
+  it('prefers first_published over updated_at', () => {
+    // updated_at moves on any edit, so using it would make a re-tagged
+    // year-old posting look new — and freshness drives ranking and expiry.
+    const result = greenhouseAdapter.normalize({
+      ...base,
+      first_published: '2024-01-15T00:00:00-00:00',
+      updated_at: '2026-08-01T00:00:00-00:00',
+    })!
+    expect(result.postedAt.getUTCFullYear()).toBe(2024)
+  })
+
+  it('falls back to updated_at when the opening date is absent', () => {
+    const { first_published, ...withoutOpening } = base as any
+    const result = greenhouseAdapter.normalize(withoutOpening)!
+    expect(result.postedAt.toISOString()).toBe(new Date((base as any).updated_at).toISOString())
+  })
+
+  it('strips the double-encoded markup out of the description', () => {
+    const result = greenhouseAdapter.normalize(base)!
+    for (const marker of ['<div', '<p>', '&lt;', '&amp;', '&nbsp;']) {
+      expect(result.description).not.toContain(marker)
+    }
+  })
+
+  it('canonicalises the apply URL, so tracking links dedup', () => {
+    const result = greenhouseAdapter.normalize({
+      ...base,
+      absolute_url: `${(base as any).absolute_url}?gh_src=rss&utm_source=wwr`,
+    })!
+    expect(result.applyUrl).toBe((base as any).absolute_url)
+  })
+
+  it('returns null without a company, rather than creating an unattributed job', () => {
+    const { company_name, ...withoutCompany } = base as any
+    expect(greenhouseAdapter.normalize(withoutCompany)).toBeNull()
+  })
+
+  it('returns null for a payload it cannot read, instead of throwing', () => {
+    // The row stays unnormalised and a future, better normaliser can retry it.
+    expect(greenhouseAdapter.normalize({ nonsense: true })).toBeNull()
+    expect(greenhouseAdapter.normalize(null)).toBeNull()
+  })
+
+  it('returns null for an unparseable date', () => {
+    expect(greenhouseAdapter.normalize({ ...base, first_published: 'not a date' })).toBeNull()
+  })
+})

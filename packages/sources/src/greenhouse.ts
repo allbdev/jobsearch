@@ -1,6 +1,13 @@
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
-import { SourceConfigError, type FetchContext, type FetchedPosting, type SourceAdapter } from './types'
+import { canonicalizeUrl, htmlToText } from '@jobsearch/core'
+import {
+  SourceConfigError,
+  type FetchContext,
+  type FetchedPosting,
+  type NormalizedPosting,
+  type SourceAdapter,
+} from './types'
 
 /**
  * Greenhouse job boards.
@@ -79,8 +86,55 @@ export function greenhouseContentHash(job: z.infer<typeof jobSchema>): string {
     .digest('hex')
 }
 
+/**
+ * Fields normalize reads. Looser than the fetch schema on purpose: this runs
+ * over payloads stored by older builds, so a field that was optional then must
+ * stay optional now.
+ */
+const normalizeSchema = z
+  .object({
+    title: z.string(),
+    absolute_url: z.string(),
+    company_name: z.string().optional(),
+    content: z.string().optional(),
+    first_published: z.string().optional(),
+    updated_at: z.string().optional(),
+    location: z.object({ name: z.string() }).nullish(),
+    language: z.string().nullish(),
+  })
+  .passthrough()
+
 export const greenhouseAdapter: SourceAdapter = {
   slug: 'greenhouse',
+
+  normalize(payload: unknown): NormalizedPosting | null {
+    const parsed = normalizeSchema.safeParse(payload)
+    if (!parsed.success) return null
+
+    const job = parsed.data
+    // `first_published` is when the role opened; `updated_at` moves on any
+    // edit. Freshness is a ranking and expiry input (PLAN.md §4), so the
+    // opening date is the honest one -- otherwise a re-tagged year-old posting
+    // looks new.
+    const postedRaw = job.first_published ?? job.updated_at
+    if (!postedRaw) return null
+    const postedAt = new Date(postedRaw)
+    if (Number.isNaN(postedAt.getTime())) return null
+
+    const companyName = job.company_name?.trim()
+    // Without a company there is no dedup key and no row to attach to.
+    if (!companyName) return null
+
+    return {
+      title: job.title.trim(),
+      companyName,
+      applyUrl: canonicalizeUrl(job.absolute_url),
+      description: htmlToText(job.content ?? ''),
+      postedAt,
+      locationRaw: job.location?.name?.trim() || null,
+      language: job.language?.trim() || null,
+    }
+  },
 
   async *fetch(ctx: FetchContext): AsyncIterable<FetchedPosting> {
     const parsed = configSchema.safeParse(ctx.config)
