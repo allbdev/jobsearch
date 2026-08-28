@@ -33,8 +33,17 @@ async function main() {
 
     case 'normalize': {
       const started = Date.now()
-      const result = await normalizePostings(argument)
-      log('normalize complete', { source: argument ?? 'all', ...result, ms: Date.now() - started })
+      // `--all` re-runs over postings that already produced a job, which is how
+      // an improved normaliser reaches data it has already processed.
+      const reprocess = process.argv.includes('--all')
+      const slug = argument === '--all' ? undefined : argument
+      const result = await normalizePostings({ slug, reprocess })
+      log('normalize complete', {
+        source: slug ?? 'all',
+        reprocess,
+        ...result,
+        ms: Date.now() - started,
+      })
       break
     }
 
@@ -48,7 +57,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | health>')
       process.exitCode = 1
   }
 }

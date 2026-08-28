@@ -163,6 +163,15 @@ model Job {
   /// BCP-47 of the posting itself, which is often not the user's language.
   language        String?
 
+  /// The source's own words for location, verbatim: "Hybrid", "Remote, United
+  /// States", "Remote, Canada; Remote, US", "Distributed".
+  ///
+  /// The single highest-signal field for eligibility — 268 of the first 703
+  /// postings are rejectable from this alone, without reading the description
+  /// or spending an LLM call. Kept unparsed because the shapes vary per source
+  /// and the classifier reads it as evidence.
+  locationRaw     String?
+
   postedAt         DateTime
   salaryMin        Int?
   salaryMax        Int?
