@@ -3,6 +3,7 @@ import { fetchSource } from './fetch-source'
 import { seed } from './seed'
 import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
+import { classifyJobs } from './classify'
 import { log } from './log'
 
 /**
@@ -47,6 +48,16 @@ async function main() {
       break
     }
 
+    case 'classify': {
+      const started = Date.now()
+      const result = await classifyJobs({ reprocess: process.argv.includes('--all') })
+      const settled = result.considered
+        ? Math.round((result.decidedByRules / result.considered) * 100)
+        : 0
+      log('classify complete', { ...result, settledByRulesPct: settled, ms: Date.now() - started })
+      break
+    }
+
     case 'health': {
       const rows = await sourceHealth()
       console.log(formatHealth(rows))
@@ -57,7 +68,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] | health>')
       process.exitCode = 1
   }
 }
