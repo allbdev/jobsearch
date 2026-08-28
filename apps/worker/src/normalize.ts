@@ -6,8 +6,24 @@ import { log } from './log'
 export interface NormalizeResult {
   considered: number
   created: number
+  updated: number
   deduped: number
   skipped: number
+}
+
+export interface NormalizeOptions {
+  /** Only this source. */
+  slug?: string
+  /**
+   * Re-normalise postings that already produced a job.
+   *
+   * This is the replayability PLAN.md §4 promises, cashed in for the first
+   * time: when the normaliser improves — as it just did, by keeping the
+   * location it had been discarding — the fix has to reach the postings
+   * already processed, and re-crawling to get there would defeat the point of
+   * storing raw payloads at all.
+   */
+  reprocess?: boolean
 }
 
 /** How many raw postings to hold in memory at once. */
@@ -20,11 +36,14 @@ const BATCH = 200
  * than a re-crawl. It finds its work by `jobId IS NULL`, which is why the
  * relation is many-to-one.
  */
-export async function normalizePostings(slug?: string): Promise<NormalizeResult> {
-  const result: NormalizeResult = { considered: 0, created: 0, deduped: 0, skipped: 0 }
+export async function normalizePostings(
+  options: NormalizeOptions = {},
+): Promise<NormalizeResult> {
+  const { slug, reprocess = false } = options
+  const result: NormalizeResult = { considered: 0, created: 0, updated: 0, deduped: 0, skipped: 0 }
 
   const where: Prisma.RawPostingWhereInput = {
-    jobId: null,
+    ...(reprocess ? {} : { jobId: null }),
     ...(slug ? { source: { slug } } : {}),
   }
 
@@ -32,14 +51,21 @@ export async function normalizePostings(slug?: string): Promise<NormalizeResult>
   // postings — so the resolved ids are cached for the run.
   const companyCache = new Map<string, string>()
 
+  // Reprocessing walks every row, so it pages by cursor rather than by
+  // "still unprocessed" — the filter it would otherwise page on is exactly what
+  // reprocessing stops changing.
+  let cursor: string | undefined
+
   for (;;) {
     const batch = await prisma.rawPosting.findMany({
       where,
       take: BATCH,
-      orderBy: { fetchedAt: 'asc' },
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: { id: 'asc' },
       include: { source: { select: { slug: true } } },
     })
     if (batch.length === 0) break
+    if (reprocess) cursor = batch[batch.length - 1]!.id
 
     for (const raw of batch) {
       result.considered++
@@ -59,6 +85,24 @@ export async function normalizePostings(slug?: string): Promise<NormalizeResult>
         where: { contentHash },
         select: { id: true },
       })
+
+      if (existing && raw.jobId === existing.id) {
+        // Already ours: refresh the fields, which is the point of reprocessing.
+        await prisma.job.update({
+          where: { id: existing.id },
+          data: {
+            title: normalized.title,
+            description: normalized.description,
+            applyUrl: normalized.applyUrl,
+            postedAt: normalized.postedAt,
+            language: normalized.language,
+            locationRaw: normalized.locationRaw,
+          },
+        })
+        result.updated++
+        continue
+      }
+
       if (existing) {
         // The dedup case this whole relation exists for: the same posting
         // reached through another source. The job stays as it is; the raw
@@ -78,6 +122,7 @@ export async function normalizePostings(slug?: string): Promise<NormalizeResult>
           applyUrl: normalized.applyUrl,
           postedAt: normalized.postedAt,
           language: normalized.language,
+          locationRaw: normalized.locationRaw,
           contentHash,
         },
         select: { id: true },
