@@ -1,3 +1,7 @@
+// Must come first: it populates process.env, and the very next import builds a
+// PrismaClient that reads DATABASE_URL during its own evaluation.
+import './env'
+
 import { prisma } from '@jobsearch/db'
 import { fetchSource } from './fetch-source'
 import { seed } from './seed'
