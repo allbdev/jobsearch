@@ -24,7 +24,7 @@ module.exports = {
       comment:
         'packages/core is framework-free domain logic (PLAN.md §6). No Prisma, no Nest, no React.',
       from: { path: '^packages/core' },
-      to: { path: 'node_modules/(@prisma|@nestjs|react|next)' },
+      to: { path: 'node_modules/(@prisma|@nestjs|react|next|@anthropic-ai)' },
     },
     {
       name: 'ui-must-not-depend-on-next',
