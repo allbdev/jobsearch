@@ -68,6 +68,29 @@ describe('checkVerdict', () => {
     expect(checked.evidenceSnippet).toBeNull()
   })
 
+  // A real run produced "Switzerland only" with no regions: CH is not in the
+  // vocabulary, so the confirmation could never intersect a user's location.
+  it('downgrades a confirmation whose scope the vocabulary cannot express', () => {
+    const checked = checkVerdict(
+      verdict({ regionLabel: 'Switzerland only', eligibleRegions: [] }),
+      posting,
+    )
+    expect(checked.verdict).toBe('needs_check')
+    expect(checked.downgradeReason).toBe('confirmed without a region in the shared vocabulary')
+  })
+
+  it('still allows a rejection with no regions — nothing is eligible, by definition', () => {
+    const checked = checkVerdict(
+      verdict({
+        verdict: 'rejected',
+        eligibleRegions: [],
+        evidence: 'Our product is used by students anywhere in the world.',
+      }),
+      posting,
+    )
+    expect(checked.verdict).toBe('rejected')
+  })
+
   it('downgrades a confirmation with no evidence at all', () => {
     const checked = checkVerdict(verdict({ evidence: null }), posting)
     expect(checked.verdict).toBe('needs_check')
@@ -98,6 +121,22 @@ describe('checkVerdict', () => {
       verdict({ evidence: 'Remote' }),
       { ...posting, locationRaw: 'Remote' },
     )
+    expect(checked.verdict).toBe('confirmed')
+  })
+})
+
+describe('length handling', () => {
+  // A `max` in the response schema throws away an answer that has already been
+  // paid for. The first trial run lost a posting to a 301-character reasoning.
+  it('accepts an over-long reasoning rather than failing the whole answer', () => {
+    const long = verdict({ reasoning: 'x'.repeat(900) })
+    expect(llmVerdictSchema.safeParse(long).success).toBe(true)
+    expect(checkVerdict(long, posting).reasoning).toHaveLength(300)
+  })
+
+  it('trims an over-long region label to badge length', () => {
+    const checked = checkVerdict(verdict({ regionLabel: 'EU + UK + '.repeat(20) }), posting)
+    expect(checked.regionLabel).toHaveLength(60)
     expect(checked.verdict).toBe('confirmed')
   })
 })

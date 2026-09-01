@@ -39,9 +39,12 @@ export const REGION_VOCABULARY = [
 
 export const llmVerdictSchema = z.object({
   verdict: z.enum(['confirmed', 'needs_check', 'rejected']),
+  // No length caps anywhere in this schema. A `max` here is not a guard, it is
+  // a way to throw away a whole answer that has already been paid for: the
+  // first trial run lost a posting to a 301-character `reasoning`. Length is
+  // trimmed on the way out instead, in `checkVerdict`.
   regionLabel: z
     .string()
-    .max(60)
     .describe('Short human label for the scope, e.g. "US only", "Worldwide", "EU + UK".'),
   eligibleRegions: z
     .array(z.enum(REGION_VOCABULARY))
@@ -54,7 +57,7 @@ export const llmVerdictSchema = z.object({
       'A sentence copied VERBATIM from the posting that states the hiring scope. ' +
         'null when the posting never states one. Never paraphrase and never invent.',
     ),
-  reasoning: z.string().max(300),
+  reasoning: z.string(),
 })
 
 export type LlmVerdict = z.infer<typeof llmVerdictSchema>
@@ -153,12 +156,19 @@ function normalizeForComparison(text: string): string {
  * than trusted. A confirmed or rejected verdict whose evidence is missing, or
  * absent from the posting, is downgraded to needs_check and the reason is kept.
  */
+const MAX_REGION_LABEL = 60
+const MAX_REASONING = 300
+
+function trim(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text
+}
+
 export function checkVerdict(verdict: LlmVerdict, input: EligibilityInput): CheckedVerdict {
   const base = {
-    regionLabel: verdict.regionLabel,
+    regionLabel: trim(verdict.regionLabel, MAX_REGION_LABEL),
     eligibleRegions: verdict.eligibleRegions as string[],
     contractModel: verdict.contractModel,
-    reasoning: verdict.reasoning,
+    reasoning: trim(verdict.reasoning, MAX_REASONING),
   }
 
   if (verdict.verdict === 'needs_check') {
@@ -180,6 +190,16 @@ export function checkVerdict(verdict: LlmVerdict, input: EligibilityInput): Chec
     downgradedFrom: verdict.verdict,
     downgradeReason: reason,
   })
+
+  // A confirmed verdict with no region is unusable: matching a user is an
+  // intersection with where they live, and nothing intersects an empty set. It
+  // happens when the posting states a scope the vocabulary cannot express --
+  // the first real run produced "Switzerland only" with no regions, because
+  // CH is not a code here. Saying "unknown" is honest; storing a confirmation
+  // no user can ever match is not.
+  if (verdict.verdict === 'confirmed' && verdict.eligibleRegions.length === 0) {
+    return downgrade('confirmed without a region in the shared vocabulary')
+  }
 
   const evidence = verdict.evidence?.trim()
   if (!evidence) return downgrade('no evidence supplied')
