@@ -51,6 +51,50 @@ Expected: <type>/<scope>-<short-kebab-description>
 Example: feat/api-eligibility-classifier"
 }
 
+# Copy the primary checkout's local env files into a new worktree.
+#
+# Env files are gitignored (CLAUDE.md 1.8), so a fresh worktree starts with
+# none of them and every command that needs a credential fails -- or worse,
+# silently falls back to a default. They live per package (apps/worker/.env,
+# packages/db/.env), not just at the repo root, so this mirrors whatever the
+# primary checkout has, at the same relative paths.
+#
+# `.env.example` files are tracked, so the worktree already has them; copying
+# them would be a no-op at best and would clobber an example at worst.
+copy_env_files() {
+  local dir="$1" rel copied=0
+
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    mkdir -p "$dir/$(dirname "$rel")"
+    cp "$REPO_ROOT/$rel" "$dir/$rel"
+    printf '  %s\n' "$rel"
+    copied=$((copied + 1))
+  done < <(cd "$REPO_ROOT" && find . \
+    \( -name node_modules -o -name .git -o -name .next -o -name dist -o -name .claude \) -prune -o \
+    -type f \( -name '.env' -o -name '.env.*' \) \
+    ! -name '*.example' ! -name '*.sample' \
+    -print | sed 's|^\./||' | sort)
+
+  if [ "$copied" = "0" ]; then
+    info "no local env files in the primary checkout to copy"
+  else
+    ok "copied $copied env file(s) from the primary checkout"
+  fi
+}
+
+# Assign this worktree's port without discarding whatever else .env.local
+# holds -- it may have just been copied from the primary checkout, whose PORT
+# belongs to a different worktree.
+set_port() {
+  local file="$1" port="$2"
+  if [ -f "$file" ]; then
+    grep -v '^[[:space:]]*PORT=' "$file" > "$file.tmp" || true
+    mv "$file.tmp" "$file"
+  fi
+  printf 'PORT=%s\n' "$port" >> "$file"
+}
+
 cmd_new() {
   local branch="${1:-}" base="${2:-main}"
   [ -n "$branch" ] || die "usage: worktree.sh new <type>/<scope>-<description> [base-branch]"
@@ -74,14 +118,10 @@ cmd_new() {
   info "Installing dependencies (not shared between worktrees)..."
   (cd "$dir" && pnpm install --silent)
 
-  local port; port="$(pick_port "$branch")"
-  printf 'PORT=%s\n' "$port" > "$dir/.env.local"
+  copy_env_files "$dir"
 
-  # Carry over any local secrets the primary checkout has.
-  if [ -f "$REPO_ROOT/.env" ]; then
-    cp "$REPO_ROOT/.env" "$dir/.env"
-    ok "copied .env from primary checkout"
-  fi
+  local port; port="$(pick_port "$branch")"
+  set_port "$dir/.env.local" "$port"
 
   ok "worktree ready"
   cat <<EOF

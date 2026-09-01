@@ -71,7 +71,16 @@ under the *primary* checkout and never nest inside one another.
 - **The primary checkout is always a known-good reference** you can diff
   against when something looks wrong.
 
-### Three things that bite
+### Four things that bite
+
+**Env files do not travel with the branch.** They are gitignored, so a fresh
+worktree starts with no `DATABASE_URL` and no API keys, and the commands that
+need them fail in confusing ways -- or silently fall back to a default.
+`worktree.sh new` therefore copies every local env file from the primary
+checkout, at the same relative path (`apps/worker/.env` stays
+`apps/worker/.env`); `.env.example` files are tracked and are left alone. The
+primary checkout is the single place you edit a secret, and the copy is a
+snapshot -- change a key there and existing worktrees keep the old value.
 
 **Dependencies are not shared.** Each worktree needs its own `pnpm install`.
 The script does it for you. This is also why worktrees are not free: each one
