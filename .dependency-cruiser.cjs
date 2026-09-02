@@ -75,10 +75,16 @@ module.exports = {
     },
   ],
   options: {
+    // `doNotFollow`, not `exclude`. They sound alike and are not: `doNotFollow`
+    // keeps a dependency in the graph but stops cruising *through* it, while
+    // `exclude` drops the module entirely -- and with it every edge pointing at
+    // it. With node_modules excluded, `packages/core -> @prisma/client` was not
+    // a violation, it was not an edge at all, and `core-must-stay-pure` and the
+    // node_modules half of `ui-must-not-depend-on-next` could never fire.
     doNotFollow: { path: 'node_modules' },
     // `.claude/worktrees` holds nested checkouts of this same repo -- cruising
     // into them would report every module twice.
-    exclude: { path: '(node_modules|\\.next|dist|\\.claude/worktrees)' },
+    exclude: { path: '(\\.next|dist|\\.claude/worktrees)' },
     // See tsconfig.depcruise.json for why this is not tsconfig.base.json.
     tsConfig: { fileName: 'tsconfig.depcruise.json' },
     // Follow `import type` edges — without this, type-only modules read as orphans.
