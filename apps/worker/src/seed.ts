@@ -1,5 +1,5 @@
 import { prisma } from '@jobsearch/db'
-import { GREENHOUSE_DEFAULT_BASE_URL } from '@jobsearch/sources'
+import { GREENHOUSE_DEFAULT_BASE_URL, LEVER_DEFAULT_BASE_URL } from '@jobsearch/sources'
 import { log } from './log'
 
 /**
@@ -21,6 +21,21 @@ const GREENHOUSE_BOARDS = [
   'duolingo',
 ]
 
+/**
+ * Lever boards. Same curation rule as above -- companies that publicly hire
+ * remote across borders -- and the same honesty about it being a seed.
+ *
+ * Lever needs a display name per board because the company appears nowhere in
+ * the posting: the board is the company.
+ */
+const LEVER_BOARDS = [
+  { slug: 'toptal', name: 'Toptal' },
+  { slug: 'gohighlevel', name: 'HighLevel' },
+  { slug: 'voltus', name: 'Voltus' },
+  { slug: 'veeva', name: 'Veeva Systems' },
+  { slug: 'spotify', name: 'Spotify' },
+]
+
 export async function seed() {
   const source = await prisma.source.upsert({
     where: { slug: 'greenhouse' },
@@ -35,4 +50,18 @@ export async function seed() {
     update: { config: { boards: GREENHOUSE_BOARDS, baseUrl: GREENHOUSE_DEFAULT_BASE_URL } },
   })
   log('source seeded', { slug: source.slug, boards: GREENHOUSE_BOARDS.length })
+
+  const leverConfig = { boards: LEVER_BOARDS, baseUrl: LEVER_DEFAULT_BASE_URL }
+  const lever = await prisma.source.upsert({
+    where: { slug: 'lever' },
+    create: {
+      slug: 'lever',
+      kind: 'ats',
+      name: 'Lever job boards',
+      config: leverConfig,
+      pollIntervalMinutes: 360,
+    },
+    update: { config: leverConfig },
+  })
+  log('source seeded', { slug: lever.slug, boards: LEVER_BOARDS.length })
 }

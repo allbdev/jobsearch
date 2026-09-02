@@ -5,8 +5,10 @@ export {
   greenhouseContentHash,
   GREENHOUSE_DEFAULT_BASE_URL,
 } from './greenhouse'
+export { leverAdapter, leverContentHash, leverLocation, LEVER_DEFAULT_BASE_URL } from './lever'
 
 import { greenhouseAdapter } from './greenhouse'
+import { leverAdapter } from './lever'
 import type { SourceAdapter } from './types'
 
 /**
@@ -16,6 +18,7 @@ import type { SourceAdapter } from './types'
  */
 export const ADAPTERS: Record<string, SourceAdapter> = {
   [greenhouseAdapter.slug]: greenhouseAdapter,
+  [leverAdapter.slug]: leverAdapter,
 }
 
 export function getAdapter(slug: string): SourceAdapter {
