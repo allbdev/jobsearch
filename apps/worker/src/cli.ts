@@ -8,6 +8,7 @@ import { seed } from './seed'
 import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
+import { classifyByLlm, estimateCostUsd } from './classify-llm'
 import { log } from './log'
 
 /**
@@ -54,6 +55,23 @@ async function main() {
 
     case 'classify': {
       const started = Date.now()
+
+      // The paid pass is opt-in. `classify` alone stays free, so the habit of
+      // re-running it after a rules change costs nothing.
+      if (process.argv.includes('--llm')) {
+        const limitFlag = process.argv.find((arg) => arg.startsWith('--limit='))
+        const result = await classifyByLlm({
+          limit: limitFlag ? Number(limitFlag.split('=')[1]) : undefined,
+          reprocess: process.argv.includes('--all'),
+        })
+        log('llm classify complete', {
+          ...result,
+          usd: Number(estimateCostUsd(result).toFixed(4)),
+          ms: Date.now() - started,
+        })
+        break
+      }
+
       const result = await classifyJobs({ reprocess: process.argv.includes('--all') })
       const settled = result.considered
         ? Math.round((result.decidedByRules / result.considered) * 100)
@@ -72,7 +90,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | health>')
       process.exitCode = 1
   }
 }
