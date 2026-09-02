@@ -21,22 +21,32 @@ export interface LlmClassifyResult {
   failed: number
   inputTokens: number
   cachedInputTokens: number
+  /** Tokens written to the cache. Billed at a premium, not for free. */
+  cacheWriteTokens: number
   outputTokens: number
+  /** Part of outputTokens. Measured at ~65% of it, so it is the largest single lever. */
+  thinkingTokens: number
 }
 
 /**
- * Published rates for claude-opus-5, per million tokens, as of 2026-09.
- * Only ever used to print an estimate — nothing branches on it.
+ * Published rates for claude-opus-5, per million tokens, as of 2026-09. Cache
+ * reads are a tenth of the base rate and cache *writes* are 1.25x it. Only ever
+ * used to print an estimate — nothing branches on it.
  */
-const USD_PER_MTOK = { input: 5, cachedInput: 0.5, output: 25 }
+const USD_PER_MTOK = { input: 5, cachedRead: 0.5, cacheWrite: 6.25, output: 25 }
 
 const MODEL = process.env.CLASSIFIER_MODEL ?? 'claude-opus-5'
 const CONCURRENCY = 4
 
 export function estimateCostUsd(result: LlmClassifyResult): number {
+  // The three input counters are disjoint: total input is input_tokens +
+  // cache_creation_input_tokens + cache_read_input_tokens. Leaving the write
+  // term out under-reported every run, because writes bill above the base rate
+  // rather than below it.
   return (
     (result.inputTokens * USD_PER_MTOK.input +
-      result.cachedInputTokens * USD_PER_MTOK.cachedInput +
+      result.cachedInputTokens * USD_PER_MTOK.cachedRead +
+      result.cacheWriteTokens * USD_PER_MTOK.cacheWrite +
       result.outputTokens * USD_PER_MTOK.output) /
     1_000_000
   )
@@ -66,7 +76,9 @@ export async function classifyByLlm(
     failed: 0,
     inputTokens: 0,
     cachedInputTokens: 0,
+    cacheWriteTokens: 0,
     outputTokens: 0,
+    thinkingTokens: 0,
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -106,7 +118,9 @@ export async function classifyByLlm(
 
         result.inputTokens += response.usage.input_tokens
         result.cachedInputTokens += response.usage.cache_read_input_tokens ?? 0
+        result.cacheWriteTokens += response.usage.cache_creation_input_tokens ?? 0
         result.outputTokens += response.usage.output_tokens
+        result.thinkingTokens += response.usage.output_tokens_details?.thinking_tokens ?? 0
 
         if (!response.parsed_output) {
           result.failed++
