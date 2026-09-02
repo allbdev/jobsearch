@@ -198,6 +198,8 @@ GitHub retargets the child automatically.
 - [`docs/PLAN.md`](docs/PLAN.md) — product, architecture, decision log (D1–D10)
 - [`docs/FRONTEND.md`](docs/FRONTEND.md) — component library rules and inventory
 - [`docs/WORKFLOW.md`](docs/WORKFLOW.md) — this workflow, with rationale
+- [`docs/COSTS.md`](docs/COSTS.md) — what a run costs, measured, and which
+  lever moves it. Read before changing the classifier's model, effort or prompt.
 
 **Decisions are recorded, not re-litigated.** If you think a decision in
 `PLAN.md` is wrong, say so and explain why — do not silently implement
