@@ -70,6 +70,7 @@ export async function classifyJobs(options: { reprocess?: boolean } = {}): Promi
 
     for (const job of batch) {
       result.considered++
+
       const verdict = classifyByRules({
         title: job.title,
         locationRaw: job.locationRaw,

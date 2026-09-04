@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@jobsearch/shared": "workspace:*",
     "zod": "^3.25.0"
   },
   "devDependencies": {
