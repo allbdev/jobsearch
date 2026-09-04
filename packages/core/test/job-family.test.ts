@@ -45,8 +45,20 @@ describe('matchJobFamily', () => {
   })
 
   it('returns null rather than guessing at a title the taxonomy cannot name', () => {
-    expect(matchJobFamily('Associate Business Consultant - Life Sciences Quality')).toBeNull()
+    // "Customer Engineer" is the largest remaining unnamed term on the real
+    // corpus (36 postings) and is genuinely ambiguous from the title alone --
+    // pre-sales at one company, support at another. Guessing is worse than
+    // recording it.
+    expect(matchJobFamily('Customer Engineer, ASEAN Specialist')).toBeNull()
     expect(matchJobFamily('')).toBeNull()
+  })
+
+  it('names the roles v2 of the taxonomy added', () => {
+    expect(matchJobFamily('Senior Business Consultant - Life Sciences Quality')?.familyId).toBe(
+      'operations-consulting',
+    )
+    expect(matchJobFamily('Engineering Manager, Payments')?.familyId).toBe('engineering-management')
+    expect(matchJobFamily('Enterprise Account Partner')?.familyId).toBe('sales-account-executive')
   })
 
   it('only ever returns a real family id', () => {

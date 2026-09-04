@@ -24,10 +24,13 @@
  * 3. **Merging sets `replacedBy`.** Reads follow the pointer, so a merge needs
  *    no backfill to be correct — only to be tidy.
  *
- * 4. **Splitting bumps `TAXONOMY_VERSION`.** A split cannot be resolved by a
- *    pointer, because the old id maps to two successors. Postings must be
- *    re-classified; the version stamp is what identifies which ones. This is
- *    cheap because `classify` replays from stored raw payloads (PLAN.md §4).
+ * 4. **`TAXONOMY_VERSION` moves whenever this set changes**, and `since`
+ *    records which version introduced a family. *Adding* one needs nothing
+ *    else: the family pass carries no stamp and re-reads every posting, so the
+ *    next `classify` picks up what it now matches. A *split* is the expensive
+ *    case -- it cannot be resolved by a pointer, because the old id maps to two
+ *    successors, so postings must be re-classified. That is still cheap,
+ *    because `classify` replays from stored raw payloads (PLAN.md §4).
  *
  * 5. **`aliases` absorb feedback without a schema change.** When a user's typed
  *    role or a posting's title does not match anything, we log the raw term.
@@ -36,7 +39,7 @@
  *    to an existing one.
  */
 
-export const TAXONOMY_VERSION = '1'
+export const TAXONOMY_VERSION = '2'
 
 export const JOB_FAMILY_GROUPS = [
   'engineering',
@@ -96,6 +99,15 @@ export const JOB_FAMILIES: readonly JobFamily[] = [
   f('engineering-security', 'engineering', ['appsec', 'infosec', 'security engineer', 'penetration tester']),
   f('engineering-qa', 'engineering', ['qa', 'test engineer', 'sdet', 'quality assurance']),
   f('engineering-ai', 'engineering', ['machine learning', 'ml engineer', 'mlops', 'ai engineer']),
+  // Added in v2. "Engineering manager" was the largest unmatched engineering
+  // term on the first real corpus (37 postings) and belongs to no existing
+  // family: managing engineers is not a rung of any one discipline.
+  f(
+    'engineering-management',
+    'engineering',
+    ['engineering manager', 'engineering director', 'head of engineering', 'director of engineering', 'vp of engineering'],
+    { since: '2' },
+  ),
 
   // ── Data ─────────────────────────────────────────────────────────────────
   f('data-analytics', 'data', ['data analyst', 'business intelligence', 'bi analyst']),
@@ -116,7 +128,7 @@ export const JOB_FAMILIES: readonly JobFamily[] = [
   f('marketing-communications', 'marketing', ['pr', 'public relations', 'communications manager']),
 
   // ── Sales ────────────────────────────────────────────────────────────────
-  f('sales-account-executive', 'sales', ['account executive', 'ae', 'sales manager', 'closer']),
+  f('sales-account-executive', 'sales', ['account executive', 'ae', 'sales manager', 'closer', 'account partner']),
   f('sales-development', 'sales', ['sdr', 'bdr', 'sales development', 'lead generation']),
   f('sales-partnerships', 'sales', ['partnerships', 'business development', 'channel sales', 'alliances']),
 
@@ -131,6 +143,25 @@ export const JOB_FAMILIES: readonly JobFamily[] = [
   // ── Operations ───────────────────────────────────────────────────────────
   f('operations-business', 'operations', ['business operations', 'bizops', 'revenue operations', 'strategy']),
   f('operations-project', 'operations', ['project manager', 'program manager', 'scrum master', 'delivery manager']),
+  // Added in v2, and the clearest gap the first corpus exposed: ~280 postings
+  // across "consultant", "business consultant", "technical consultant" and
+  // "solution consultant". Client-facing delivery is its own job -- not
+  // business operations, and not project management.
+  f(
+    'operations-consulting',
+    'operations',
+    [
+      'consultant',
+      'business consultant',
+      'technical consultant',
+      'solution consultant',
+      'solutions consultant',
+      'implementation consultant',
+      'managed services consultant',
+      'professional services',
+    ],
+    { since: '2' },
+  ),
 
   // ── People ───────────────────────────────────────────────────────────────
   f('people-recruiting', 'people', ['recruiter', 'talent acquisition', 'sourcer', 'technical recruiter']),
