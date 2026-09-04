@@ -32,8 +32,10 @@ thousand instead of $3.27.
 
 ## 2. Measured unit economics
 
-Claude Opus 5, adaptive thinking, default effort. 703 postings crawled, 80
-reaching the LLM (11.4%), 81 API calls.
+Claude Opus 5 at **default** effort -- the configuration §4 replaced. Kept
+because every share and ratio below still holds; only the absolute per-call
+figure moved, to **$0.0163** at `effort: low`. 703 postings crawled, 80 reaching
+the LLM (11.4%), 81 API calls.
 
 | | |
 |---|---|
@@ -70,7 +72,53 @@ so caching can never touch more than about a third of input.
 
 ---
 
-## 3. Do we need Opus?
+## 3. How often it runs, and what that costs per month
+
+**Classification happens once per posting, at crawl time.** A user searching,
+filtering, opening a job or receiving the digest costs nothing -- all of that
+reads rows already in Postgres. That is decision D1 working as intended: crawl
+globally, classify once, query per user.
+
+Credits are spent on exactly two events:
+
+| Event | Cost |
+|---|---|
+| A new posting appears and the rules cannot settle it | one call |
+| The **prompt, model or effort** changes and the pool is replayed | the whole `needs_check` pool |
+
+Changing the *rules* is free -- that is the pass that costs nothing. Only the
+paid pass's own configuration re-spends, which is what `LLM_CLASSIFIER_VERSION`
+exists to track.
+
+### Measured inputs
+
+| | |
+|---|---|
+| Posting inflow | 436 of 1,797 postings were posted in the last 30 days -- 24% monthly turnover, ~44 new postings per board per month |
+| Reaching the paid pass | 6.2% overall -- **Lever 1.8%, Greenhouse 13.1%** |
+| Cost per call | $0.016 at `effort: low` |
+
+Lever declares `workplaceType`, so its postings are settled by the free rules.
+Greenhouse leaves remote status in prose. **Source mix moves this line more
+than any code change.**
+
+### Projection
+
+| Boards | New postings/mo | Paid calls/mo | Cost/mo |
+|---:|---:|---:|---:|
+| 10 (today) | 436 | 27 | **$0.44** |
+| 100 | 4,360 | 270 | **$4.40** |
+| 500 | 21,800 | 1,352 | **$22** |
+| 1,000 | 43,600 | 2,703 | **$44** |
+
+At 1,000 boards the source mix alone spans $13/mo (all Lever-like) to $95/mo
+(all Greenhouse-like).
+
+**The number that matters for planning is not the monthly one.** A first crawl
+of 1,000 boards is ~180,000 postings arriving at once: roughly **$180 as a
+one-off backfill**, against $44/month steady state.
+
+## 4. Do we need Opus?
 
 Measured, not assumed: the same 79 postings, the same prompt, four
 configurations. Two of the columns do not depend on treating Opus as correct —
@@ -107,24 +155,50 @@ hallucinated evidence becomes `needs_check` rather than a false badge. The
 unguarded risk with Sonnet is the four postings where the quote was real and
 the reading was wrong.
 
-### Caveat: the control is underpowered
+### The control, and what it changed
 
-An agreement figure is meaningless without knowing how much the model disagrees
-with *itself*. That control run reached 12 of 79 postings before the account
-ran out of credit, at 92% self-agreement (a single `confirmed → rejected`
-flip). It is directionally consistent with the numbers above — some
-run-to-run variance is inherent — but 12 samples cannot carry weight. **Re-run
-it before treating the 86% / 80% / 57% column as precise.**
+An agreement figure means nothing without knowing how much the model disagrees
+with *itself*. Re-running the identical configuration over the same 79 postings:
+
+| | Cost | Agreement with baseline | Moved **toward** `confirmed` | Fabricated | Failed |
+|---|---:|---:|---:|---:|---:|
+| default effort, re-run | $2.197 | **90%** | 3 | 0 | 1 |
+| `effort: low` | $1.554 | 87% | **0** | 0 | **0** |
+
+**90% is the noise floor** — that is the model against itself. `effort: low`'s
+87% sits inside it, and head to head on two fresh runs the two configurations
+agree 91%, the same figure. The eleven conservative flips that made this look
+like a quality difference were run-to-run variance.
+
+Direction settled it. The default run moved three verdicts toward `confirmed`;
+`low` moved none. **`effort: low` is now the default**, at
+`CLASSIFIER_EFFORT`, and stamped `llm-2`.
+
+A later run at `high` over a different 33 postings produced five hard failures
+against `low`'s zero, which points the same way.
+
+### Reading a downgrade correctly
+
+`downgraded` in a run's output is not a hallucination count. A real run at
+`effort: low` reported four, and all four were
+`confirmed without a region in the shared vocabulary` — the model quoted real
+text (`"Remote, Turkey"`, `"Remote, KSA; Remote, UAE"`) and the *vocabulary* has
+no code for those places. The grounding check for evidence absent from the
+posting fired zero times at either effort.
+
+The two cases are distinguished by `downgradeReason`, which is why it is
+recorded rather than just counted.
 
 ---
 
-## 4. Levers, largest first
+## 5. Levers, largest first
 
-1. **`output_config: { effort: 'low' }`** — targets the ~25-30% of the bill
-   spent on thinking. Measured above: 1.5x cheaper, no observed quality cost.
-   The recommended change.
+1. ~~**`output_config: { effort: 'low' }`**~~ — **done.** Thinking fell from 56%
+   of output to 21-34%, and a real 33-posting run cost $0.0163 a call against
+   $0.0284 at the default. Override with `CLASSIFIER_EFFORT` if a future
+   measurement disagrees.
 2. **Model choice** — Sonnet 5 is $2/$10 per MTok against Opus 5's $5/$25;
-   Haiku 4.5 is $1/$5. `CLASSIFIER_MODEL` overrides it. See §3 before pulling
+   Haiku 4.5 is $1/$5. `CLASSIFIER_MODEL` overrides it. See §4 before pulling
    this one.
 3. **Batch API** — a flat 50% discount for work with no latency requirement,
    which describes this exactly. Costs a polling loop.
@@ -138,7 +212,7 @@ there without changing what is sent.
 
 ---
 
-## 5. Re-measuring
+## 6. Re-measuring
 
 ```bash
 pnpm --filter @jobsearch/worker worker classify --llm --limit=5
@@ -167,7 +241,7 @@ because writes bill at 1.25x the base rate rather than free.
 
 ---
 
-## 6. What these numbers do not cover
+## 7. What these numbers do not cover
 
 - **One corpus.** Five US-centric Greenhouse boards. A board with longer
   postings, or one where fewer scopes are stated, moves both the 11.4% LLM rate
