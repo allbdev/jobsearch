@@ -200,3 +200,34 @@ describe('company culture is not an eligibility statement', () => {
     expect(result.regionLabel).toBe('Brazil listed')
   })
 })
+
+describe('a listing in several countries is not one office', () => {
+  // Found on the real corpus: an employer that hires across borders says so by
+  // listing one role once per country. Dedup collapses them into one job, and
+  // the rules then read the merged location as a single office. 48 jobs, 209
+  // locations, all rejected.
+  it('does not reject a role listed across regions as on-site', () => {
+    const result = classifyByRules(
+      job({ locationRaw: 'United States; United Kingdom; Portugal; Canada' }),
+    )
+    expect(result.verdict).toBe('needs_check')
+    expect(result.decidedByRules).toBe(false)
+  })
+
+  // The field still never says "remote", so this is a question, not a badge.
+  it('does not confirm one either', () => {
+    expect(
+      classifyByRules(job({ locationRaw: 'United States; Canada' })).verdict,
+    ).not.toBe('confirmed')
+  })
+
+  it('still rejects several cities in one country', () => {
+    const result = classifyByRules(job({ locationRaw: 'New York, NY; Boston, MA' }))
+    expect(result.verdict).toBe('rejected')
+    expect(result.matchedRule).toBe('location-named-place')
+  })
+
+  it('still rejects a single named place', () => {
+    expect(classifyByRules(job({ locationRaw: 'Dubai' })).verdict).toBe('rejected')
+  })
+})

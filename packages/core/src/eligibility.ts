@@ -298,6 +298,20 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
 
   // 5. A named place that is not remote at all.
   if (location && !BARE_REMOTE.test(location) && !/remote/i.test(location)) {
+    // ...unless it names places in more than one region. One office is a
+    // rejection; ten countries is a hiring model, and the two look identical
+    // to a rule that only asks "does this say remote".
+    //
+    // This is not a confirmation either -- the field still never says remote,
+    // so the scope is unstated and the description has to settle it. Saying
+    // `needs_check` costs a model call and is true.
+    //
+    // Two cities in one country stay a rejection: `toRegions` maps both to the
+    // same code, so the test is regions, not segments.
+    if (toRegions(location).length > 1) {
+      return unknown('needs_check', location)
+    }
+
     return {
       verdict: 'rejected',
       regionLabel: location,
