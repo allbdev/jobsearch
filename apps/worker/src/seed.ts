@@ -19,6 +19,27 @@ const GREENHOUSE_BOARDS = [
   'cloudflare',
   'discord',
   'duolingo',
+  // Candidates chosen by hiring model rather than size, after the first corpus
+  // produced 16 postings open to Brazil out of 1,797. Toptal supplied half of
+  // those from 20 postings while Cloudflare supplied none from 330, so the
+  // useful question is not "is this company large" but "does this company hire
+  // across borders". These are companies that say they do, or whose business is
+  // helping others do it.
+  'remotecom',
+  'canonical',
+  'elastic',
+  'grafanalabs',
+  'mozilla',
+  'wikimedia',
+  'turing',
+  'consensys',
+  'status',
+  'vercel',
+  'tailscale',
+  'fastly',
+  'planetscale',
+  'circleci',
+  'ghost',
 ]
 
 /**
