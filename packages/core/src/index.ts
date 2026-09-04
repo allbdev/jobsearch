@@ -2,6 +2,7 @@ export { htmlToText } from './html'
 export { canonicalizeUrl } from './url'
 export { jobContentHash, normalizeCompanyName, normalizeTitle } from './identity'
 export { extractEvidence } from './evidence'
+export { REGION_VOCABULARY, toRegions, type Region } from './regions'
 export {
   classifyByRules,
   RULES_CLASSIFIER_VERSION,
@@ -15,7 +16,6 @@ export {
   checkVerdict,
   llmVerdictSchema,
   LLM_CLASSIFIER_VERSION,
-  REGION_VOCABULARY,
   SYSTEM_PROMPT,
   type CheckedVerdict,
   type LlmVerdict,

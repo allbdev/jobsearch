@@ -94,12 +94,25 @@ describe('region-bound remote', () => {
     // given user matches is an intersection done later, not here.
     const result = classifyByRules(job({ locationRaw: 'Remote, United States' }))
     expect(result.verdict).toBe('confirmed')
-    expect(result.eligibleRegions).toEqual(['United States'])
+    // Vocabulary codes, not the source's words — the column is intersected
+    // against where a user lives, so both sides must speak one language.
+    expect(result.eligibleRegions).toEqual(['US'])
+  })
+
+  // The failure this replaced: a scope was stored as captured, so "Remote,
+  // Massachusetts - Boston" produced eligibleRegions ["Massachusetts - Boston"]
+  // and "Remote, New York, NY" produced ["New York", "NY"]. 1,026 of 1,045
+  // confirmed rows held a value no user location could ever intersect.
+  it('says needs_check rather than confirming a scope it cannot express', () => {
+    const result = classifyByRules(job({ locationRaw: 'Remote, Zürich' }))
+    expect(result.verdict).toBe('needs_check')
+    expect(result.eligibleRegions).toEqual([])
+    expect(result.decidedByRules).toBe(false)
   })
 
   it('splits a multi-region location', () => {
     const result = classifyByRules(job({ locationRaw: 'Remote, Canada; Remote, United States' }))
-    expect(result.eligibleRegions).toEqual(['Canada', 'United States'])
+    expect(result.eligibleRegions).toEqual(['US', 'CA'])
   })
 })
 

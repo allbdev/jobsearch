@@ -3,6 +3,7 @@
 // zod 3.25 ships under this subpath. Same installed package either way.
 import { z } from 'zod/v4'
 import type { ContractModel, EligibilityInput, Verdict } from './eligibility'
+import { REGION_VOCABULARY } from './regions'
 
 /**
  * The LLM half of stage 3 (PLAN.md §4).
@@ -19,23 +20,6 @@ import type { ContractModel, EligibilityInput, Verdict } from './eligibility'
  */
 
 export const LLM_CLASSIFIER_VERSION = 'llm-1'
-
-/**
- * The regions the rules already emit. The LLM has to answer in the same
- * vocabulary or the two halves of stage 3 cannot be compared, and matching a
- * user later would have to understand two dialects.
- */
-export const REGION_VOCABULARY = [
-  'Worldwide',
-  'Americas',
-  'LATAM',
-  'BR',
-  'US',
-  'CA',
-  'EU',
-  'UK',
-  'APAC',
-] as const
 
 export const llmVerdictSchema = z.object({
   verdict: z.enum(['confirmed', 'needs_check', 'rejected']),

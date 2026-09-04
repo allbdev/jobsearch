@@ -1,4 +1,5 @@
 import { extractEvidence } from './evidence'
+import { toRegions } from './regions'
 
 /**
  * The deterministic eligibility pass (PLAN.md §4, stage 3).
@@ -266,10 +267,19 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
   const scoped = location.match(REMOTE_WITH_REGION)
   if (scoped?.[1]) {
     const scope = scoped[1].trim()
+    const regions = toRegions(scope)
+
+    // A scope we cannot express is not a confirmation. This used to store the
+    // captured text as if it were a region code -- "Massachusetts - Boston",
+    // and "NY" from splitting "New York, NY" on the comma -- which no user
+    // location could ever intersect. Saying `needs_check` costs an LLM call and
+    // is true; a confirmation nothing can match is neither.
+    if (regions.length === 0) return unknown('needs_check', scope)
+
     return {
       verdict: 'confirmed',
       regionLabel: scope,
-      eligibleRegions: scope.split(/;|,| and /).map((part) => part.replace(/remote/i, '').trim()).filter(Boolean),
+      eligibleRegions: regions,
       contractModel: detectContractModel(haystack),
       evidenceSnippet: `Location: ${location}`,
       matchedRule: 'location-remote-scoped',
