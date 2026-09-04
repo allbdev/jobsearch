@@ -60,13 +60,14 @@ describe('matchJobFamily', () => {
 describe('unmatchedTermFor', () => {
   // Storing whole titles turns one recurring role into many unique strings, and
   // the growth policy reads recurrence.
-  it('collapses suffixed variants of the same role onto one term', () => {
+  it('collapses suffixed and levelled variants of the same role onto one term', () => {
     const titles = [
       'Associate Business Consultant - Life Sciences Quality',
-      'Associate Business Consultant - Life Sciences R&D',
-      'Associate Business Consultant, Commercial Content',
+      'Senior Business Consultant - Life Sciences R&D',
+      'Principal Business Consultant, Commercial Content',
+      'Business Consultant',
     ]
     expect(new Set(titles.map(unmatchedTermFor)).size).toBe(1)
-    expect(unmatchedTermFor(titles[0]!)).toBe('associate business consultant')
+    expect(unmatchedTermFor(titles[0]!)).toBe('business consultant')
   })
 })

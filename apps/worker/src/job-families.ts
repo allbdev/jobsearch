@@ -1,9 +1,11 @@
 import { prisma } from '@jobsearch/db'
-import { matchJobFamily, unmatchedTermFor } from '@jobsearch/core'
+import { extractSeniority, matchJobFamily, unmatchedTermFor } from '@jobsearch/core'
 
 export interface FamilyResult {
   considered: number
   assigned: number
+  /** Postings whose title states a level (PLAN.md D12). Most do not. */
+  levelled: number
   /** Titles the taxonomy cannot name yet — the queue that grows it (D12). */
   unnamed: number
 }
@@ -26,10 +28,11 @@ const BATCH = 500
  * now matches, with nothing to invalidate and no replay to remember.
  */
 export async function assignJobFamilies(): Promise<FamilyResult> {
-  const result: FamilyResult = { considered: 0, assigned: 0, unnamed: 0 }
+  const result: FamilyResult = { considered: 0, assigned: 0, levelled: 0, unnamed: 0 }
 
   // Per-family, not per-row: 33 statements instead of one per posting.
   const byFamily = new Map<string, string[]>()
+  const bySeniority = new Map<string, string[]>()
   const unmatched = new Map<string, number>()
 
   // Paging by cursor is safe here precisely because the filter is empty --
@@ -42,13 +45,24 @@ export async function assignJobFamilies(): Promise<FamilyResult> {
       take: BATCH,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       orderBy: { id: 'asc' },
-      select: { id: true, title: true, jobFamily: true },
+      select: { id: true, title: true, jobFamily: true, seniority: true },
     })
     if (batch.length === 0) break
     cursor = batch[batch.length - 1]!.id
 
     for (const job of batch) {
       result.considered++
+
+      const seniority = extractSeniority(job.title)
+      if (seniority) {
+        result.levelled++
+        if (job.seniority !== seniority) {
+          const ids = bySeniority.get(seniority)
+          if (ids) ids.push(job.id)
+          else bySeniority.set(seniority, [job.id])
+        }
+      }
+
       const match = matchJobFamily(job.title)
 
       if (!match) {
@@ -68,6 +82,10 @@ export async function assignJobFamilies(): Promise<FamilyResult> {
 
   for (const [jobFamily, ids] of byFamily) {
     await prisma.job.updateMany({ where: { id: { in: ids } }, data: { jobFamily } })
+  }
+
+  for (const [seniority, ids] of bySeniority) {
+    await prisma.job.updateMany({ where: { id: { in: ids } }, data: { seniority } })
   }
 
   for (const [term, occurrences] of unmatched) {
