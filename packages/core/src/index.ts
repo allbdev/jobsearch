@@ -23,3 +23,13 @@ export {
 export { matchJobFamily, unmatchedTermFor, type FamilyMatch } from './job-family'
 export { extractSeniority, stripSeniority, type Seniority } from './seniority'
 export { mergeLocations } from './location'
+export {
+  buildFamilyPrompt,
+  checkFamily,
+  familyVerdictSchema,
+  FAMILY_CATALOGUE,
+  FAMILY_SYSTEM_PROMPT,
+  TAXONOMY_VERSION,
+  type CheckedFamily,
+  type FamilyVerdict,
+} from './job-family-llm'

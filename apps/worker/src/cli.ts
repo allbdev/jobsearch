@@ -9,7 +9,7 @@ import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
-import { assignJobFamilies } from './job-families'
+import { assignJobFamilies, classifyFamiliesByLlm } from './job-families'
 import { log } from './log'
 
 /**
@@ -26,6 +26,21 @@ async function main() {
   const [command, argument] = process.argv.slice(2)
 
   switch (command) {
+    case 'families': {
+      const started = Date.now()
+      const deterministic = await assignJobFamilies()
+      log('job families assigned', { ...deterministic })
+
+      if (process.argv.includes('--llm')) {
+        const limitFlag = process.argv.find((arg) => arg.startsWith('--limit='))
+        const llm = await classifyFamiliesByLlm({
+          limit: limitFlag ? Number(limitFlag.split('=')[1]) : undefined,
+        })
+        log('llm families complete', { ...llm, ms: Date.now() - started })
+      }
+      break
+    }
+
     case 'seed':
       await seed()
       break
@@ -97,7 +112,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | health>')
       process.exitCode = 1
   }
 }

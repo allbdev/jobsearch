@@ -1,5 +1,17 @@
 import { prisma } from '@jobsearch/db'
-import { extractSeniority, matchJobFamily, unmatchedTermFor } from '@jobsearch/core'
+import {
+  buildFamilyPrompt,
+  checkFamily,
+  extractSeniority,
+  familyVerdictSchema,
+  FAMILY_SYSTEM_PROMPT,
+  matchJobFamily,
+  TAXONOMY_VERSION,
+  unmatchedTermFor,
+} from '@jobsearch/core'
+import Anthropic from '@anthropic-ai/sdk'
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { log } from './log'
 
 export interface FamilyResult {
   considered: number
@@ -81,7 +93,15 @@ export async function assignJobFamilies(): Promise<FamilyResult> {
   }
 
   for (const [jobFamily, ids] of byFamily) {
-    await prisma.job.updateMany({ where: { id: { in: ids } }, data: { jobFamily } })
+    // `taxonomyVersion` records which version of the taxonomy last decided this
+    // posting's family. It is what tells the paid pass which postings it has
+    // already considered, and it moves when the taxonomy grows -- so a new
+    // family means everything unnamed gets one more look, for free where the
+    // matcher can now name it.
+    await prisma.job.updateMany({
+      where: { id: { in: ids } },
+      data: { jobFamily, taxonomyVersion: TAXONOMY_VERSION },
+    })
   }
 
   for (const [seniority, ids] of bySeniority) {
@@ -100,5 +120,118 @@ export async function assignJobFamilies(): Promise<FamilyResult> {
     })
   }
 
+  return result
+}
+
+export interface LlmFamilyResult {
+  considered: number
+  assigned: number
+  /** The model judged that no family fits. A real answer, not a failure. */
+  declined: number
+  /** Ids the model returned that the taxonomy does not have. */
+  invented: number
+  failed: number
+  inputTokens: number
+  cachedInputTokens: number
+  cacheWriteTokens: number
+  outputTokens: number
+}
+
+const MODEL = process.env.CLASSIFIER_MODEL ?? 'claude-opus-5'
+const EFFORT = process.env.CLASSIFIER_EFFORT ?? 'low'
+const CONCURRENCY = 4
+
+/**
+ * Ask a model to name the family for postings whose title could not.
+ *
+ * Selected by `taxonomyVersion`, not by `jobFamily is null`: a posting the
+ * model declined has no family and must not be asked again every run, which
+ * would repeat the whole bill on every classify. Stamping it records that it
+ * was considered under this version of the taxonomy, and a later version asks
+ * again -- which is the right behaviour, because a new family may be exactly
+ * what it was missing.
+ */
+export async function classifyFamiliesByLlm(
+  options: { limit?: number } = {},
+): Promise<LlmFamilyResult> {
+  const result: LlmFamilyResult = {
+    considered: 0, assigned: 0, declined: 0, invented: 0, failed: 0,
+    inputTokens: 0, cachedInputTokens: 0, cacheWriteTokens: 0, outputTokens: 0,
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not set — see apps/worker/.env.example')
+  }
+
+  const jobs = await prisma.job.findMany({
+    where: {
+      jobFamily: null,
+      OR: [{ taxonomyVersion: null }, { taxonomyVersion: { not: TAXONOMY_VERSION } }],
+    },
+    ...(options.limit ? { take: options.limit } : {}),
+    orderBy: { id: 'asc' },
+    select: { id: true, title: true, description: true },
+  })
+
+  const client = new Anthropic()
+  const queue = [...jobs]
+
+  const work = async (): Promise<void> => {
+    for (;;) {
+      const job = queue.shift()
+      if (!job) return
+      result.considered++
+
+      try {
+        const response = await client.messages.parse({
+          model: MODEL,
+          max_tokens: 512,
+          system: [{ type: 'text', text: FAMILY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+          messages: [{ role: 'user', content: buildFamilyPrompt(job) }],
+          output_config: {
+            effort: EFFORT as 'low' | 'medium' | 'high' | 'xhigh' | 'max',
+            format: zodOutputFormat(familyVerdictSchema),
+          },
+        })
+
+        result.inputTokens += response.usage.input_tokens
+        result.cachedInputTokens += response.usage.cache_read_input_tokens ?? 0
+        result.cacheWriteTokens += response.usage.cache_creation_input_tokens ?? 0
+        result.outputTokens += response.usage.output_tokens
+
+        if (!response.parsed_output) {
+          result.failed++
+          continue
+        }
+
+        const checked = checkFamily(response.parsed_output)
+        if (checked.rejectedId) {
+          result.invented++
+          log('discarded a family id the taxonomy does not have', {
+            jobId: job.id,
+            claimed: checked.rejectedId,
+          })
+        }
+
+        // Stamped either way. A decline is a considered answer, and re-asking
+        // it on every run is how a one-off cost becomes a recurring one.
+        await prisma.job.update({
+          where: { id: job.id },
+          data: { jobFamily: checked.familyId, taxonomyVersion: TAXONOMY_VERSION },
+        })
+
+        if (checked.familyId) result.assigned++
+        else result.declined++
+      } catch (error) {
+        result.failed++
+        log('llm family classification failed', {
+          jobId: job.id,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: CONCURRENCY }, work))
   return result
 }
