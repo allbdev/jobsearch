@@ -22,7 +22,16 @@ import { toRegions } from './regions'
  * says only "Remote" is not a rejection, it is a question.
  */
 
-export const RULES_CLASSIFIER_VERSION = 'rules-1'
+/**
+ * Bump this whenever `classifyByRules` changes what it would decide.
+ *
+ * It is how `classify --all` finds the rows a change has made stale: the stamp
+ * is the only record of which build produced a verdict. #31 changed the region
+ * logic and left this at `rules-1`, so all 1,710 rows carrying the old
+ * behaviour were indistinguishable from correct ones and could not be selected
+ * for replay.
+ */
+export const RULES_CLASSIFIER_VERSION = 'rules-2'
 
 export type Verdict = 'confirmed' | 'needs_check' | 'rejected'
 export type ContractModel =
