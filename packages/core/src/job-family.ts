@@ -1,5 +1,6 @@
 import { JOB_FAMILIES } from '@jobsearch/shared'
 import { normalizeTitle } from './identity'
+import { stripSeniority } from './seniority'
 
 /**
  * Assign a posting to a job family from its title (PLAN.md D12).
@@ -90,7 +91,10 @@ function contains(haystack: string, needle: string): boolean {
 function clauses(title: string): string[] {
   return title
     .split(/[,/|&()]|\s+[-–—]\s+|\s+\+\s+/)
-    .map((clause) => normalizeTitle(clause))
+    // Seniority is removed before matching: "Senior Consultant" and
+    // "Consultant" are one role, and an alias should not have to be written
+    // once per rung of a ladder.
+    .map((clause) => stripSeniority(clause))
     .filter(Boolean)
 }
 
