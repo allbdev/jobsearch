@@ -95,12 +95,19 @@ exists to track.
 | | |
 |---|---|
 | Posting inflow | 436 of 1,797 postings were posted in the last 30 days -- 24% monthly turnover, ~44 new postings per board per month |
-| Reaching the paid pass | 6.2% overall -- **Lever 1.8%, Greenhouse 13.1%** |
+| Reaching the paid pass | **6.5% on the first ten boards, 26.9% on the fifteen curated for cross-border hiring** (Lever 1.8%, original Greenhouse 13.1%) |
 | Cost per call | $0.016 at `effort: low` |
 
 Lever declares `workplaceType`, so its postings are settled by the free rules.
 Greenhouse leaves remote status in prose. **Source mix moves this line more
-than any code change.**
+than any code change** -- and it moves it in both directions at once.
+
+Curating boards by hiring model rather than size (#39) quadrupled the share
+reaching the paid pass, 6.5% to 26.9%, because a company that hires across
+borders states its scope in prose rather than in a location field. It also
+raised the postings a Brazilian can actually apply to from 16 to 251. Cost per
+useful posting fell by roughly an order of magnitude even as cost per posting
+crawled rose, which is the trade to keep making.
 
 ### Projection
 
