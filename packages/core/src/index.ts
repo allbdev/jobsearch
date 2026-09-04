@@ -20,3 +20,4 @@ export {
   type CheckedVerdict,
   type LlmVerdict,
 } from './eligibility-llm'
+export { matchJobFamily, unmatchedTermFor, type FamilyMatch } from './job-family'

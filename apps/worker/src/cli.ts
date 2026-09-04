@@ -9,6 +9,7 @@ import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
+import { assignJobFamilies } from './job-families'
 import { log } from './log'
 
 /**
@@ -73,6 +74,12 @@ async function main() {
       }
 
       const result = await classifyJobs({ reprocess: process.argv.includes('--all') })
+
+      // Always, on every classify run. It is free, and re-running it is how a
+      // taxonomy change reaches postings that were unnamed before.
+      const families = await assignJobFamilies()
+      log('job families assigned', { ...families })
+
       const settled = result.considered
         ? Math.round((result.decidedByRules / result.considered) * 100)
         : 0
