@@ -19,7 +19,15 @@ import { REGION_VOCABULARY } from './regions'
  * — which PLAN.md §6 calls the product — unit-testable without a key.
  */
 
-export const LLM_CLASSIFIER_VERSION = 'llm-1'
+/**
+ * Bump when the prompt, the model, or the effort changes what this pass would
+ * decide -- the same discipline as RULES_CLASSIFIER_VERSION. It is the only
+ * record of which configuration produced a verdict, and `classify --llm --all`
+ * has nothing else to select stale rows by.
+ *
+ * llm-2: reasoning effort dropped to `low`.
+ */
+export const LLM_CLASSIFIER_VERSION = 'llm-2'
 
 export const llmVerdictSchema = z.object({
   verdict: z.enum(['confirmed', 'needs_check', 'rejected']),
