@@ -36,6 +36,25 @@ export interface LlmClassifyResult {
 const USD_PER_MTOK = { input: 5, cachedRead: 0.5, cacheWrite: 6.25, output: 25 }
 
 const MODEL = process.env.CLASSIFIER_MODEL ?? 'claude-opus-5'
+
+/**
+ * Reasoning depth. `low` by default, on measurement rather than instinct.
+ *
+ * Thinking was 56% of output tokens at the default, and output is 45% of the
+ * bill. Cutting it is the largest lever that does not change the model.
+ *
+ * The reason to be careful is that an agreement rate means nothing on its own:
+ * this task is not deterministic. Re-running the *same* configuration over the
+ * same 79 postings agreed with the stored verdicts 90% of the time, so 90% is
+ * the noise floor. `low` scored 87% against that baseline and 91% head to head
+ * against a fresh default run -- indistinguishable from the model's
+ * disagreement with itself.
+ *
+ * What settled it was the direction. The default run moved three verdicts
+ * toward `confirmed`; `low` moved none, and produced no fabricated evidence and
+ * no failures. It is 29% cheaper and, on this evidence, marginally safer.
+ */
+const EFFORT = process.env.CLASSIFIER_EFFORT ?? 'low'
 const CONCURRENCY = 4
 
 export function estimateCostUsd(result: LlmClassifyResult): number {
@@ -113,7 +132,10 @@ export async function classifyByLlm(
           max_tokens: 1024,
           system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
           messages: [{ role: 'user', content: buildUserPrompt(input) }],
-          output_config: { format: zodOutputFormat(llmVerdictSchema) },
+          output_config: {
+            effort: EFFORT as 'low' | 'medium' | 'high' | 'xhigh' | 'max',
+            format: zodOutputFormat(llmVerdictSchema),
+          },
         })
 
         result.inputTokens += response.usage.input_tokens
