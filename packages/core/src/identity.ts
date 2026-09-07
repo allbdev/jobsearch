@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { canonicalizeUrl } from './url'
+import { dedupUrl } from './url'
 
 /**
  * Company names for matching, not for display.
@@ -54,7 +54,10 @@ export function jobContentHash(input: {
       JSON.stringify([
         normalizeCompanyName(input.companyName),
         normalizeTitle(input.title),
-        canonicalizeUrl(input.applyUrl),
+        // `dedupUrl`, not `canonicalizeUrl`: the stored link keeps the posting
+        // id so it works, and the dedup key drops it so one role listed once per
+        // country stays one job.
+        dedupUrl(input.applyUrl),
       ]),
     )
     .digest('hex')

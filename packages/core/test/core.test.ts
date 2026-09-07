@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { htmlToText } from '../src/html'
-import { canonicalizeUrl } from '../src/url'
+import { canonicalizeUrl, dedupUrl } from '../src/url'
 import { jobContentHash, normalizeCompanyName, normalizeTitle } from '../src/identity'
 
 describe('htmlToText', () => {
@@ -110,5 +110,64 @@ describe('jobContentHash', () => {
     expect(
       jobContentHash({ ...job, applyUrl: 'https://job-boards.greenhouse.io/layered/jobs/2' }),
     ).not.toBe(jobContentHash(job))
+  })
+})
+
+describe('apply links versus dedup keys', () => {
+  // 253 jobs across three boards shared one useless apply link because
+  // `gh_jid` — Greenhouse's job id — was treated as a tracking parameter.
+  it('keeps the posting id in the link a user clicks', () => {
+    expect(canonicalizeUrl('https://jobs.elastic.co/jobs?gh_jid=8066491')).toBe(
+      'https://jobs.elastic.co/jobs?gh_jid=8066491',
+    )
+  })
+
+  it('still strips what only says where the click came from', () => {
+    expect(canonicalizeUrl('https://x.co/j/1?gh_src=abc&utm_source=li&fbclid=z')).toBe(
+      'https://x.co/j/1',
+    )
+  })
+
+  // …and the dedup key drops it, so one role listed once per country stays one
+  // job. Both halves are needed; either alone breaks something.
+  it('drops the posting id from the dedup key', () => {
+    expect(dedupUrl('https://jobs.elastic.co/jobs?gh_jid=8066491')).toBe(
+      'https://jobs.elastic.co/jobs',
+    )
+  })
+
+  it('gives two country listings of one role the same content hash', () => {
+    const job = { companyName: 'Elastic', title: 'Senior Software Engineer' }
+    expect(jobContentHash({ ...job, applyUrl: 'https://jobs.elastic.co/jobs?gh_jid=1' })).toBe(
+      jobContentHash({ ...job, applyUrl: 'https://jobs.elastic.co/jobs?gh_jid=2' }),
+    )
+  })
+
+  it('leaves the content hash of a link without a posting id unchanged', () => {
+    expect(
+      jobContentHash({
+        companyName: 'Acme',
+        title: 'Engineer',
+        applyUrl: 'https://boards.greenhouse.io/acme/jobs/123',
+      }),
+    ).toBe(
+      jobContentHash({
+        companyName: 'Acme',
+        title: 'Engineer',
+        applyUrl: 'https://boards.greenhouse.io/acme/jobs/123',
+      }),
+    )
+  })
+})
+
+describe('repeated query parameters', () => {
+  it('collapses an identical repeat, which Greenhouse actually sends', () => {
+    expect(canonicalizeUrl('https://jobs.elastic.co/jobs?gh_jid=781&gh_jid=781')).toBe(
+      'https://jobs.elastic.co/jobs?gh_jid=781',
+    )
+  })
+
+  it('keeps distinct values for one key — that is multi-valued, not duplicated', () => {
+    expect(canonicalizeUrl('https://x.co/j?tag=a&tag=b')).toBe('https://x.co/j?tag=a&tag=b')
   })
 })
