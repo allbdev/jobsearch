@@ -1,5 +1,5 @@
 export * from './types'
-export { createHttpClient } from './http'
+export { createHttpClient, createLinkChecker, type LinkChecker } from './http'
 export {
   greenhouseAdapter,
   greenhouseContentHash,

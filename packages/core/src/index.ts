@@ -33,3 +33,4 @@ export {
   type CheckedFamily,
   type FamilyVerdict,
 } from './job-family-llm'
+export { EXPIRY_DAYS, expiryFromPostedAt, isGone, staleBefore } from './freshness'
