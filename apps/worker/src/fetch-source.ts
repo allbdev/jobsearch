@@ -26,6 +26,11 @@ export async function fetchSource(slug: string): Promise<FetchResult> {
   const adapter = getAdapter(slug)
   const http = createHttpClient()
   const result: FetchResult = { fetched: 0, created: 0, updated: 0, unchanged: 0, failures: 0 }
+
+  // Ids of postings the source still lists but has not changed. Touched in
+  // bulk rather than one statement per posting -- an unchanged crawl is
+  // thousands of rows and none of them need reading first.
+  const seenUnchanged: string[] = []
   const failures: string[] = []
   const reportFailure = (scope: string, error: unknown) => {
     result.failures++
@@ -60,8 +65,14 @@ export async function fetchSource(slug: string): Promise<FetchResult> {
       }
 
       if (existing.contentHash === posting.contentHash) {
-        // The point of the hash. Rewriting an identical row would churn
-        // updatedAt and make every downstream stage think it had work to do.
+        // The point of the hash: the payload is not rewritten, so no
+        // downstream stage thinks it has work to do.
+        //
+        // `fetchedAt` still moves, in one statement after the loop. It is the
+        // record that the source *still lists this posting*, which is the only
+        // honest evidence that a job is still open -- and without it a posting
+        // that never changes is indistinguishable from one that vanished.
+        seenUnchanged.push(existing.id)
         result.unchanged++
         continue
       }
@@ -75,6 +86,13 @@ export async function fetchSource(slug: string): Promise<FetchResult> {
         },
       })
       result.updated++
+    }
+
+    for (let i = 0; i < seenUnchanged.length; i += 500) {
+      await prisma.rawPosting.updateMany({
+        where: { id: { in: seenUnchanged.slice(i, i + 500) } },
+        data: { fetchedAt: new Date() },
+      })
     }
 
     // A run that recovered from every failure and yielded nothing is not a

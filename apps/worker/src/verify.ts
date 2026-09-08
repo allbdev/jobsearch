@@ -1,11 +1,11 @@
 import { prisma } from '@jobsearch/db'
-import { isGone, staleBefore } from '@jobsearch/core'
+import { isGone } from '@jobsearch/core'
 import { createLinkChecker, type LinkChecker } from '@jobsearch/sources'
 import { log } from './log'
 
 export interface VerifyResult {
-  /** Expired on age alone, without a request. */
-  expiredByAge: number
+  /** Expired because their source stopped listing them, without a request. */
+  disappeared: number
   checked: number
   ok: number
   /** Answered 404 or 410 — the posting is gone, so it leaves the feeds. */
@@ -22,10 +22,11 @@ const CONCURRENCY = 6
  * Stage 4 of the pipeline (PLAN.md §4): keep the index honest about what is
  * still open.
  *
- * Two mechanisms, because they fail in different directions. Age expiry is
- * free, certain and catches the common case -- a posting nobody re-listed in
- * two months is filled. Link checking is slow and noisy but catches the
- * posting pulled after a week.
+ * A job leaves the feeds when it stops being available to apply to, and never
+ * merely because it has been open a while. Two mechanisms, because they see
+ * different things: a source dropping a posting is free to detect and covers
+ * every job it lists, while a link check catches the posting whose board still
+ * advertises it after the employer has closed it.
  *
  * Neither deletes anything. `expiresAt` drops a job out of feeds while leaving
  * the row, its evidence and its provenance intact, because a job that comes
@@ -36,10 +37,10 @@ export async function verifyJobs(
 ): Promise<VerifyResult> {
   const { limit, staleAfterHours = 24 * 7 } = options
   const result: VerifyResult = {
-    expiredByAge: 0, checked: 0, ok: 0, gone: 0, inconclusive: 0, unreachable: 0,
+    disappeared: 0, checked: 0, ok: 0, gone: 0, inconclusive: 0, unreachable: 0,
   }
 
-  result.expiredByAge = await expireByAge()
+  result.disappeared = await expireDisappeared()
 
   const staleBefore = new Date(Date.now() - staleAfterHours * 60 * 60 * 1000)
   const jobs = await prisma.job.findMany({
@@ -97,15 +98,60 @@ export async function verifyJobs(
 }
 
 /**
- * Expire on age alone, in one statement.
+ * Expire the jobs whose sources have stopped listing them.
  *
- * `postedAt` rather than when we first saw it: a posting we crawled yesterday
- * that opened in January is already stale, and dating expiry from discovery
- * would keep it for two more months.
+ * A crawl records `fetchedAt` on every posting it sees, changed or not, so a
+ * posting still on the board carries this run's timestamp and one that vanished
+ * keeps an older one. That is evidence, where age was only a guess.
+ *
+ * Two guards, because the failure mode is emptying the index:
+ *
+ * A source mid-failure is skipped entirely. `failureStreak` is non-zero exactly
+ * when the last crawl did not complete, and a board that 500s for an afternoon
+ * has not closed all its jobs.
+ *
+ * A job is expired only when *every* posting of it has gone stale. Jobs are
+ * deduped across boards and sources, so one board dropping a listing that
+ * another still carries means the job is still open.
  */
-async function expireByAge(): Promise<number> {
+async function expireDisappeared(): Promise<number> {
+  const sources = await prisma.source.findMany({
+    where: { failureStreak: 0, lastPolledAt: { not: null } },
+    select: { id: true, slug: true, lastPolledAt: true },
+  })
+  if (sources.length === 0) return 0
+
+  // A crawl takes time, so a posting seen early in one is stamped earlier than
+  // the run that finished. The window has to be wider than the longest crawl.
+  const GRACE_HOURS = 12
+
+  const staleJobIds = new Set<string>()
+  for (const source of sources) {
+    const cutoff = new Date(source.lastPolledAt!.getTime() - GRACE_HOURS * 60 * 60 * 1000)
+    const stale = await prisma.rawPosting.findMany({
+      where: { sourceId: source.id, jobId: { not: null }, fetchedAt: { lt: cutoff } },
+      select: { jobId: true },
+    })
+    for (const row of stale) staleJobIds.add(row.jobId!)
+  }
+  if (staleJobIds.size === 0) return 0
+
+  // Anything still listed anywhere keeps the job alive.
+  const stillListed = await prisma.rawPosting.findMany({
+    where: {
+      jobId: { in: [...staleJobIds] },
+      OR: sources.map((source) => ({
+        sourceId: source.id,
+        fetchedAt: { gte: new Date(source.lastPolledAt!.getTime() - GRACE_HOURS * 60 * 60 * 1000) },
+      })),
+    },
+    select: { jobId: true },
+  })
+  for (const row of stillListed) staleJobIds.delete(row.jobId!)
+  if (staleJobIds.size === 0) return 0
+
   const { count } = await prisma.job.updateMany({
-    where: { expiresAt: null, postedAt: { lt: staleBefore() } },
+    where: { id: { in: [...staleJobIds] }, expiresAt: null },
     data: { expiresAt: new Date() },
   })
   return count
