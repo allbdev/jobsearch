@@ -10,6 +10,7 @@ import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
 import { assignJobFamilies, classifyFamiliesByLlm } from './job-families'
+import { verifyJobs } from './verify'
 import { log } from './log'
 
 /**
@@ -38,6 +39,16 @@ async function main() {
         })
         log('llm families complete', { ...llm, ms: Date.now() - started })
       }
+      break
+    }
+
+    case 'verify': {
+      const started = Date.now()
+      const limitFlag = process.argv.find((arg) => arg.startsWith('--limit='))
+      const result = await verifyJobs({
+        limit: limitFlag ? Number(limitFlag.split('=')[1]) : undefined,
+      })
+      log('verify complete', { ...result, ms: Date.now() - started })
       break
     }
 
@@ -112,7 +123,7 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | health>')
+      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | verify [--limit=N] | health>')
       process.exitCode = 1
   }
 }
