@@ -277,3 +277,98 @@ model UnmatchedTerm {
   @@index([occurrences])
   @@map("unmatched_terms")
 }
+
+// ─── Accounts (M3) ───────────────────────────────────────────────────────────
+
+enum ProfileSeniority {
+  junior
+  mid
+  senior
+  staff_plus
+}
+
+enum DigestCadence {
+  daily
+  weekly
+  off
+}
+
+model User {
+  id String @id @default(cuid())
+
+  /// Lowercased on write. The natural key a person types, so it is unique here
+  /// rather than on the profile -- an account exists before a profile does.
+  email           String    @unique
+  emailVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile?
+
+  @@map("users")
+}
+
+/// What a user is looking for, and the one thing that can disqualify a match.
+///
+/// Separate from `User` because they answer different questions and change at
+/// different rates: an account is identity, a profile is intent. A user with no
+/// profile yet is a normal state, not a broken row.
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// ISO 3166-1 alpha-2. The only blocking field: per PLAN.md §5 nothing but
+  /// residence and work authorisation can disqualify a match, and timezone
+  /// overlap is a preference.
+  residenceCountry String
+  /// IANA, e.g. "America/Sao_Paulo". Ranks, never blocks.
+  timezone         String
+
+  /// Region codes from `REGION_VOCABULARY` in @jobsearch/core -- the same
+  /// vocabulary `job_eligibility.eligibleRegions` speaks, because matching is
+  /// the intersection of the two and #31 is what happens when they diverge.
+  targetRegions String[] @default([])
+  /// BCP-47.
+  languages     String[] @default([])
+  /// Job family ids from @jobsearch/shared. Plain strings for the same reason
+  /// `jobs.jobFamily` is: the taxonomy is compiled in, and a retired family
+  /// must still round-trip.
+  jobFamilies   String[] @default([])
+  targetRoles   String   @default("")
+  skills        String[] @default([])
+
+  /// Deliberately a coarser ladder than `jobs.seniority`, which records what a
+  /// posting's title said (intern, associate, principal, lead, ...). A person
+  /// picks from four buckets; a posting says whatever it says. Matching maps
+  /// one onto the other, and conflating them would either force users through a
+  /// nine-item picker or throw away what the title stated.
+  seniority ProfileSeniority @default(mid)
+
+  contractModels  ContractModel[] @default([])
+  /// Minor units, to avoid float money. Null means unstated, not zero.
+  minCompensation Int?
+  currency        String          @default("USD")
+
+  /// Durable interface language. It does not drive the current page -- with
+  /// locale-prefixed routes the URL is the language (D11) -- it is what picks a
+  /// locale for a signed-in user arriving without a prefix, which a cookie
+  /// cannot do across devices.
+  interfaceLanguage String @default("en")
+
+  digestCadence  DigestCadence @default(weekly)
+  /// Day of week for a weekly digest, and local send time. Stored as written
+  /// rather than as a cron expression: the digest worker owns that translation,
+  /// and a user setting should be readable in the row.
+  digestSendOn   String        @default("monday")
+  digestSendAt   String        @default("08:00")
+  digestLanguage String        @default("en")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Matching filters on residence before anything else.
+  @@index([residenceCountry])
+  @@map("profiles")
+}

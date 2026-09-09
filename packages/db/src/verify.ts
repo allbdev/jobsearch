@@ -1,3 +1,7 @@
+// Must come first: it populates process.env, and the next import constructs a
+// PrismaClient that reads DATABASE_URL during its own evaluation.
+import './env'
+
 import { prisma } from './index'
 
 /**
