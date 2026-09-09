@@ -1,30 +1,12 @@
 /**
  * When a posting stops being worth showing (PLAN.md §4).
  *
- * The origin prompt's rule was "no broken links", and it is the cheapest trust
- * the product can lose: a user who clicks three dead listings stops believing
- * the eligibility badge either.
+ * A job leaves the feeds when it stops being *available to apply to* -- never
+ * because it has been open a while. An earlier version expired anything older
+ * than 60 days, which hid 1,660 of 3,092 postings including 96 of the 251 a
+ * Brazilian could actually apply to, most of them still listed on their boards.
+ * Age is a guess; disappearing from the source, or answering 404, is evidence.
  */
-
-/** A posting nobody has re-listed in two months is almost certainly filled. */
-export const EXPIRY_DAYS = 60
-
-const DAY_MS = 24 * 60 * 60 * 1000
-
-export function expiryFromPostedAt(postedAt: Date): Date {
-  return new Date(postedAt.getTime() + EXPIRY_DAYS * DAY_MS)
-}
-
-/**
- * The `postedAt` on or before which a posting is already stale.
- *
- * Dated from when the role opened, not from when we found it: a posting
- * crawled yesterday that opened in January is stale today, and dating expiry
- * from discovery would keep it for two more months.
- */
-export function staleBefore(now: Date = new Date()): Date {
-  return new Date(now.getTime() - EXPIRY_DAYS * DAY_MS)
-}
 
 /**
  * Does this status mean the posting is *gone*, as opposed to unreachable?

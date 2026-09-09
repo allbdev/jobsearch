@@ -41,6 +41,7 @@ Each decision is recorded with its rationale so we can revisit it deliberately r
 | D11 | i18n via locale-prefixed routes (`/en`, `/pt-br`, `/es`) with next-intl; changing language navigates | ✅ implemented |
 | D12 | Occupation taxonomy: homegrown, 33 families with permanent ids and a growth policy — not ESCO or O*NET | ✅ implemented |
 | D13 | Embeddings: Cohere `embed-v4.0` at 1024 dimensions; vectors generated from M3, not before | ✅ agreed |
+| D14 | Jobs expire on **disappearance**, not on age — a posting is shown for as long as it can be applied to | ✅ implemented |
 
 ### D1 — Global crawl, per-user query
 
@@ -188,6 +189,16 @@ Authenticated screens (`/feed`, `/profile`) are `noindex` and carry no
 **Operational note:** `NEXT_PUBLIC_SITE_URL` must be set at **build** time. The
 landing pages are prerendered and `hreflang`/`canonical` are absolute URLs baked
 in at that point; without it they are emitted against `localhost` and ignored.
+
+### D14 — Expire on disappearance, not on age
+
+The first version of link health expired anything posted more than ~60 days ago. Measured on the real corpus, that hid **1,660 of 3,092 postings — including 96 of the 251 a Brazilian could actually apply to** — and most of them were still listed on their boards.
+
+Age is a proxy for "probably filled". It is a bad one here. These are ATS boards, not job aggregators: a role stays listed while the employer is still hiring for it, and long-running searches are ordinary. Meanwhile the source itself already answers the question exactly, by continuing to return the posting or not.
+
+So the rule is availability, and the evidence is the source. A crawl records `fetchedAt` on every posting it sees; a posting the board no longer returns keeps an old timestamp and its job expires. The guards matter more than the rule: a job is expired only when every one of its postings has gone stale (they are deduped across boards), and a source mid-failure is skipped, because the failure mode of getting this wrong is emptying the index.
+
+Verified against the live GitLab board — the postings this expired were genuinely no longer listed, and a control job that was still listed was left alone.
 
 ### D12 — A homegrown occupation taxonomy
 
@@ -350,7 +361,14 @@ Four stages, each **idempotent and independently replayable**. This is the most 
 The origin prompt requires citing the snippet that proves eligibility. That becomes `evidence_snippet` + `evidence_url` on `job_eligibility`. It is what makes ✅ CONFIRMED vs ⚠️ NEEDS CHECK auditable rather than a model's vibes — and it is the feature users will actually trust.
 
 ### Link health
-A periodic `link_check` worker writes `last_verified_at` and `http_status`. Jobs older than ~60 days expire out of feeds. Directly from the origin prompt's "no broken links" rule.
+A periodic `verify` worker writes `last_verified_at` and `http_status`. Directly from the origin prompt's "no broken links" rule.
+
+A job expires when it stops being **available to apply to** — never because it has been open a while (D14). Two signals, both evidence rather than inference:
+
+- **Its sources stopped listing it.** Every crawl stamps `fetchedAt` on each posting it sees, changed or not, so a posting still on a board carries the latest run's timestamp and a withdrawn one keeps an older. A job expires only when *every* posting of it has gone stale, and a source whose last crawl failed is skipped entirely — a board that 500s for an afternoon has not closed all its jobs.
+- **The apply URL answers 404 or 410.** Only those two. A 403 is a bot wall, a 429 is us being rate limited, a 5xx is someone else's bad day; expiring on any of them would delete live jobs on the strength of an outage.
+
+Expiry never deletes. `expires_at` drops a job out of feeds while leaving the row, its evidence and its provenance intact, so a re-listed job does not have to be classified again.
 
 ---
 
@@ -438,7 +456,7 @@ does not exist yet. Swapping to the live API changes that one file.
 - **M0 — Skeleton.** ✅ *done.* Monorepo, pnpm/Turborepo, boundary checks in CI,
   design system imported, all three screens built responsive and translated
   against fixtures, Postgres running with the pipeline schema migrated.
-- **M1 — Ingestion.** Tier 1 sources + `raw_postings` → `jobs`, dedup, link check. Verified by row counts, no UI.
+- **M1 — Ingestion.** ✅ *done.* Tier 1 sources (Greenhouse, Lever) + `raw_postings` → `jobs`, dedup, link check, expiry on disappearance. Verified by row counts, no UI.
 - **M2 — Classification.** Rules pass + LLM pass, evidence stored, fixture corpus as regression suite.
 - **M3 — Accounts + feed.** Auth, profile, matching query, web feed with SSR job pages.
 - **M4 — Digest.** Scheduled email, cadence + timezone + unsubscribe.

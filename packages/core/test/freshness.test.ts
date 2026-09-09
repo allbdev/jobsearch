@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EXPIRY_DAYS, expiryFromPostedAt, isGone, staleBefore } from '../src/freshness'
-
-describe('expiryFromPostedAt', () => {
-  it('expires a posting EXPIRY_DAYS after it opened, not after we saw it', () => {
-    const posted = new Date('2026-01-01T00:00:00Z')
-    const expiry = expiryFromPostedAt(posted)
-    expect(expiry.toISOString()).toBe('2026-03-02T00:00:00.000Z')
-    expect((expiry.getTime() - posted.getTime()) / 86400000).toBe(EXPIRY_DAYS)
-  })
-})
+import { isGone } from '../src/freshness'
 
 describe('isGone', () => {
   it.each([404, 410])('%d means the posting no longer exists', (status) => {
@@ -25,11 +16,3 @@ describe('isGone', () => {
   )
 })
 
-describe('staleBefore', () => {
-  it('is EXPIRY_DAYS before now, and agrees with expiryFromPostedAt', () => {
-    const now = new Date('2026-03-02T00:00:00Z')
-    expect(staleBefore(now).toISOString()).toBe('2026-01-01T00:00:00.000Z')
-    // A posting made exactly at the cutoff expires exactly now.
-    expect(expiryFromPostedAt(staleBefore(now)).getTime()).toBe(now.getTime())
-  })
-})
