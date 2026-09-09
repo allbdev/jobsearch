@@ -1,5 +1,5 @@
 import { prisma, type Prisma } from '@jobsearch/db'
-import { classifyByRules, RULES_CLASSIFIER_VERSION } from '@jobsearch/core'
+import { classifyByRules, countriesFor, RULES_CLASSIFIER_VERSION } from '@jobsearch/core'
 import { log } from './log'
 
 export interface ClassifyResult {
@@ -84,6 +84,10 @@ export async function classifyJobs(options: { reprocess?: boolean } = {}): Promi
           verdict: verdict.verdict,
           regionLabel: verdict.regionLabel,
           eligibleRegions: verdict.eligibleRegions,
+          // Derived, never inferred: the countries a region covers. Matching
+          // needs a country because residence is the one blocking field, and
+          // preferences are expressed as regions.
+          eligibleCountries: countriesFor(verdict.eligibleRegions),
           contractModel: verdict.contractModel,
           evidenceSnippet: verdict.evidenceSnippet,
           classifierVersion: RULES_CLASSIFIER_VERSION,
@@ -93,6 +97,7 @@ export async function classifyJobs(options: { reprocess?: boolean } = {}): Promi
           verdict: verdict.verdict,
           regionLabel: verdict.regionLabel,
           eligibleRegions: verdict.eligibleRegions,
+          eligibleCountries: countriesFor(verdict.eligibleRegions),
           contractModel: verdict.contractModel,
           evidenceSnippet: verdict.evidenceSnippet,
           classifierVersion: RULES_CLASSIFIER_VERSION,

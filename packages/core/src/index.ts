@@ -34,3 +34,4 @@ export {
   type FamilyVerdict,
 } from './job-family-llm'
 export { isGone } from './freshness'
+export { COUNTRIES_BY_REGION, countriesFor, isOpenToCountry } from './countries'

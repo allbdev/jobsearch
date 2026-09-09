@@ -4,6 +4,7 @@ import { prisma } from '@jobsearch/db'
 import {
   buildUserPrompt,
   checkVerdict,
+  countriesFor,
   llmVerdictSchema,
   LLM_CLASSIFIER_VERSION,
   RULES_CLASSIFIER_VERSION,
@@ -166,6 +167,7 @@ export async function classifyByLlm(
             verdict: checked.verdict,
             regionLabel: checked.regionLabel,
             eligibleRegions: checked.eligibleRegions,
+            eligibleCountries: countriesFor(checked.eligibleRegions),
             contractModel: checked.contractModel,
             evidenceSnippet: checked.evidenceSnippet,
             classifierVersion: LLM_CLASSIFIER_VERSION,
