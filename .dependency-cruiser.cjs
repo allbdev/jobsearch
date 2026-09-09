@@ -19,6 +19,17 @@ module.exports = {
       to: { path: '^(packages/db|packages/core)' },
     },
     {
+      name: 'api-must-not-import-the-frontend',
+      severity: 'error',
+      comment:
+        'The API is a service, not a renderer. Importing the component library or the ' +
+        'web app would put React in a process that has no DOM and, worse, make the ' +
+        'contract between them implicit — the whole point of D5 is that the two talk ' +
+        'over HTTP.',
+      from: { path: '^apps/api' },
+      to: { path: '^(apps/web|packages/ui|packages/design-system)' },
+    },
+    {
       name: 'core-must-stay-pure',
       severity: 'error',
       comment:
