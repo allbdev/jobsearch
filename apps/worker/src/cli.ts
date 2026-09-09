@@ -11,6 +11,7 @@ import { classifyJobs } from './classify'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
 import { assignJobFamilies, classifyFamiliesByLlm } from './job-families'
 import { verifyJobs } from './verify'
+import { backfillCountries } from './backfill-countries'
 import { log } from './log'
 
 /**
@@ -105,6 +106,11 @@ async function main() {
       // taxonomy change reaches postings that were unnamed before.
       const families = await assignJobFamilies()
       log('job families assigned', { ...families })
+
+      // Free and derived, so it rides along: rows written before the country
+      // expansion existed get it without re-deciding anything.
+      const countries = await backfillCountries()
+      log('eligible countries derived', { ...countries })
 
       const settled = result.considered
         ? Math.round((result.decidedByRules / result.considered) * 100)
