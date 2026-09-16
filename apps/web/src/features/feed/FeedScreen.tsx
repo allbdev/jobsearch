@@ -30,6 +30,7 @@ import {
 } from '@jobsearch/ui'
 import { FeedDefinitionDialog } from './FeedDefinitionDialog'
 import { useJobFamilyLabels } from '../shared/useJobFamilyOptions'
+import { useRegionLabels } from '../shared/useRegionOptions'
 import styles from './FeedScreen.module.css'
 
 export function FeedScreen({
@@ -50,6 +51,7 @@ export function FeedScreen({
   const f = useTranslations('feed')
   const locale = useLocale()
   const familyLabels = useJobFamilyLabels()
+  const regionLabels = useRegionLabels()
 
   const sortOptions = [
     { value: 'best_match', label: f('bestMatch') },
@@ -72,7 +74,7 @@ export function FeedScreen({
 
   const definitionRows: Array<[string, string]> = [
     [f('jobFamilies'), familyLabels(definition.jobFamilies).join(', ') || f('allFamilies')],
-    [f('eligibleFrom'), definition.eligibleFrom.join(' · ')],
+    [f('eligibleFrom'), regionLabels(definition.eligibleFrom).join(' · ') || f('anyRegion')],
     [f('contract'), definition.contractModels.map((c) => CONTRACT_MODEL_LABELS[c]).join(' · ')],
     [
       f('minCompensation'),

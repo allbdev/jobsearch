@@ -53,6 +53,7 @@
     "noMinimum": "No minimum",
     "lastDays": "Last {days} days",
     "anyAge": "Any age",
+    "anyRegion": "Any region",
     "digestActive": "Weekly digest active",
     "change": "change",
     "bestMatch": "Best match",
@@ -176,6 +177,17 @@
     "people": "People",
     "legal": "Legal",
     "content": "Content"
+  },
+  "regions": {
+    "Worldwide": "Worldwide",
+    "Americas": "Americas",
+    "LATAM": "Latin America",
+    "BR": "Brazil",
+    "US": "United States",
+    "CA": "Canada",
+    "EU": "European Union",
+    "UK": "United Kingdom",
+    "APAC": "Asia-Pacific"
   },
   "families": {
     "engineering-frontend": "Frontend",

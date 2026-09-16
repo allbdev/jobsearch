@@ -61,7 +61,7 @@ const FEED_SEEDS: { feed: Omit<Feed, 'matchedCount'>; jobs: Seed[] }[] = [
       definition: {
         name: 'Product Design · LATAM',
         jobFamilies: ['design-product', 'design-research'],
-        eligibleFrom: ['LATAM', 'Brazil listed'],
+        eligibleFrom: ['LATAM', 'BR'],
         contractModels: ['contractor_pj', 'eor', 'local_entity'],
         minCompensation: 60_000,
         currency: 'USD',
@@ -81,7 +81,7 @@ const FEED_SEEDS: { feed: Omit<Feed, 'matchedCount'>; jobs: Seed[] }[] = [
       definition: {
         name: 'Anything · Brazil-eligible',
         jobFamilies: [],
-        eligibleFrom: ['Brazil listed'],
+        eligibleFrom: ['BR'],
         contractModels: ['contractor_pj', 'eor', 'local_entity', 'employee_relocation'],
         minCompensation: null,
         currency: 'USD',
@@ -148,7 +148,7 @@ export function profile(): Profile {
   return {
     residenceCountry: 'Brazil',
     timezone: 'UTC−3 · Brasília',
-    targetRegions: ['USA', 'Canada', 'Europe'],
+    targetRegions: ['US', 'CA', 'EU'],
     languages: ['English', 'Português'],
     jobFamilies: ['engineering-frontend', 'engineering-fullstack'],
     targetRoles: 'Product Engineer, Frontend Engineer, Fullstack Engineer',
