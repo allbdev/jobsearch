@@ -164,7 +164,16 @@
     "statBrokenLinks": "links quebrados tolerados",
     "copyright": "© {year} JobSearch — elegibilidade geográfica, verificada e comprovada.",
     "privacy": "Privacidade",
-    "terms": "Termos"
+    "terms": "Termos",
+    "errors": {
+      "invalidCredentials": "Esse e-mail e essa senha não correspondem a uma conta.",
+      "emailTaken": "Já existe uma conta com este e-mail. Quer entrar?",
+      "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "unavailable": "Não é possível entrar agora. Tente novamente em instantes.",
+      "emailInvalid": "Informe um e-mail válido.",
+      "passwordTooShort": "Use pelo menos 10 caracteres.",
+      "required": "Obrigatório."
+    }
   },
   "familyGroups": {
     "engineering": "Engenharia",

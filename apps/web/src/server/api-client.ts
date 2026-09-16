@@ -1,8 +1,15 @@
 import 'server-only'
 
 import { headers } from 'next/headers'
-import type { FeedResult, HistoryEntry, Profile } from '@jobsearch/shared'
-import { feedResultSchema } from '@jobsearch/shared'
+import type {
+  FeedResult,
+  HistoryEntry,
+  LoginRequest,
+  Profile,
+  RegisterRequest,
+  SessionResponse,
+} from '@jobsearch/shared'
+import { feedResultSchema, sessionResponseSchema } from '@jobsearch/shared'
 import { z } from 'zod'
 import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
@@ -15,7 +22,7 @@ import { getSessionToken } from './session'
  * `apps/api` over HTTP.
  *
  * Without API_URL the reads resolve fixtures, so the screens can be worked on
- * with no API running.
+ * with no API running; sign-in then reports itself unavailable.
  *
  * `server-only` makes an accidental client import a build error rather than a
  * runtime leak.
@@ -86,6 +93,14 @@ export function getProfile(): Promise<Profile> {
 
 export function getHistory(): Promise<HistoryEntry[]> {
   return Promise.resolve(fixtures.history())
+}
+
+export function signIn(credentials: LoginRequest): Promise<SessionResponse> {
+  return request('/auth/login', sessionResponseSchema, { method: 'POST', body: credentials })
+}
+
+export function register(account: RegisterRequest): Promise<SessionResponse> {
+  return request('/auth/register', sessionResponseSchema, { method: 'POST', body: account })
 }
 
 export function signOut(): Promise<void> {
