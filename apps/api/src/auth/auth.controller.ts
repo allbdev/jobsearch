@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Logger, Post, UseGuards } from '@nestjs/common'
+import { ThrottlerGuard } from '@nestjs/throttler'
 import type { User } from '@jobsearch/db'
 import {
   emailTokenRequestSchema,
@@ -8,11 +9,14 @@ import {
   resetPasswordRequestSchema,
 } from '@jobsearch/shared'
 import { parseBody } from '../common/parse-body'
+import { Limit } from '../rate-limit/rate-limit'
 import { AuthService, toSessionUser } from './auth.service'
 import { CurrentUser, SessionGuard, SessionToken } from './session.guard'
 import { SessionsService } from './sessions.service'
 
+/** Throttled at the controller, so the limit is checked before the session guard or any work. */
 @Controller('auth')
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   private readonly logger = new Logger('AuthController')
 
@@ -22,6 +26,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Limit.register()
   register(@Body() body: unknown) {
     return this.auth.register(parseBody(registerRequestSchema, body))
   }
@@ -46,6 +51,7 @@ export class AuthController {
   }
 
   @Post('verify-email/resend')
+  @Limit.resendVerification()
   @HttpCode(204)
   @UseGuards(SessionGuard)
   async resendVerification(@CurrentUser() user: User) {
@@ -54,6 +60,7 @@ export class AuthController {
 
   /** Always 204, and before any lookup: see `AuthService.sendPasswordReset`. */
   @Post('password/forgot')
+  @Limit.forgotPassword()
   @HttpCode(204)
   forgotPassword(@Body() body: unknown) {
     const { email } = parseBody(forgotPasswordRequestSchema, body)
