@@ -305,6 +305,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   profile Profile?
+  feeds   Feed[]
 
   @@map("users")
 }
@@ -371,4 +372,45 @@ model Profile {
   /// Matching filters on residence before anything else.
   @@index([residenceCountry])
   @@map("profiles")
+}
+
+/// A saved query over the global index (D1): which jobs to show, not a copy of
+/// them. A user may keep several, and matching runs the definition at read time,
+/// so a feed never goes stale and never needs a backfill when the index grows.
+///
+/// The fields mirror `feedDefinitionSchema` in @jobsearch/shared.
+model Feed {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name String
+
+  /// Job family ids from @jobsearch/shared. Empty means any family.
+  jobFamilies    String[]        @default([])
+  /// Region codes from `REGION_VOCABULARY` in @jobsearch/core, the vocabulary
+  /// `job_eligibility.eligibleRegions` speaks, so the filter is an array overlap.
+  /// Empty means no region filter beyond the owner's residence.
+  eligibleFrom   String[]        @default([])
+  /// Empty means any contract model.
+  contractModels ContractModel[] @default([])
+
+  /// Minor units, as on `Profile`. Null means no floor.
+  minCompensation Int?
+  currency        String @default("USD")
+
+  /// Only jobs first seen within this many days. Null means any age, and is the
+  /// default: per D14 a job is shown for as long as it can be applied to, and an
+  /// age cutoff hid 96 of the 251 postings a Brazilian could apply to. The field
+  /// stays for a user who asks for recent jobs only; it is not imposed.
+  freshnessDays Int?
+  /// `needs_check` always shows, in its own tier. This only governs `rejected`.
+  hideRejected  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Every read of a feed is by its owner.
+  @@index([userId])
+  @@map("feeds")
 }
