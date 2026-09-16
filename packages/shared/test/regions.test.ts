@@ -16,3 +16,15 @@ describe('region labels', () => {
     expect(Object.keys(labels(locale)).sort()).toEqual([...REGION_VOCABULARY].sort())
   })
 })
+
+describe('interface languages', () => {
+  // Profiles store these codes and the web routes by them; a code with no
+  // catalog would be accepted by the API and then render nothing.
+  it('each has a message catalog in the web app', async () => {
+    const { INTERFACE_LANGUAGES } = await import('../src/profile')
+    const { existsSync } = await import('node:fs')
+    for (const locale of INTERFACE_LANGUAGES) {
+      expect(existsSync(new URL(`../../../apps/web/messages/${locale}.json`, import.meta.url))).toBe(true)
+    }
+  })
+})
