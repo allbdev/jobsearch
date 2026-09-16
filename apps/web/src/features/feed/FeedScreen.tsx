@@ -80,7 +80,10 @@ export function FeedScreen({
         ? `≥ ${definition.minCompensation.toLocaleString(locale)} ${definition.currency}`
         : f('noMinimum'),
     ],
-    [f('freshness'), f('lastDays', { days: definition.freshnessDays })],
+    [
+      f('freshness'),
+      definition.freshnessDays ? f('lastDays', { days: definition.freshnessDays }) : f('anyAge'),
+    ],
   ]
 
   return (

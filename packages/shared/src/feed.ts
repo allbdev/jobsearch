@@ -10,7 +10,8 @@ export const feedDefinitionSchema = z.object({
   contractModels: z.array(contractModelSchema),
   minCompensation: z.number().nullable(),
   currency: z.string().length(3),
-  freshnessDays: z.number().int().positive().default(30),
+  /** Only jobs posted within this many days. Null is any age, the default (D14). */
+  freshnessDays: z.number().int().positive().nullable().default(null),
   /** Hide `rejected`; `needs_check` always shows in its own tier. */
   hideRejected: z.boolean().default(true),
 })
