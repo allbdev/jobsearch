@@ -1,6 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, Logger, Post, UseGuards } from '@nestjs/common'
 import type { User } from '@jobsearch/db'
-import { emailTokenRequestSchema, loginRequestSchema, registerRequestSchema } from '@jobsearch/shared'
+import {
+  emailTokenRequestSchema,
+  forgotPasswordRequestSchema,
+  loginRequestSchema,
+  registerRequestSchema,
+  resetPasswordRequestSchema,
+} from '@jobsearch/shared'
 import { parseBody } from '../common/parse-body'
 import { AuthService, toSessionUser } from './auth.service'
 import { CurrentUser, SessionGuard, SessionToken } from './session.guard'
@@ -8,6 +14,8 @@ import { SessionsService } from './sessions.service'
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger('AuthController')
+
   constructor(
     private readonly auth: AuthService,
     private readonly sessions: SessionsService,
@@ -42,6 +50,22 @@ export class AuthController {
   @UseGuards(SessionGuard)
   async resendVerification(@CurrentUser() user: User) {
     await this.auth.resendVerification(user)
+  }
+
+  /** Always 204, and before any lookup: see `AuthService.sendPasswordReset`. */
+  @Post('password/forgot')
+  @HttpCode(204)
+  forgotPassword(@Body() body: unknown) {
+    const { email } = parseBody(forgotPasswordRequestSchema, body)
+    this.auth.sendPasswordReset(email).catch((error: unknown) => {
+      this.logger.error(`password reset email failed: ${String(error)}`)
+    })
+  }
+
+  @Post('password/reset')
+  @HttpCode(200)
+  resetPassword(@Body() body: unknown) {
+    return this.auth.resetPassword(parseBody(resetPasswordRequestSchema, body))
   }
 
   @Get('me')

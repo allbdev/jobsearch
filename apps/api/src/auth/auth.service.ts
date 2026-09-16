@@ -1,9 +1,15 @@
 import { BadRequestException, ConflictException, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import type { PrismaClient, User } from '@jobsearch/db'
 import { Prisma } from '@jobsearch/db'
-import type { LoginRequest, RegisterRequest, SessionResponse, SessionUser } from '@jobsearch/shared'
+import type {
+  LoginRequest,
+  RegisterRequest,
+  ResetPasswordRequest,
+  SessionResponse,
+  SessionUser,
+} from '@jobsearch/shared'
 import { Mailer } from '../email/mailer'
-import { verifyEmail } from '../email/templates'
+import { resetPassword, verifyEmail } from '../email/templates'
 import { PRISMA } from '../prisma/prisma.module'
 import { AuthTokensService } from './auth-tokens.service'
 import { hashPassword, verifyAgainstNothing, verifyPassword } from './passwords'
@@ -69,6 +75,41 @@ export class AuthService {
       data: { emailVerifiedAt: new Date() },
     })
     return toSessionUser(user)
+  }
+
+  /**
+   * Emails a reset link if the address has an account, and does nothing if not.
+   *
+   * The controller does not wait for this: it answers 204 at once, whether or
+   * not the address exists, so neither the response nor its timing says which.
+   * An account with no password (Google or GitHub only) gets a link too --
+   * proving control of the address is exactly what setting one requires.
+   */
+  async sendPasswordReset(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email } })
+    if (!user) return
+    const token = await this.tokens.issue(user.id, 'reset_password')
+    await this.mailer.send(resetPassword(user.email, token))
+  }
+
+  /**
+   * Sets a new password, ends every existing session, and signs this browser in.
+   *
+   * Following the link proves control of the address, so it also verifies it.
+   */
+  async resetPassword(request: ResetPasswordRequest): Promise<SessionResponse> {
+    const result = await this.tokens.consume(request.token, 'reset_password')
+    if (!result.ok) throw new BadRequestException({ message: 'email link not accepted', reason: result.reason })
+
+    const passwordHash = await hashPassword(request.password)
+    const current = await this.prisma.user.findUniqueOrThrow({ where: { id: result.userId } })
+    const user = await this.prisma.user.update({
+      where: { id: result.userId },
+      data: { passwordHash, emailVerifiedAt: current.emailVerifiedAt ?? new Date() },
+    })
+    // A reset is often *because* someone else is signed in.
+    await this.sessions.revokeAll(user.id)
+    return this.startSession(user)
   }
 
   /**
