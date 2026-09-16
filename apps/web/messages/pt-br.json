@@ -53,6 +53,7 @@
     "noMinimum": "Sem mínimo",
     "lastDays": "Últimos {days} dias",
     "anyAge": "Qualquer data",
+    "anyRegion": "Qualquer região",
     "digestActive": "Resumo semanal ativo",
     "change": "alterar",
     "bestMatch": "Mais compatíveis",
@@ -176,6 +177,17 @@
     "people": "Pessoas",
     "legal": "Jurídico",
     "content": "Conteúdo"
+  },
+  "regions": {
+    "Worldwide": "Mundo todo",
+    "Americas": "Américas",
+    "LATAM": "América Latina",
+    "BR": "Brasil",
+    "US": "Estados Unidos",
+    "CA": "Canadá",
+    "EU": "União Europeia",
+    "UK": "Reino Unido",
+    "APAC": "Ásia-Pacífico"
   },
   "families": {
     "engineering-frontend": "Frontend",
