@@ -57,3 +57,10 @@ export type EmailTokenRequest = z.infer<typeof emailTokenRequestSchema>
  */
 export const emailTokenFailureSchema = z.enum(['invalid', 'expired', 'used'])
 export type EmailTokenFailure = z.infer<typeof emailTokenFailureSchema>
+
+export const forgotPasswordRequestSchema = z.object({ email: emailSchema })
+export type ForgotPasswordRequest = z.infer<typeof forgotPasswordRequestSchema>
+
+/** The new password obeys the same rule as registration. */
+export const resetPasswordRequestSchema = emailTokenRequestSchema.extend({ password: passwordSchema })
+export type ResetPasswordRequest = z.infer<typeof resetPasswordRequestSchema>

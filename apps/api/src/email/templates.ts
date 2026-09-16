@@ -21,3 +21,18 @@ export function verifyEmail(to: string, token: string): Email {
     ].join('\n'),
   }
 }
+
+export function resetPassword(to: string, token: string): Email {
+  const link = webUrl(`/auth/reset-password?token=${encodeURIComponent(token)}`)
+  return {
+    to,
+    subject: 'Reset your JobSearch password',
+    text: [
+      'Someone asked to reset the password for this JobSearch account. To choose a new one:',
+      '',
+      link,
+      '',
+      'The link works once, for 1 hour. If it was not you, ignore this email: your password has not changed.',
+    ].join('\n'),
+  }
+}
