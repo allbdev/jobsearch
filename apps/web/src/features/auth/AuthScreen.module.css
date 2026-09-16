@@ -196,3 +196,21 @@
     display: none;
   }
 }
+
+.formError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text);
+  border-left: 2px solid var(--color-accent);
+  padding-left: var(--space-2);
+}
+
+/* The form adds no box: its fields keep the panel's layout from before it existed. */
+.form {
+  display: contents;
+}
+
+/* The gap the divider had when it sat in the same stack as the submit button. */
+.alternatives {
+  margin-top: var(--space-3);
+}

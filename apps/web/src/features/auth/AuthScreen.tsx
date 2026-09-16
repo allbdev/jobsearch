@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
@@ -23,6 +23,7 @@ import {
   toOptions,
   cx,
 } from '@jobsearch/ui'
+import { registerAction, signInAction, type AuthFormState } from './actions'
 import styles from './AuthScreen.module.css'
 
 type Mode = 'login' | 'register'
@@ -109,48 +110,10 @@ export function AuthScreen() {
             />
           </div>
 
-          {!isLogin && (
-            <div className={cx(styles.pair, styles.registerFields)}>
-              <Field label={a('fullName')} htmlFor="name">
-                <Input id="name" placeholder={a('fullNamePlaceholder')} />
-              </Field>
-              <Field label={a('residence')} htmlFor="country">
-                <Select
-                  id="country"
-                  options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal', 'Other…'])}
-                />
-              </Field>
-            </div>
-          )}
+          {/* Keyed by mode, so switching tabs starts from a clean form and state. */}
+          <AuthForm key={mode} isLogin={isLogin} />
 
-          <Stack gap="3">
-            <Field label={a('email')} htmlFor="email">
-              <Input id="email" type="email" placeholder={a('emailPlaceholder')} />
-            </Field>
-            <Field
-              label={a('password')}
-              htmlFor="password"
-              labelAside={
-                isLogin ? (
-                  <a href="/forgot" className={styles.forgot}>
-                    {a('forgot')}
-                  </a>
-                ) : undefined
-              }
-            >
-              <Input id="password" type="password" placeholder="••••••••" />
-            </Field>
-
-            {!isLogin && (
-              <Checkbox defaultChecked alignStart>
-                {a('digestOptIn')}
-              </Checkbox>
-            )}
-
-            <Button as={Link} variant="primary" block href="/feed" className={styles.submit}>
-              {isLogin ? a('ctaSignIn') : a('ctaCreate')}
-            </Button>
-
+          <Stack gap="3" className={styles.alternatives}>
             <Cluster
               gap={10}
               className={cx('text-muted', styles.divider)}
@@ -186,5 +149,96 @@ export function AuthScreen() {
         </Blueprint>
       </div>
     </AppShell>
+  )
+}
+
+function AuthForm({ isLogin }: { isLogin: boolean }) {
+  const a = useTranslations('auth')
+  const e = useTranslations('auth.errors')
+  const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
+    isLogin ? signInAction : registerAction,
+    {},
+  )
+  const fieldError = (key: 'email' | 'password' | 'name') => {
+    const error = state.fields?.[key]
+    return error ? <span role="alert">{e(error)}</span> : undefined
+  }
+
+  return (
+    <form action={formAction} noValidate className={styles.form}>
+      {!isLogin && (
+        <div className={cx(styles.pair, styles.registerFields)}>
+          <Field label={a('fullName')} htmlFor="name" hint={fieldError('name')}>
+            <Input
+              id="name"
+              name="name"
+              autoComplete="name"
+              defaultValue={state.values?.name}
+              placeholder={a('fullNamePlaceholder')}
+            />
+          </Field>
+          <Field label={a('residence')} htmlFor="country">
+            <Select
+              id="country"
+              name="residence"
+              options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal', 'Other…'])}
+            />
+          </Field>
+        </div>
+      )}
+
+      <Stack gap="3">
+        <Field label={a('email')} htmlFor="email" hint={fieldError('email')}>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            defaultValue={state.values?.email}
+            aria-invalid={Boolean(state.fields?.email)}
+            placeholder={a('emailPlaceholder')}
+          />
+        </Field>
+        <Field
+          label={a('password')}
+          htmlFor="password"
+          hint={fieldError('password')}
+          labelAside={
+            isLogin ? (
+              <a href="/forgot" className={styles.forgot}>
+                {a('forgot')}
+              </a>
+            ) : undefined
+          }
+        >
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            required
+            aria-invalid={Boolean(state.fields?.password)}
+            placeholder="••••••••"
+          />
+        </Field>
+
+        {!isLogin && (
+          <Checkbox name="digest" defaultChecked alignStart>
+            {a('digestOptIn')}
+          </Checkbox>
+        )}
+
+        {state.error ? (
+          <p role="alert" className={styles.formError}>
+            {e(state.error)}
+          </p>
+        ) : null}
+
+        <Button type="submit" variant="primary" block disabled={pending} className={styles.submit}>
+          {isLogin ? a('ctaSignIn') : a('ctaCreate')}
+        </Button>
+      </Stack>
+    </form>
   )
 }
