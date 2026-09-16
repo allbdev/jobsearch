@@ -49,4 +49,9 @@ export class SessionsService {
   async revoke(token: string): Promise<void> {
     await this.prisma.session.deleteMany({ where: { id: hashToken(token) } })
   }
+
+  /** Signs a user out everywhere: after a password reset, nothing signed in before it should survive. */
+  async revokeAll(userId: string): Promise<void> {
+    await this.prisma.session.deleteMany({ where: { userId } })
+  }
 }
