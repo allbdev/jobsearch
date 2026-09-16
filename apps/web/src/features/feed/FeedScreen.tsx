@@ -70,6 +70,8 @@ export function FeedScreen({
   }, [result.jobs, dismissed, sort])
 
   const dismissedCount = result.jobs.filter((job) => dismissed[job.id]).length
+  // The feed's total, not the page's length: the API sends one page of jobs.
+  const matched = Math.max(0, feed.matchedCount - dismissedCount)
   const hours = Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))
 
   const definitionRows: Array<[string, string]> = [
@@ -94,7 +96,7 @@ export function FeedScreen({
         { href: '/feed', label: t('feed'), current: true },
         { href: '/profile', label: t('profile') },
       ]}
-      navAside={<SignOutButton href="/" linkComponent={Link} />}
+      navAside={<SignOutButton action="/api/sign-out" />}
       linkComponent={Link}
       bare
       mobileHeader={
@@ -224,10 +226,10 @@ export function FeedScreen({
                     produced "7 compatíveis vagas". One of the pair is hidden
                     per breakpoint. */}
                 <span className={styles.shortForm}>
-                  {f('matchedShort', { count: jobs.length })} · {f('updatedShort', { hours })}
+                  {f('matchedShort', { count: matched })} · {f('updatedShort', { hours })}
                 </span>
                 <span className={styles.longForm}>
-                  {f('matchedLong', { count: jobs.length })} · {f('updatedLong', { hours })}
+                  {f('matchedLong', { count: matched })} · {f('updatedLong', { hours })}
                 </span>
               </Muted>
             </div>

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
-import { getFeed, listFeeds } from '@/server/api-client'
+import { notFound } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
+import { redirect } from '@/i18n/navigation'
+import { ApiError, getFeed, listFeeds } from '@/server/api-client'
 import { FeedScreen } from '@/features/feed/FeedScreen'
+import { NoFeeds } from '@/features/feed/NoFeeds'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,9 +27,19 @@ export default async function FeedPage({
   // Server-rendered for SEO and first paint; the data still comes from the API
   // layer, never from the database (PLAN.md D5).
   const now = Date.now()
-  const feeds = await listFeeds(now)
-  const activeId = feed ?? feeds[0]?.id ?? 'frontend-worldwide'
-  const result = await getFeed(activeId, now)
+  try {
+    const feeds = await listFeeds(now)
+    const activeId = feed ?? feeds[0]?.id
+    if (!activeId) return <NoFeeds />
 
-  return <FeedScreen feeds={feeds} result={result} now={now} />
+    const result = await getFeed(activeId, now)
+    return <FeedScreen feeds={feeds} result={result} now={now} />
+  } catch (error) {
+    // The cookie was there (middleware checked) but the API refused it: expired,
+    // or signed out elsewhere. Back to the landing page to sign in again.
+    if (error instanceof ApiError && error.status === 401) redirect({ href: '/', locale: await getLocale() })
+    // Not theirs, or gone. The API does not distinguish, and neither do we.
+    if (error instanceof ApiError && error.status === 404) notFound()
+    throw error
+  }
 }

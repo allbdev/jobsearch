@@ -154,14 +154,14 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
         { href: '/feed', label: t('feed') },
         { href: '/profile', label: t('profile'), current: true },
       ]}
-      navAside={<SignOutButton href="/" linkComponent={Link} />}
+      navAside={<SignOutButton action="/api/sign-out" />}
       linkComponent={Link}
       bare
       mobileHeader={
         <>
           <div className={cx('nav', styles.mobileHeader)}>
             <div className={cx('nav-brand', styles.mobileTitle)}>{t('profile')}</div>
-            <SignOutButton href="/" linkComponent={Link} />
+            <SignOutButton action="/api/sign-out" />
           </div>
           <ScrollRow className={styles.sectionChips}>
             {SETTINGS_NAV.map((id) => (

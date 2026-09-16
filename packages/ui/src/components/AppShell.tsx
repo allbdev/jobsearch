@@ -99,15 +99,25 @@ export function AppShell({
   )
 }
 
-export interface SignOutButtonProps {
-  href: string
-  linkComponent?: ElementType
-  label?: string
-}
+export type SignOutButtonProps = { label?: string } & (
+  | { href: string; linkComponent?: ElementType }
+  /** Posts to this URL instead of navigating: signing out must not be a GET. */
+  | { action: string }
+)
 
-export function SignOutButton({ href, linkComponent, label = 'Sign out' }: SignOutButtonProps) {
+export function SignOutButton(props: SignOutButtonProps) {
+  const label = props.label ?? 'Sign out'
+  if ('action' in props) {
+    return (
+      <form method="post" action={props.action} className={styles.signOutForm}>
+        <Button type="submit" variant="secondary" size="sm">
+          {label}
+        </Button>
+      </form>
+    )
+  }
   return (
-    <Button as={(linkComponent ?? 'a') as ElementType} variant="secondary" size="sm" href={href}>
+    <Button as={(props.linkComponent ?? 'a') as ElementType} variant="secondary" size="sm" href={props.href}>
       {label}
     </Button>
   )
