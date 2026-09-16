@@ -40,4 +40,5 @@ src/main.ts              bootstrap
 src/app.module.ts        root module
 src/prisma/              the db client, as an injectable
 src/health/              liveness that actually queries the database
+src/feeds/               a saved feed, run as a query over the live index
 ```
