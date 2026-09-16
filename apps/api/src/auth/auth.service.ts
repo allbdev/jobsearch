@@ -126,7 +126,7 @@ export class AuthService {
     }
   }
 
-  private async startSession(user: User): Promise<SessionResponse> {
+  async startSession(user: User): Promise<SessionResponse> {
     const { token, expiresAt } = await this.sessions.create(user.id)
     return { token, expiresAt: expiresAt.toISOString(), user: toSessionUser(user) }
   }

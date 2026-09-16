@@ -64,3 +64,25 @@ export type ForgotPasswordRequest = z.infer<typeof forgotPasswordRequestSchema>
 /** The new password obeys the same rule as registration. */
 export const resetPasswordRequestSchema = emailTokenRequestSchema.extend({ password: passwordSchema })
 export type ResetPasswordRequest = z.infer<typeof resetPasswordRequestSchema>
+
+export const oauthProviderSchema = z.enum(['google', 'github'])
+export type OAuthProvider = z.infer<typeof oauthProviderSchema>
+
+/**
+ * Where to send the browser, and what the web must hold until it comes back:
+ * `state` to compare against the callback's, and `codeVerifier` (PKCE, Google
+ * only) to hand back with the code. Both go in a short-lived httpOnly cookie.
+ */
+export const oauthStartResponseSchema = z.object({
+  url: z.string().url(),
+  state: z.string(),
+  codeVerifier: z.string().nullable(),
+})
+export type OAuthStartResponse = z.infer<typeof oauthStartResponseSchema>
+
+/** The web checks `state` itself; the API receives only what the exchange needs. */
+export const oauthCallbackRequestSchema = z.object({
+  code: z.string().min(1).max(2000),
+  codeVerifier: z.string().min(1).max(200).nullable(),
+})
+export type OAuthCallbackRequest = z.infer<typeof oauthCallbackRequestSchema>

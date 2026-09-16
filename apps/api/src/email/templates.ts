@@ -1,9 +1,6 @@
+import { webUrl } from '../common/web-url'
 import type { Email } from './mailer'
 
-/** Where emailed links point: the web app, which forwards the token here (D15). */
-export function webUrl(path: string): string {
-  return new URL(path, process.env.WEB_URL ?? 'http://localhost:3000').toString()
-}
 
 // English only for now. The recipient's language needs a locale the web passes
 // at sign-up, and belongs with the web wiring.
