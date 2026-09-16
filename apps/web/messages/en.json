@@ -72,7 +72,9 @@
     "matchedShort": "{count} matched",
     "matchedLong": "{count} matched positions",
     "updatedShort": "updated {hours}h ago",
-    "updatedLong": "index updated {hours}h ago"
+    "updatedLong": "index updated {hours}h ago",
+    "noFeedsTitle": "No feeds yet",
+    "noFeedsBody": "A feed is a saved search over every job we have verified. Creating one from here is coming next."
   },
   "profile": {
     "nav": {

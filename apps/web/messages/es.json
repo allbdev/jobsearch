@@ -72,7 +72,9 @@
     "matchedShort": "{count} coincidencias",
     "matchedLong": "{count} vacantes coincidentes",
     "updatedShort": "actualizado hace {hours}h",
-    "updatedLong": "índice actualizado hace {hours}h"
+    "updatedLong": "índice actualizado hace {hours}h",
+    "noFeedsTitle": "Aún no hay feeds",
+    "noFeedsBody": "Un feed es una búsqueda guardada sobre todas las ofertas que verificamos. Crear uno desde aquí llega a continuación."
   },
   "profile": {
     "nav": {

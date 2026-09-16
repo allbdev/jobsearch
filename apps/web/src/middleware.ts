@@ -1,14 +1,31 @@
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
-import { routing } from './i18n/routing'
+import { locales, routing } from './i18n/routing'
+import { SESSION_COOKIE } from './server/session-cookie'
+
+const intl = createMiddleware(routing)
+
+const SIGNED_IN_ONLY = new RegExp(`^/(${locales.join('|')})/(feed|profile)(/|$)`)
 
 /**
- * Locale negotiation only: picks a locale from the path, a cookie, or the
- * Accept-Language header, and redirects `/` to a prefixed URL.
+ * Locale negotiation, plus one redirect: a signed-in page requested with no
+ * session cookie goes to the landing page.
  *
- * Deliberately no business logic and no data access — PLAN.md D5 keeps the web
- * tier a BFF, and this stays presentation routing.
+ * Deliberately no business logic and no data access (PLAN.md D5), and it never
+ * decides whether a cookie is *valid* -- that is the API's call (D15). A stale
+ * cookie gets through here and is refused by the API on the first read.
+ *
+ * Skipped without API_URL, where the screens render fixtures and there is
+ * nothing to sign in to.
  */
-export default createMiddleware(routing)
+export default function middleware(request: NextRequest) {
+  const match = SIGNED_IN_ONLY.exec(request.nextUrl.pathname)
+  if (process.env.API_URL && match && !request.cookies.has(SESSION_COOKIE)) {
+    return NextResponse.redirect(new URL(`/${match[1]}`, request.url))
+  }
+  return intl(request)
+}
 
 export const config = {
   // Everything except API routes, Next internals and files with an extension.

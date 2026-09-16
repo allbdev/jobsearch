@@ -72,7 +72,9 @@
     "matchedShort": "{count} compatíveis",
     "matchedLong": "{count} vagas compatíveis",
     "updatedShort": "atualizado há {hours}h",
-    "updatedLong": "índice atualizado há {hours}h"
+    "updatedLong": "índice atualizado há {hours}h",
+    "noFeedsTitle": "Nenhum feed ainda",
+    "noFeedsBody": "Um feed é uma busca salva sobre todas as vagas que verificamos. Criar um por aqui é o próximo passo."
   },
   "profile": {
     "nav": {
