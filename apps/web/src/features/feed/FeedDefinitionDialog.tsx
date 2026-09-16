@@ -3,12 +3,9 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ContractModel, FeedDefinition } from '@jobsearch/shared'
-import {
-  ELIGIBILITY_REGIONS,
-  chipOptions,
-  contractOptions,
-} from '@jobsearch/shared'
+import { contractOptions } from '@jobsearch/shared'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
+import { useRegionOptions } from '../shared/useRegionOptions'
 import {
   Button,
   Checkbox,
@@ -32,6 +29,7 @@ export function FeedDefinitionDialog({
   const [draft, setDraft] = useState(definition)
   const f = useTranslations('feed')
   const familyOptions = useJobFamilyOptions()
+  const regionOptions = useRegionOptions()
   const [amount, setAmount] = useState(
     definition.minCompensation ? definition.minCompensation.toLocaleString('en-US') : '',
   )
@@ -75,7 +73,7 @@ export function FeedDefinitionDialog({
 
       <Field label={f('mustBeEligibleFrom')}>
         <ChipToggleGroup
-          options={chipOptions(ELIGIBILITY_REGIONS)}
+          options={regionOptions}
           selected={draft.eligibleFrom}
           onToggle={(value) => update('eligibleFrom', toggleInList(draft.eligibleFrom, value))}
           ariaLabel={f('mustBeEligibleFrom')}
