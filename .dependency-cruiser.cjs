@@ -78,6 +78,8 @@ module.exports = {
           // not by an import.
           '^apps/web/(next\\.config\\.ts|src/app/.*/(layout|page|not-found|error)\\.tsx?$)',
           '^apps/web/src/app/(layout|page)\\.tsx$',
+          // Tool configs are read by the tool, not imported.
+          '(^|/)vitest\\.config\\.ts$',
           // A workspace package's barrel is an entry point by definition.
           '^packages/[^/]+/src/index\\.ts$',
         ],
