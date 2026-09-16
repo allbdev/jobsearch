@@ -1,7 +1,8 @@
-import { BadRequestException, Controller, Get, Param, Query, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common'
 import type { User } from '@jobsearch/db'
-import { feedSortSchema } from '@jobsearch/shared'
+import { feedDefinitionInputSchema, feedSortSchema } from '@jobsearch/shared'
 import { CurrentUser, SessionGuard } from '../auth/session.guard'
+import { parseBody } from '../common/parse-body'
 import { FeedsService } from './feeds.service'
 
 const DEFAULT_LIMIT = 50
@@ -34,5 +35,21 @@ export class FeedsController {
     }
 
     return this.feeds.result(id, user, parsedSort.data, take)
+  }
+
+  @Post()
+  create(@CurrentUser() user: User, @Body() body: unknown) {
+    return this.feeds.create(user, parseBody(feedDefinitionInputSchema, body))
+  }
+
+  @Put(':id')
+  replace(@CurrentUser() user: User, @Param('id') id: string, @Body() body: unknown) {
+    return this.feeds.replace(id, user, parseBody(feedDefinitionInputSchema, body))
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(@CurrentUser() user: User, @Param('id') id: string) {
+    await this.feeds.remove(id, user)
   }
 }
