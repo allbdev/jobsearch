@@ -110,18 +110,51 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('profile', () => {
   })
 
   it('makes residence decide what a feed matches', async () => {
-    const token = await signUp('matching')
-    const feed = await call('POST', '/feeds', token, {
-      name: 'Everything', jobFamilies: [], eligibleFrom: [], contractModels: [],
-      minCompensation: null, currency: 'USD', freshnessDays: null, hideRejected: true,
-    })
-    const before = feed.body.matchedCount as number
+    // Seeded here, not borrowed from a crawl: CI's database has no jobs, and a
+    // count of zero is less than nothing. One job anyone can take, one only
+    // someone in the US can.
+    const company = await prisma.company.create({ data: { name: `profile-${run} employer` } })
+    const seed = (key: string, regions: string[], countries: string[]) =>
+      prisma.job.create({
+        data: {
+          companyId: company.id,
+          title: key,
+          description: '',
+          applyUrl: `https://example.test/${run}/${key}`,
+          postedAt: new Date(),
+          contentHash: `profile-${run}-${key}`,
+          eligibility: {
+            create: {
+              verdict: 'confirmed',
+              regionLabel: regions.join(', '),
+              eligibleRegions: regions,
+              eligibleCountries: countries,
+              evidenceSnippet: 'Open to candidates in these regions.',
+              classifierVersion: 'test',
+            },
+          },
+        },
+      })
+    await seed('worldwide', ['Worldwide'], [])
+    await seed('us-only', ['US'], ['US'])
 
-    await call('PUT', '/profile', token, profile)
-    const after = (await call('GET', '/feeds', token)).body[0].matchedCount as number
+    try {
+      const token = await signUp('matching')
+      const feed = await call('POST', '/feeds', token, {
+        name: 'Everything', jobFamilies: [], eligibleFrom: [], contractModels: [],
+        minCompensation: null, currency: 'USD', freshnessDays: null, hideRejected: true,
+      })
+      const before = feed.body.matchedCount as number
 
-    // No residence blocks nothing; living in Brazil hides confirmed jobs closed to Brazil.
-    expect(after).toBeLessThan(before)
+      await call('PUT', '/profile', token, profile)
+      const after = (await call('GET', '/feeds', token)).body[0].matchedCount as number
+
+      // No residence blocks nothing; living in Brazil hides the US-only job.
+      expect(before - after).toBeGreaterThanOrEqual(1)
+    } finally {
+      await prisma.job.deleteMany({ where: { companyId: company.id } })
+      await prisma.company.delete({ where: { id: company.id } })
+    }
   })
 
   it('requires a session', async () => {
