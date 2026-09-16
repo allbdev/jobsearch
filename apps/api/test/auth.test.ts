@@ -3,7 +3,9 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common'
 import { afterAll, describe, expect, it } from 'vitest'
 import { prisma } from '@jobsearch/db'
 import { loginRequestSchema, registerRequestSchema } from '@jobsearch/shared'
+import { AuthTokensService } from '../src/auth/auth-tokens.service'
 import { AuthService } from '../src/auth/auth.service'
+import { Mailer } from '../src/email/mailer'
 import { SESSION_TTL_MS, SessionsService, hashToken } from '../src/auth/sessions.service'
 
 // Against a real Postgres, like feed-query.test.ts, and scoped to addresses
@@ -13,7 +15,8 @@ const email = (label: string) => `auth-test-${run}-${label}@example.test`
 const DAY = 86_400_000
 
 const sessions = new SessionsService(prisma)
-const auth = new AuthService(prisma, sessions)
+// A mailer with no key logs instead of sending.
+const auth = new AuthService(prisma, sessions, new AuthTokensService(prisma), new Mailer({}))
 const register = (label: string, password = 'correct horse battery') =>
   auth.register(registerRequestSchema.parse({ email: email(label), password }))
 const login = (address: string, password: string) =>
