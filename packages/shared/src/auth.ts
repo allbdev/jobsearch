@@ -45,3 +45,15 @@ export const sessionResponseSchema = z.object({
   user: sessionUserSchema,
 })
 export type SessionResponse = z.infer<typeof sessionResponseSchema>
+
+/** The token from an emailed link, as the web forwards it. */
+export const emailTokenRequestSchema = z.object({ token: z.string().min(1).max(200) })
+export type EmailTokenRequest = z.infer<typeof emailTokenRequestSchema>
+
+/**
+ * Why an emailed link did not work. Distinguished because each needs a
+ * different sentence: "already used" is usually a second click and needs no
+ * action; "expired" needs a new link.
+ */
+export const emailTokenFailureSchema = z.enum(['invalid', 'expired', 'used'])
+export type EmailTokenFailure = z.infer<typeof emailTokenFailureSchema>

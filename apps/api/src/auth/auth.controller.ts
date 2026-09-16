@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common'
 import type { User } from '@jobsearch/db'
-import { loginRequestSchema, registerRequestSchema } from '@jobsearch/shared'
+import { emailTokenRequestSchema, loginRequestSchema, registerRequestSchema } from '@jobsearch/shared'
 import { parseBody } from '../common/parse-body'
 import { AuthService, toSessionUser } from './auth.service'
 import { CurrentUser, SessionGuard, SessionToken } from './session.guard'
@@ -29,6 +29,19 @@ export class AuthController {
   @UseGuards(SessionGuard)
   async logout(@SessionToken() token: string) {
     await this.sessions.revoke(token)
+  }
+
+  @Post('verify-email')
+  @HttpCode(200)
+  verifyEmail(@Body() body: unknown) {
+    return this.auth.verifyEmail(parseBody(emailTokenRequestSchema, body).token)
+  }
+
+  @Post('verify-email/resend')
+  @HttpCode(204)
+  @UseGuards(SessionGuard)
+  async resendVerification(@CurrentUser() user: User) {
+    await this.auth.resendVerification(user)
   }
 
   @Get('me')
