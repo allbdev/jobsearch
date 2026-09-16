@@ -49,7 +49,8 @@ export const jobSchema = z.object({
   title: z.string(),
   company: z.string(),
   applyUrl: z.string().url(),
-  jobFamily: z.string(),
+  /** Null until a family is assigned; the LLM fallback has not run on every job. */
+  jobFamily: z.string().nullable(),
   skills: z.array(z.string()),
   compensation: compensationSchema,
   postedAt: z.string().datetime(),
