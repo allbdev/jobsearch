@@ -280,6 +280,16 @@ model UnmatchedTerm {
 
 // ─── Accounts (M3) ───────────────────────────────────────────────────────────
 
+enum OAuthProvider {
+  google
+  github
+}
+
+enum AuthTokenPurpose {
+  verify_email
+  reset_password
+}
+
 enum ProfileSeniority {
   junior
   mid
@@ -300,12 +310,21 @@ model User {
   /// rather than on the profile -- an account exists before a profile does.
   email           String    @unique
   emailVerifiedAt DateTime?
+  name            String?
+
+  /// argon2id, including its parameters. Null for an account that has only
+  /// ever signed in with Google or GitHub -- which is a normal account, not a
+  /// half-made one.
+  passwordHash String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile Profile?
-  feeds   Feed[]
+  profile       Profile?
+  feeds         Feed[]
+  sessions      Session[]
+  oauthAccounts OAuthAccount[]
+  authTokens    AuthToken[]
 
   @@map("users")
 }
@@ -413,4 +432,65 @@ model Feed {
   /// Every read of a feed is by its owner.
   @@index([userId])
   @@map("feeds")
+}
+
+// ─── Auth (D15) ──────────────────────────────────────────────────────────────
+
+/// A signed-in browser.
+///
+/// The token itself is never stored: `id` is its SHA-256, so a leaked backup or
+/// a stray `SELECT` yields nothing that can be replayed as a cookie. Opaque and
+/// server-side rather than a JWT, because signing out, resetting a password
+/// and "sign out everywhere" all have to take effect immediately, and a
+/// stateless token cannot be revoked before it expires.
+model Session {
+  id     String @id
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Sliding: extended when a request arrives in the second half of its life.
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// A Google or GitHub identity linked to a user.
+///
+/// Keyed by the provider's stable subject id, never by email: a provider email
+/// can change, and one person can hold the same address on both providers.
+model OAuthAccount {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       OAuthProvider
+  providerUserId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+/// A single-use link sent by email: verify an address, or reset a password.
+///
+/// Stored as a hash for the same reason as sessions. `usedAt` rather than a
+/// delete, so a second click on the same link can say "already used" instead of
+/// "invalid", which is the difference between a confused user and a support
+/// ticket.
+model AuthToken {
+  id      String           @id
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose AuthTokenPurpose
+
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, purpose])
+  @@map("auth_tokens")
 }
