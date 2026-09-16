@@ -1,4 +1,5 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, HttpCode, NotFoundException, Param, Post, UseGuards } from '@nestjs/common'
+import { ThrottlerGuard } from '@nestjs/throttler'
 import { OAuth2RequestError } from 'arctic'
 import type { SessionResponse } from '@jobsearch/shared'
 import { oauthCallbackRequestSchema, oauthProviderSchema } from '@jobsearch/shared'
@@ -9,6 +10,7 @@ import type { ProviderClient } from './providers'
 import { providerFromEnv } from './providers'
 
 @Controller('auth/oauth')
+@UseGuards(ThrottlerGuard)
 export class OAuthController {
   constructor(
     private readonly oauth: OAuthService,
