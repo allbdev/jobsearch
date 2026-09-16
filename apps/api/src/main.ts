@@ -1,6 +1,8 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
+import type { NestExpressApplication } from '@nestjs/platform-express'
 import { AppModule } from './app.module'
+import { configureApp } from './configure-app'
 
 /**
  * The API service (PLAN.md D2, D5).
@@ -17,8 +19,8 @@ import { AppModule } from './app.module'
  * later as a null dereference. See apps/api/README.md.
  */
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  app.enableShutdownHooks()
+  const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  configureApp(app)
 
   const port = Number(process.env.API_PORT ?? 3001)
   await app.listen(port)
