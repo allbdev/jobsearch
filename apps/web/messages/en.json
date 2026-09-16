@@ -164,7 +164,16 @@
     "statBrokenLinks": "broken links tolerated",
     "copyright": "© {year} JobSearch — geographic eligibility, verified and cited.",
     "privacy": "Privacy",
-    "terms": "Terms"
+    "terms": "Terms",
+    "errors": {
+      "invalidCredentials": "That email and password do not match an account.",
+      "emailTaken": "An account with this email already exists. Sign in instead?",
+      "tooMany": "Too many attempts. Wait a few minutes and try again.",
+      "unavailable": "Sign-in is unavailable right now. Try again shortly.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordTooShort": "Use at least 10 characters.",
+      "required": "Required."
+    }
   },
   "familyGroups": {
     "engineering": "Engineering",
