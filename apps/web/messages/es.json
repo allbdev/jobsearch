@@ -74,7 +74,17 @@
     "updatedShort": "actualizado hace {hours}h",
     "updatedLong": "índice actualizado hace {hours}h",
     "noFeedsTitle": "Aún no hay feeds",
-    "noFeedsBody": "Un feed es una búsqueda guardada sobre todas las ofertas que verificamos. Crear uno desde aquí llega a continuación."
+    "noFeedsBody": "Un feed es una búsqueda guardada sobre todas las ofertas que verificamos: elige las áreas, regiones y contratos que te importan, y se mantiene al día.",
+    "deleteFeed": "Eliminar feed",
+    "createFirstFeed": "Crear mi primer feed",
+    "errors": {
+      "invalid": "Algunos campos necesitan atención.",
+      "name": "Ponle un nombre al feed.",
+      "feedLimit": "Llegaste al límite de 20 feeds. Elimina uno para liberar espacio.",
+      "notFound": "Este feed ya no existe.",
+      "unavailable": "No se pudo guardar el feed ahora. Inténtalo de nuevo en un momento."
+    },
+    "confirmDelete": "¿Eliminar “{name}”? No se puede deshacer."
   },
   "profile": {
     "nav": {
