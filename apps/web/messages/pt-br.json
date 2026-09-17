@@ -143,7 +143,15 @@
     "cadenceOff": "Desativado",
     "statusSaved": "Salvas",
     "statusApplied": "Candidatadas",
-    "statusDismissed": "Descartadas"
+    "statusDismissed": "Descartadas",
+    "saved": "Perfil salvo.",
+    "chooseCountry": "Escolha um país…",
+    "errors": {
+      "invalid": "Alguns campos precisam de atenção.",
+      "unavailable": "Não foi possível salvar o perfil agora. Tente novamente em instantes.",
+      "residence": "Escolha onde você mora: isso decide a quais vagas você pode se candidatar.",
+      "field": "Confira este campo."
+    }
   },
   "auth": {
     "headline": "Vagas remotas para as quais você é realmente elegível.",

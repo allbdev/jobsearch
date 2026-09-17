@@ -20,10 +20,11 @@ import type {
   OAuthCallbackRequest,
   OAuthProvider,
   OAuthStartResponse,
+  ProfileInput,
   ResetPasswordRequest,
   SessionUser,
 } from '@jobsearch/shared'
-import { oauthStartResponseSchema, sessionUserSchema } from '@jobsearch/shared'
+import { oauthStartResponseSchema, profileSchema, sessionUserSchema } from '@jobsearch/shared'
 
 /**
  * THE ONLY PLACE THE WEB APP GETS DATA.
@@ -107,14 +108,30 @@ export function deleteFeed(feedId: string): Promise<void> {
   return request(`/feeds/${encodeURIComponent(feedId)}`, z.undefined(), { method: 'DELETE' })
 }
 
-// Fixtures until the API serves a profile and its history; both screens are
-// built against the same contract, so only these two functions change then.
-export function getProfile(): Promise<Profile> {
-  return Promise.resolve(fixtures.profile())
+/** The signed-in user's profile, or null when they have not saved one yet (#61). */
+export async function getProfile(): Promise<Profile | null> {
+  if (!apiConfigured) return fixtures.profile()
+  try {
+    return await request('/profile', profileSchema)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
+  }
 }
 
+export function saveProfile(profile: ProfileInput): Promise<Profile> {
+  return request('/profile', profileSchema, { method: 'PUT', body: profile })
+}
+
+/** The account itself: what a profile screen shows before a profile exists. */
+export function getMe(): Promise<SessionUser> {
+  return request('/auth/me', sessionUserSchema)
+}
+
+// No saved/applied/dismissed model exists yet, so a real account has no
+// history -- showing the fixture rows to a signed-in person would be invented data.
 export function getHistory(): Promise<HistoryEntry[]> {
-  return Promise.resolve(fixtures.history())
+  return Promise.resolve(apiConfigured ? [] : fixtures.history())
 }
 
 export function signIn(credentials: LoginRequest): Promise<SessionResponse> {
