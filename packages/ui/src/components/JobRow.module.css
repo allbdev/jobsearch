@@ -133,3 +133,9 @@
     display: none;
   }
 }
+
+/* The same role at other locations, inside the evidence panel. */
+.alsoIn {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+}

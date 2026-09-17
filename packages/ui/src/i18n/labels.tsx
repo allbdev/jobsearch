@@ -58,6 +58,14 @@ export interface UiLabels {
   remove: string
   addSkill: string
   emptyTable: string
+
+  /**
+   * One employer posts the same role once per country. The row carries the
+   * count, and the evidence panel lists the rest.
+   */
+  /** Takes {count}. */
+  locationCount: string
+  otherLocations: string
   primaryNavigation: string
 }
 
@@ -92,6 +100,8 @@ export const defaultUiLabels: UiLabels = {
   remove: 'Remove {item}',
   addSkill: 'Add a skill…',
   emptyTable: 'Nothing here yet.',
+  locationCount: '{count} locations',
+  otherLocations: 'Also open from',
   primaryNavigation: 'Primary',
 }
 

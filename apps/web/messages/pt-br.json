@@ -37,7 +37,9 @@
     "emptyTable": "Nada por aqui ainda.",
     "primaryNavigation": "Principal",
     "minCompensation": "Remuneração mínima (anual)",
-    "currency": "Moeda"
+    "currency": "Moeda",
+    "locationCount": "{count} locais",
+    "otherLocations": "Também aberta em"
   },
   "feed": {
     "yourFeeds": "Suas buscas",
