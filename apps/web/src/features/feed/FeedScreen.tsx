@@ -39,12 +39,15 @@ export function FeedScreen({
   result,
   now,
   sort,
+  knowsResidence,
 }: {
   feeds: Feed[]
   result: FeedResult
   now: number
   /** Chosen in the URL and applied by the API, over the whole feed. */
   sort: FeedSort
+  /** False until a country is saved, which is when the feed starts filtering by it. */
+  knowsResidence: boolean
 }) {
   const [morePages, setMorePages] = useState<{ key: string; jobs: Job[] }>({ key: '', jobs: [] })
   const [loadingMore, startLoadingMore] = useTransition()
@@ -277,6 +280,19 @@ export function FeedScreen({
               ariaLabel="Sort positions"
             />
           </Cluster>
+
+          {/* Without a residence nothing here is filtered by where the reader
+              lives, and #74 is what that costs: postings open to one country
+              only, shown as if they were open. Say so rather than imply a
+              match. */}
+          {knowsResidence ? null : (
+            <Blueprint className={styles.residenceNotice}>
+              <p role="status" className={styles.residenceText}>
+                {f('noResidenceTitle')}{' '}
+                <Link href="/profile#profile">{f('noResidenceAction')}</Link>
+              </p>
+            </Blueprint>
+          )}
 
           <Blueprint className={styles.list}>
             <div className={styles.scroll}>

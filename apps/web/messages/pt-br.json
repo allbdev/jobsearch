@@ -84,7 +84,9 @@
       "notFound": "Este feed não existe mais.",
       "unavailable": "Não foi possível salvar o feed agora. Tente novamente em instantes."
     },
-    "confirmDelete": "Excluir “{name}”? Não é possível desfazer."
+    "confirmDelete": "Excluir “{name}”? Não é possível desfazer.",
+    "noResidenceTitle": "Este feed ainda não filtra pelo lugar onde você mora, então pode listar vagas às quais você não pode se candidatar.",
+    "noResidenceAction": "Informe seu país"
   },
   "profile": {
     "nav": {

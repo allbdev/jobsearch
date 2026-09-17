@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
 import { feedSortSchema } from '@jobsearch/shared'
 import { redirect } from '@/i18n/navigation'
-import { ApiError, getFeed, listFeeds } from '@/server/api-client'
+import { ApiError, getFeed, getProfile, listFeeds } from '@/server/api-client'
 import { FeedScreen } from '@/features/feed/FeedScreen'
 import { NoFeeds } from '@/features/feed/NoFeeds'
 
@@ -32,12 +32,22 @@ export default async function FeedPage({
   // layer, never from the database (PLAN.md D5).
   const now = Date.now()
   try {
-    const feeds = await listFeeds(now)
+    // The profile decides what the feed may show at all: with no residence,
+    // nothing is filtered by where the reader lives (#74).
+    const [feeds, profile] = await Promise.all([listFeeds(now), getProfile()])
     const activeId = feed ?? feeds[0]?.id
     if (!activeId) return <NoFeeds />
 
     const result = await getFeed(activeId, now, { sort: order })
-    return <FeedScreen feeds={feeds} result={result} now={now} sort={order} />
+    return (
+      <FeedScreen
+        feeds={feeds}
+        result={result}
+        now={now}
+        sort={order}
+        knowsResidence={Boolean(profile?.residenceCountry)}
+      />
+    )
   } catch (error) {
     // The cookie was there (middleware checked) but the API refused it: expired,
     // or signed out elsewhere. Back to the landing page to sign in again.
