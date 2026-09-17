@@ -107,6 +107,7 @@ function toJob(seed: Seed, now: number, family: string): Job {
     jobFamily: family,
     skills: seed.skills,
     compensation: { min: null, max: null, currency: null, period: 'year', label: seed.salary },
+    location: seed.region === 'Remote' ? 'Remote' : `Remote - ${seed.region}`,
     postedAt: daysAgo(now, seed.days),
     source: seed.source,
     eligibility: {

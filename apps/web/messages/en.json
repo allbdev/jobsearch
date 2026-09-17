@@ -37,7 +37,9 @@
     "emptyTable": "Nothing here yet.",
     "primaryNavigation": "Primary",
     "minCompensation": "Minimum compensation (yearly)",
-    "currency": "Currency"
+    "currency": "Currency",
+    "locationCount": "{count} locations",
+    "otherLocations": "Also open from"
   },
   "feed": {
     "yourFeeds": "Your feeds",

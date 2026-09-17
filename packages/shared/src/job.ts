@@ -53,6 +53,12 @@ export const jobSchema = z.object({
   jobFamily: z.string().nullable(),
   skills: z.array(z.string()),
   compensation: compensationSchema,
+  /**
+   * The source's own words for where the job is: "Remote-Portugal", "Canada
+   * (Remote)", "Home based - EMEA". Shown where one role is posted once per
+   * country, which is the only thing that tells those rows apart.
+   */
+  location: z.string().nullable(),
   postedAt: z.string().datetime(),
   source: jobSourceSchema,
   eligibility: eligibilitySchema,

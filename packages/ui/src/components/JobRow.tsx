@@ -21,10 +21,16 @@ export interface JobRowProps {
   onSave: () => void
   onDismiss: () => void
   onApply?: () => void
+  /**
+   * The same role at the same company, posted once per country. Listed here
+   * rather than as rows of its own: eleven "Mobility Specialist" lines with
+   * one word different is not a feed worth reading.
+   */
+  alsoIn?: { id: string; label: string; applyUrl: string }[]
 }
 
 /** One posting in the feed, with its evidence panel. */
-export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss, onApply }: JobRowProps) {
+export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss, onApply, alsoIn = [] }: JobRowProps) {
   const labels = useUiLabels()
   const { eligibility } = job
   const actionProps = { applyUrl: job.applyUrl, saved, onSave, onDismiss, onApply }
@@ -52,6 +58,9 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss,
           <Cluster gap="2" className={styles.tags}>
             <EligibilityBadge verdict={eligibility.verdict} regionLabel={eligibility.regionLabel} />
             <Tag tone="neutral">{CONTRACT_MODEL_LABELS[eligibility.contractModel]}</Tag>
+            {alsoIn.length > 0 ? (
+              <Tag tone="neutral">{formatLabel(labels.locationCount, { count: alsoIn.length + 1 })}</Tag>
+            ) : null}
             {job.skills.map((skill) => (
               <Tag key={skill} tone="neutral" className={styles.skill}>
                 {skill}
@@ -100,6 +109,25 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss,
               </>
             }
           />
+          {alsoIn.length > 0 ? (
+            <Muted as="p" className={styles.alsoIn}>
+              {labels.otherLocations}:{' '}
+              {alsoIn.map((variant, index) => (
+                <span key={variant.id}>
+                  {index > 0 ? ' · ' : null}
+                  <a
+                    href={variant.applyUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {variant.label}
+                  </a>
+                </span>
+              ))}
+            </Muted>
+          ) : null}
+
           <JobActions variant="expanded" className={styles.actionsPanel} {...actionProps} />
         </div>
       ) : null}

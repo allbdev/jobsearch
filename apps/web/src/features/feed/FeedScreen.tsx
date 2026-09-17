@@ -97,6 +97,23 @@ export function FeedScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `statusOf` reads `changed`
   }, [result.jobs, loaded, changed])
 
+  // One employer posts the same role once per country -- eleven "Mobility
+  // Specialist" rows differing by one word. They are distinct postings, so they
+  // are grouped for reading, not merged: the first keeps its row and the rest
+  // are listed inside it, each with its own apply link.
+  const groups = useMemo(() => {
+    const byRole = new Map<string, { job: Job; alsoIn: { id: string; label: string; applyUrl: string }[] }>()
+    for (const job of jobs) {
+      const key = `${job.company}\u0000${job.title}`
+      const group = byRole.get(key)
+      // The location is what differs between them; the region is the same for
+      // a whole group as often as not ("Worldwide · Worldwide · Worldwide").
+      if (group) group.alsoIn.push({ id: job.id, label: job.location ?? job.eligibility.regionLabel, applyUrl: job.applyUrl })
+      else byRole.set(key, { job, alsoIn: [] })
+    }
+    return [...byRole.values()]
+  }, [jobs])
+
   const loadMore = () =>
     startLoadingMore(async () => {
       const next = await loadMoreJobsAction(feed.id, sort, result.jobs.length + loaded.length)
@@ -296,9 +313,10 @@ export function FeedScreen({
 
           <Blueprint className={styles.list}>
             <div className={styles.scroll}>
-              {jobs.map((job) => (
+              {groups.map(({ job, alsoIn }) => (
                 <JobRow
                   key={job.id}
+                  alsoIn={alsoIn}
                   job={job}
                   now={now}
                   expanded={expanded === job.id}
