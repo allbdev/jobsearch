@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { Suspense, useActionState, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import {
@@ -24,6 +24,7 @@ import {
   cx,
 } from '@jobsearch/ui'
 import { registerAction, signInAction, type AuthFormState } from './actions'
+import { OAuthNotice } from './OAuthNotice'
 import styles from './AuthScreen.module.css'
 
 type Mode = 'login' | 'register'
@@ -32,6 +33,7 @@ export function AuthScreen() {
   const [mode, setMode] = useState<Mode>('login')
   const isLogin = mode === 'login'
   const a = useTranslations('auth')
+  const locale = useLocale()
 
   const modeOptions = [
     { value: 'login', label: a('signIn') },
@@ -124,16 +126,23 @@ export function AuthScreen() {
               <span className={styles.dividerRule} />
             </Cluster>
 
+            {/* Plain links, not client navigation: the start route answers
+                with a redirect to another site. */}
             <div className={styles.oauth}>
-              <Button as={Link} variant="secondary" href="/feed">
+              <Button as="a" variant="secondary" href={`/api/oauth/google?locale=${locale}`}>
                 <BrandIcon brand="google" />
                 Google
               </Button>
-              <Button as={Link} variant="secondary" href="/feed">
+              <Button as="a" variant="secondary" href={`/api/oauth/github?locale=${locale}`}>
                 <BrandIcon brand="github" />
                 GitHub
               </Button>
             </div>
+
+            {/* Reads the query string, so it cannot be part of the prerendered page. */}
+            <Suspense fallback={null}>
+              <OAuthNotice />
+            </Suspense>
 
             <Muted as="p" className={styles.swapNote}>
               {isLogin ? a('newHere') : a('haveAccount')}{' '}
