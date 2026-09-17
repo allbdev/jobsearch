@@ -331,3 +331,21 @@ describe('a remote location names its place in any word order', () => {
   })
 })
 
+describe('the region label reads like a place', () => {
+  const scoped = (locationRaw: string) => classifyByRules(job({ locationRaw }))
+
+  it.each([
+    ['Israel (Remote)', 'Israel'],
+    ['Canada (Remote)', 'Canada'],
+    ['United States (Remote)', 'United States'],
+    ['Ontario, Canada (Remote)', 'Ontario, Canada'],
+  ])('%s reads as %s, with no empty brackets left behind', (locationRaw, label) => {
+    expect(scoped(locationRaw).regionLabel).toBe(label)
+  })
+
+  it('keeps brackets that still hold something', () => {
+    // "Remote (U.S.)" is the country in brackets, not an empty pair.
+    expect(scoped('Remote (U.S.)').eligibleRegions).toEqual(['US'])
+  })
+})
+
