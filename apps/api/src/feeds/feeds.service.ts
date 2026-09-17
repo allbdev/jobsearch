@@ -1,9 +1,10 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import type { Feed as FeedRow, Prisma, PrismaClient, User } from '@jobsearch/db'
+import { feedOrderBy, feedWhere, notDismissedBy } from '@jobsearch/db'
 import type { Feed, FeedDefinition, FeedResult, FeedSort } from '@jobsearch/shared'
 import { feedDefinitionInputSchema, feedResultSchema, feedSchema } from '@jobsearch/shared'
 import { PRISMA } from '../prisma/prisma.module'
-import { feedOrderBy, feedWhere, notDismissedBy } from './feed-query'
+
 import { toJob } from './to-job'
 
 type ValidDefinition = ReturnType<typeof feedDefinitionInputSchema.parse>

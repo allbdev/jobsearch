@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { ContractModel, EligibilityVerdict } from '@jobsearch/db'
 import { prisma } from '@jobsearch/db'
-import { feedOrderBy, feedWhere } from '../src/feeds/feed-query'
+import { feedOrderBy, feedWhere } from '@jobsearch/db'
 import { toJob } from '../src/feeds/to-job'
 import { jobSchema } from '@jobsearch/shared'
 

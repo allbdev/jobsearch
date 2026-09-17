@@ -18,6 +18,8 @@
     "verify": "tsx src/verify.ts"
   },
   "dependencies": {
+    "@jobsearch/core": "workspace:*",
+    "@jobsearch/shared": "workspace:*",
     "@prisma/client": "^6.3.0"
   },
   "devDependencies": {
