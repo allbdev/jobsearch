@@ -18,6 +18,7 @@ import { getSessionToken } from './session'
 
 import type {
   ChangePasswordRequest,
+  JobInteraction,
   OAuthCallbackRequest,
   OAuthProvider,
   OAuthStartResponse,
@@ -25,7 +26,7 @@ import type {
   ResetPasswordRequest,
   SessionUser,
 } from '@jobsearch/shared'
-import { oauthStartResponseSchema, profileSchema, sessionUserSchema } from '@jobsearch/shared'
+import { historyEntrySchema, oauthStartResponseSchema, profileSchema, sessionUserSchema } from '@jobsearch/shared'
 
 /**
  * THE ONLY PLACE THE WEB APP GETS DATA.
@@ -129,10 +130,18 @@ export function getMe(): Promise<SessionUser> {
   return request('/auth/me', sessionUserSchema)
 }
 
-// No saved/applied/dismissed model exists yet, so a real account has no
-// history -- showing the fixture rows to a signed-in person would be invented data.
 export function getHistory(): Promise<HistoryEntry[]> {
-  return Promise.resolve(apiConfigured ? [] : fixtures.history())
+  if (!apiConfigured) return Promise.resolve(fixtures.history())
+  return request('/profile/history', z.array(historyEntrySchema))
+}
+
+/** Saved, applied or dismissed. Replaces whatever was set before (#69). */
+export function setInteraction(jobId: string, status: JobInteraction): Promise<unknown> {
+  return request(`/jobs/${encodeURIComponent(jobId)}/interaction`, z.unknown(), { method: 'PUT', body: { status } })
+}
+
+export function clearInteraction(jobId: string): Promise<void> {
+  return request(`/jobs/${encodeURIComponent(jobId)}/interaction`, z.undefined(), { method: 'DELETE' })
 }
 
 export function signIn(credentials: LoginRequest): Promise<SessionResponse> {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
@@ -79,6 +79,7 @@ export function ProfileScreen({
   const [historyTab, setHistoryTab] = useState<JobInteraction>('saved')
   const t = useTranslations('nav')
   const p = useTranslations('profile')
+  const format = useFormatter()
   const familyOptions = useJobFamilyOptions()
   const regionOptions = useRegionOptions()
 
@@ -175,7 +176,8 @@ export function ProfileScreen({
       header: p('colDate'),
       align: 'right',
       mobileArea: 'date',
-      render: (row) => <span className="text-muted">{row.date}</span>,
+      // The API sends an ISO timestamp (#69); the reader's locale decides how it reads.
+      render: (row) => <span className="text-muted">{formatDate(format, row.date)}</span>,
     },
   ]
 
@@ -455,4 +457,10 @@ export function ProfileScreen({
 /** An empty first option while nothing is chosen, so the select never shows a value that was not picked. */
 function withPlaceholder(options: Option[], label: string, value: string): Option[] {
   return value ? options : [{ value: '', label }, ...options]
+}
+
+/** "17 Sept" in the page's language, or the string as given if it is not a date. */
+function formatDate(format: ReturnType<typeof useFormatter>, value: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : format.dateTime(date, { day: 'numeric', month: 'short' })
 }

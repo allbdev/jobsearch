@@ -13,6 +13,8 @@ export interface JobActionsProps {
   saved: boolean
   onSave: () => void
   onDismiss: () => void
+  /** Called when Apply is opened. The link still opens either way. */
+  onApply?: () => void
   /**
    * `compact` is the desktop row: three equal icon buttons.
    * `expanded` is the mobile panel: Apply is labelled and takes the width.
@@ -27,6 +29,7 @@ export function JobActions({
   saved,
   onSave,
   onDismiss,
+  onApply,
   variant,
   className,
 }: JobActionsProps) {
@@ -78,7 +81,10 @@ export function JobActions({
         href={applyUrl}
         target="_blank"
         rel="noreferrer noopener"
-        onClick={stop}
+        onClick={(event: MouseEvent) => {
+          stop(event)
+          onApply?.()
+        }}
       >
         {compact ? null : labels.apply}
         <Icon icon={ExternalLink} size={iconSize} />
