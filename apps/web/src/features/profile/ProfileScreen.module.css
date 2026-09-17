@@ -201,3 +201,9 @@
     flex: 1;
   }
 }
+
+.saveStatus {
+  margin: 0 auto 0 0;
+  font-size: 13px;
+  align-self: center;
+}
