@@ -1,4 +1,4 @@
-import type { Company, Job as JobRow, JobEligibility, Source } from '@jobsearch/db'
+import type { Company, Job as JobRow, JobEligibility, JobInteraction, Source } from '@jobsearch/db'
 import type { Job, JobSource } from '@jobsearch/shared'
 import { jobSourceSchema } from '@jobsearch/shared'
 
@@ -6,6 +6,8 @@ export type JobWithRelations = JobRow & {
   company: Company
   eligibility: JobEligibility | null
   rawPostings: { source: Pick<Source, 'slug'> }[]
+  /** The reader's own interaction, at most one (the key is user + job). */
+  interactions?: Pick<JobInteraction, 'status'>[]
 }
 
 /** A stored job in the wire shape of `jobSchema`. */
@@ -33,6 +35,7 @@ export function toJob(row: JobWithRelations): Job {
     },
     postedAt: row.postedAt.toISOString(),
     source: toSource(row.rawPostings[0]?.source.slug),
+    interaction: row.interactions?.[0]?.status ?? null,
     eligibility: {
       verdict: eligibility.verdict,
       regionLabel: eligibility.regionLabel,

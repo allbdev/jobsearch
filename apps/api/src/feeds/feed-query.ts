@@ -72,6 +72,14 @@ export function feedWhere(
 }
 
 /**
+ * Leaves out what this reader dismissed. Separate from `feedWhere`, which
+ * describes the feed and is the same for anyone who could own it.
+ */
+export function notDismissedBy(userId: string): Prisma.JobWhereInput {
+  return { interactions: { none: { userId, status: 'dismissed' } } }
+}
+
+/**
  * `best_match` is the verdict tier, then recency, until embeddings exist to
  * rank by. The enum's declaration order is confirmed, needs_check, rejected,
  * and Postgres sorts enums by that order.
