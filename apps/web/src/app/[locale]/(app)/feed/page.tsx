@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
+import { feedSortSchema } from '@jobsearch/shared'
 import { redirect } from '@/i18n/navigation'
 import { ApiError, getFeed, listFeeds } from '@/server/api-client'
 import { FeedScreen } from '@/features/feed/FeedScreen'
@@ -21,9 +22,12 @@ export const metadata: Metadata = {
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ feed?: string }>
+  searchParams: Promise<{ feed?: string; sort?: string }>
 }) {
-  const { feed } = await searchParams
+  const { feed, sort } = await searchParams
+  // Sorting is the server's: it orders the whole feed, not the page in hand.
+  const parsedSort = feedSortSchema.safeParse(sort)
+  const order = parsedSort.success ? parsedSort.data : 'best_match'
   // Server-rendered for SEO and first paint; the data still comes from the API
   // layer, never from the database (PLAN.md D5).
   const now = Date.now()
@@ -32,8 +36,8 @@ export default async function FeedPage({
     const activeId = feed ?? feeds[0]?.id
     if (!activeId) return <NoFeeds />
 
-    const result = await getFeed(activeId, now)
-    return <FeedScreen feeds={feeds} result={result} now={now} />
+    const result = await getFeed(activeId, now, { sort: order })
+    return <FeedScreen feeds={feeds} result={result} now={now} sort={order} />
   } catch (error) {
     // The cookie was there (middleware checked) but the API refused it: expired,
     // or signed out elsewhere. Back to the landing page to sign in again.

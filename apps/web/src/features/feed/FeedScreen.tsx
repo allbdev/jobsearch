@@ -29,7 +29,7 @@ import {
   cx,
 } from '@jobsearch/ui'
 import { BLANK_FEED, FeedDefinitionDialog } from './FeedDefinitionDialog'
-import { setInteractionAction } from './interaction-actions'
+import { loadMoreJobsAction, setInteractionAction } from './interaction-actions'
 import { useJobFamilyLabels } from '../shared/useJobFamilyOptions'
 import { useRegionLabels } from '../shared/useRegionOptions'
 import styles from './FeedScreen.module.css'
@@ -38,12 +38,16 @@ export function FeedScreen({
   feeds,
   result,
   now,
+  sort,
 }: {
   feeds: Feed[]
   result: FeedResult
   now: number
+  /** Chosen in the URL and applied by the API, over the whole feed. */
+  sort: FeedSort
 }) {
-  const [sort, setSort] = useState<FeedSort>('best_match')
+  const [morePages, setMorePages] = useState<{ key: string; jobs: Job[] }>({ key: '', jobs: [] })
+  const [loadingMore, startLoadingMore] = useTransition()
   const [expanded, setExpanded] = useState<string | null>(null)
   // What this session changed, over what the server sent with each job. Cleared
   // for a job as soon as the server's own answer agrees.
@@ -79,18 +83,27 @@ export function FeedScreen({
     })
   }
 
+  // Pages beyond the first, dropped whenever the feed or its order changes --
+  // and de-duplicated, because dismissing a job shifts what the next offset
+  // returns.
+  const pageKey = `${feed.id}:${sort}`
+  const loaded = morePages.key === pageKey ? morePages.jobs : []
   const jobs = useMemo(() => {
-    const visible = result.jobs.filter((job) => statusOf(job) !== 'dismissed')
-    if (sort === 'newest') {
-      return [...visible].sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
-    }
-    return visible
-  }, [result.jobs, changed, sort])
+    const byId = new Map([...result.jobs, ...loaded].map((job) => [job.id, job]))
+    return [...byId.values()].filter((job) => statusOf(job) !== 'dismissed')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `statusOf` reads `changed`
+  }, [result.jobs, loaded, changed])
+
+  const loadMore = () =>
+    startLoadingMore(async () => {
+      const next = await loadMoreJobsAction(feed.id, sort, result.jobs.length + loaded.length)
+      if (next) setMorePages({ key: pageKey, jobs: [...loaded, ...next] })
+    })
 
   // Dismissed in this session and still in the page the server sent. Once it is
   // re-read they are gone from `result.jobs` and counted by the server instead,
   // so neither number counts them twice.
-  const justDismissed = result.jobs.filter((job) => changed[job.id] === 'dismissed').length
+  const justDismissed = [...result.jobs, ...loaded].filter((job) => changed[job.id] === 'dismissed').length
   const dismissedCount = stats.dismissedByUser + justDismissed
   // The feed's total, not the page's length: the API sends one page of jobs.
   // `matchedCount` already leaves out what the server knows was dismissed.
@@ -259,7 +272,7 @@ export function FeedScreen({
             <SegmentedControl
               options={sortOptions}
               value={sort}
-              onChange={setSort}
+              onChange={(next) => router.push(`/feed?feed=${feed.id}&sort=${next}`)}
               compactMobile
               ariaLabel="Sort positions"
             />
@@ -295,9 +308,11 @@ export function FeedScreen({
                   dismissed: dismissedCount,
                 })}
               </span>
-              <Button variant="ghost" className={styles.loadMore}>
-                {f('loadMore')}
-              </Button>
+              {jobs.length < matched ? (
+                <Button variant="ghost" className={styles.loadMore} onClick={loadMore} disabled={loadingMore}>
+                  {f('loadMore')}
+                </Button>
+              ) : null}
             </Cluster>
           </Blueprint>
         </main>
