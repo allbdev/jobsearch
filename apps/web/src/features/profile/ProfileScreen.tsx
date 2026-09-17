@@ -16,6 +16,7 @@ import type {
 } from '@jobsearch/shared'
 import { contractOptions } from '@jobsearch/shared'
 import { saveProfileAction, type ProfileActionResult } from './actions'
+import { ChangePasswordDialog } from './ChangePasswordDialog'
 import type { Option, ProfileOptions } from './profile-options'
 import {
   AppShell,
@@ -71,6 +72,7 @@ export function ProfileScreen({
   const [result, setResult] = useState<ProfileActionResult | null>(null)
   const [saving, startSaving] = useTransition()
   const router = useRouter()
+  const [changingPassword, setChangingPassword] = useState(false)
   const [amount, setAmount] = useState(
     profile.minCompensation ? profile.minCompensation.toLocaleString('en-US') : '',
   )
@@ -388,7 +390,9 @@ export function ProfileScreen({
               </Field>
             </div>
             <Cluster gap="2" className={styles.accountActions}>
-              <Button variant="secondary">{p('changePassword')}</Button>
+              <Button variant="secondary" onClick={() => setChangingPassword(true)}>
+                {p('changePassword')}
+              </Button>
               <Button variant="secondary">{p('connectedAccounts')}</Button>
               <Button variant="ghost" className={styles.dangerAction}>
                 {p('deleteAccount')}
@@ -432,6 +436,8 @@ export function ProfileScreen({
           </Cluster>
         </Stack>
       </div>
+
+      {changingPassword ? <ChangePasswordDialog onClose={() => setChangingPassword(false)} /> : null}
 
       <div className={styles.mobileSaveBar}>
         <Button as={Link} variant="secondary" href="/feed">

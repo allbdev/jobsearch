@@ -151,6 +151,22 @@
       "unavailable": "The profile could not be saved right now. Try again shortly.",
       "residence": "Choose where you live: it decides which jobs you can take.",
       "field": "Check this field."
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "newHint": "At least 10 characters. Anywhere else you are signed in will be signed out.",
+      "submit": "Change password",
+      "done": "Password changed. Anywhere else you were signed in has been signed out.",
+      "close": "Close",
+      "wrong_password": "That is not your current password.",
+      "no_password": "This account signs in with Google or GitHub and has no password yet. We can email you a link to set one.",
+      "sendLink": "Email me a link",
+      "passwordTooShort": "Use at least 10 characters.",
+      "required": "Required.",
+      "tooMany": "Too many attempts. Wait a few minutes and try again.",
+      "unavailable": "The password could not be changed right now. Try again shortly."
     }
   },
   "auth": {

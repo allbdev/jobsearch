@@ -17,6 +17,7 @@ import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
 
 import type {
+  ChangePasswordRequest,
   OAuthCallbackRequest,
   OAuthProvider,
   OAuthStartResponse,
@@ -165,4 +166,8 @@ export function startOAuth(provider: OAuthProvider): Promise<OAuthStartResponse>
 
 export function completeOAuth(provider: OAuthProvider, exchange: OAuthCallbackRequest): Promise<SessionResponse> {
   return request(`/auth/oauth/${provider}/callback`, sessionResponseSchema, { method: 'POST', body: exchange })
+}
+
+export function changePassword(change: ChangePasswordRequest): Promise<void> {
+  return request('/auth/password/change', z.undefined(), { method: 'POST', body: change })
 }
