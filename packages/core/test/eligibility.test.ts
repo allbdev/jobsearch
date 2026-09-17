@@ -282,3 +282,52 @@ describe('the location field outranks a global-hiring sentence', () => {
   })
 })
 
+describe('a remote location names its place in any word order', () => {
+  // Boards write this field every which way, and the employer whose boilerplate
+  // says "...while we hiring globally" uses several shapes at once.
+  const boilerplate = 'At Remote we have a globally distributed workforce, and we hiring globally.'
+  const scoped = (locationRaw: string) => classifyByRules(job({ locationRaw, description: boilerplate }))
+
+  it.each([
+    ['Germany Remote', ['EU']],
+    ['Chile Remote', ['LATAM']],
+    ['Ireland Remote', ['EU']],
+    ['Home based - EMEA', ['EU', 'UK']],
+    ['Remote-Japan', ['APAC']],
+    ['Remote, United States', ['US']],
+  ])('scopes %s to %j', (locationRaw, regions) => {
+    const result = scoped(locationRaw)
+    expect(result.verdict).toBe('confirmed')
+    expect(result.eligibleRegions).toEqual(regions)
+    expect(result.matchedRule).toBe('location-remote-scoped')
+  })
+
+  it('keeps every segment of a multi-region location', () => {
+    expect(scoped('Remote, Canada; Remote, US').eligibleRegions).toEqual(['US', 'CA'])
+  })
+
+  it('still reads "Home based - Worldwide" as worldwide', () => {
+    expect(scoped('Home based - Worldwide').eligibleRegions).toEqual(['Worldwide'])
+  })
+
+  it.each(['Remote', 'Remote friendly', 'Distributed'])('leaves %s to the description', (locationRaw) => {
+    const result = scoped(locationRaw)
+    expect(result.eligibleRegions).toEqual(['Worldwide'])
+    expect(result.matchedRule).toBe('hire-globally')
+  })
+
+  it('will not confirm Worldwide for a place that never says remote', () => {
+    // "EMEA" with global boilerplate: the location names a place, the sentence
+    // is on every posting this employer writes. Neither settles it.
+    const result = scoped('EMEA')
+    expect(result.verdict).toBe('needs_check')
+    expect(result.eligibleRegions).toEqual(['EU', 'UK'])
+  })
+
+  it('still rejects an office with no claim of remote work', () => {
+    const result = classifyByRules(job({ locationRaw: 'San Francisco Bay Area' }))
+    expect(result.verdict).toBe('rejected')
+    expect(result.matchedRule).toBe('location-named-place')
+  })
+})
+
