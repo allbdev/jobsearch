@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useActionState, useState } from 'react'
+import { Suspense, useActionState, useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
@@ -20,16 +20,16 @@ import {
   Stack,
   StatRow,
   Tag,
-  toOptions,
   cx,
 } from '@jobsearch/ui'
 import { registerAction, signInAction, type AuthFormState } from './actions'
 import { OAuthNotice } from './OAuthNotice'
+import type { Option } from '../profile/profile-options'
 import styles from './AuthScreen.module.css'
 
 type Mode = 'login' | 'register'
 
-export function AuthScreen() {
+export function AuthScreen({ countries }: { countries: Option[] }) {
   const [mode, setMode] = useState<Mode>('login')
   const isLogin = mode === 'login'
   const a = useTranslations('auth')
@@ -113,7 +113,7 @@ export function AuthScreen() {
           </div>
 
           {/* Keyed by mode, so switching tabs starts from a clean form and state. */}
-          <AuthForm key={mode} isLogin={isLogin} />
+          <AuthForm key={mode} isLogin={isLogin} countries={countries} />
 
           <Stack gap="3" className={styles.alternatives}>
             <Cluster
@@ -161,14 +161,18 @@ export function AuthScreen() {
   )
 }
 
-function AuthForm({ isLogin }: { isLogin: boolean }) {
+function AuthForm({ isLogin, countries }: { isLogin: boolean; countries: Option[] }) {
   const a = useTranslations('auth')
   const e = useTranslations('auth.errors')
+  // Read after mount: the server that prerendered this page has no idea where
+  // the reader is, and guessing there would mismatch on hydration.
+  const [timezone, setTimezone] = useState('UTC')
+  useEffect(() => setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone), [])
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     isLogin ? signInAction : registerAction,
     {},
   )
-  const fieldError = (key: 'email' | 'password' | 'name') => {
+  const fieldError = (key: 'email' | 'password' | 'name' | 'residence') => {
     const error = state.fields?.[key]
     return error ? <span role="alert">{e(error)}</span> : undefined
   }
@@ -186,13 +190,23 @@ function AuthForm({ isLogin }: { isLogin: boolean }) {
               placeholder={a('fullNamePlaceholder')}
             />
           </Field>
-          <Field label={a('residence')} htmlFor="country">
+          <Field label={a('residence')} htmlFor="country" hint={fieldError('residence')}>
             <Select
+              // Remounted when the echoed country changes. React re-applies an
+              // input's defaultValue after a form action resets the form, but a
+              // select's default is fixed when it mounts -- so without this a
+              // refused registration loses the chosen country (and making it
+              // controlled does not help: the reset happens under React).
+              key={state.values?.residence ?? ''}
               id="country"
               name="residence"
-              options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal', 'Other…'])}
+              required
+              aria-invalid={Boolean(state.fields?.residence)}
+              defaultValue={state.values?.residence ?? ''}
+              options={[{ value: '', label: a('chooseCountry') }, ...countries]}
             />
           </Field>
+          <input type="hidden" name="timezone" value={timezone} />
         </div>
       )}
 
