@@ -1,0 +1,14 @@
+# Everything the image should never carry: local state, build output, and the
+# nested checkouts under .claude/worktrees (each a full copy of this repo).
+.git
+.claude
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.example
+docs
+*.md
