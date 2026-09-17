@@ -31,7 +31,7 @@ import { toRegions } from './regions'
  * behaviour were indistinguishable from correct ones and could not be selected
  * for replay.
  */
-export const RULES_CLASSIFIER_VERSION = 'rules-4'
+export const RULES_CLASSIFIER_VERSION = 'rules-5'
 
 export type Verdict = 'confirmed' | 'needs_check' | 'rejected'
 export type ContractModel =
@@ -232,6 +232,10 @@ function remoteScope(location: string): string | null {
   // flattening the punctuation would leave `toRegions` one run-on string.
   const scope = location
     .replace(REMOTE_WORDS, ' ')
+    // "Israel (Remote)" would otherwise become "Israel ( )" -- and that is what
+    // the badge and the digest then said. Brackets left holding nothing go; ones
+    // still holding something ("Remote (U.S.)" → "(U.S.)") stay.
+    .replace(/[([{]\s*[)\]}]/g, ' ')
     .split(/[,;]/)
     .map((part) => part.replace(/^[\s–—-]+|[\s–—-]+$/g, '').replace(/\s+/g, ' '))
     .filter(Boolean)
