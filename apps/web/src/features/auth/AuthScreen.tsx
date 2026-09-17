@@ -206,9 +206,9 @@ function AuthForm({ isLogin }: { isLogin: boolean }) {
           hint={fieldError('password')}
           labelAside={
             isLogin ? (
-              <a href="/forgot" className={styles.forgot}>
+              <Link href="/auth/forgot-password" className={styles.forgot}>
                 {a('forgot')}
-              </a>
+              </Link>
             ) : undefined
           }
         >

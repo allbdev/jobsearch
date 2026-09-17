@@ -183,6 +183,27 @@
       "emailInvalid": "Informe um e-mail válido.",
       "passwordTooShort": "Use pelo menos 10 caracteres.",
       "required": "Obrigatório."
+    },
+    "links": {
+      "forgotTitle": "Redefinir sua senha",
+      "forgotBody": "Informe o e-mail do seu cadastro. Se houver uma conta, enviaremos um link válido por uma hora.",
+      "sendLink": "Enviar link",
+      "sent": "Se houver uma conta com esse e-mail, o link está a caminho. Confira sua caixa de entrada.",
+      "backToSignIn": "Voltar para entrar",
+      "resetTitle": "Escolha uma nova senha",
+      "resetBody": "Pelo menos 10 caracteres. Qualquer outro lugar em que você estiver conectado será desconectado.",
+      "newPassword": "Nova senha",
+      "savePassword": "Salvar e entrar",
+      "verifyTitle": "Confirme seu e-mail",
+      "verifyBody": "Confirme que este endereço pertence a você.",
+      "confirm": "Confirmar meu e-mail",
+      "verified": "Seu e-mail está confirmado.",
+      "goToFeed": "Ir para o seu feed",
+      "invalid": "Este link não é válido.",
+      "expired": "Este link expirou.",
+      "used": "Este link já foi usado.",
+      "missingToken": "Abra esta página pelo link do seu e-mail.",
+      "requestNew": "Pedir um novo link"
     }
   },
   "familyGroups": {
