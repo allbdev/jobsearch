@@ -1,10 +1,15 @@
 import { countriesFor } from '@jobsearch/core'
-import type { Feed, Prisma } from '@jobsearch/db'
+import type { Feed, Prisma } from '@prisma/client'
 import type { FeedSort } from '@jobsearch/shared'
 
 /**
  * A saved feed, as a Prisma filter over the live index (D1: a feed is a query,
  * not a copy of the jobs it matched).
+ *
+ * It lives beside the schema rather than in `apps/api` because the digest
+ * worker has to match the same feeds the same way, and two copies of "what this
+ * feed means" would drift the first time one of them was fixed. It cannot live
+ * in `packages/core`, which is framework-free and may not see Prisma (§6).
  *
  * The rule that shapes everything else: only a `confirmed` verdict states a
  * scope, so only a confirmed job can be filtered *out* by scope. `needs_check`

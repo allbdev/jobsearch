@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 export * from '@prisma/client'
+export { feedOrderBy, feedWhere, notDismissedBy } from './feed-query'
 
 /**
  * A single client per process.
