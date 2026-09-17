@@ -327,6 +327,7 @@ model User {
   oauthAccounts OAuthAccount[]
   authTokens    AuthToken[]
   interactions  JobInteraction[]
+  digests       DigestDelivery[]
 
   @@map("users")
 }
@@ -386,6 +387,12 @@ model Profile {
   digestSendOn   String        @default("monday")
   digestSendAt   String        @default("08:00")
   digestLanguage String        @default("en")
+
+  /// Identifies this person in the digest's unsubscribe link, which has to work
+  /// from an email client with no session and no login. Random per profile, so
+  /// the link reveals nothing and holds for as long as the profile does.
+  /// One-click unsubscribe is required of bulk senders (PLAN.md §7).
+  unsubscribeToken String @unique @default(cuid())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -531,4 +538,28 @@ model JobInteraction {
   /// The history screen: one user's jobs in one status, newest first.
   @@index([userId, status, updatedAt])
   @@map("job_interactions")
+}
+
+/// One digest email, recorded when it is sent.
+///
+/// It is what makes "new since last time" mean anything: the next digest covers
+/// jobs the index gained after `sentAt`, so nobody is sent the same posting
+/// twice, and a worker that runs twice in an hour does not send twice.
+///
+/// Kept after the send rather than overwritten on the profile, because the
+/// question "did we mail this person, and what did we say" has to survive the
+/// next send to be worth anything (PLAN.md §7).
+model DigestDelivery {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The window this digest covered: jobs first indexed between these.
+  periodStart DateTime
+  sentAt      DateTime @default(now())
+  /// How many jobs it listed. Zero means it was skipped, not sent empty.
+  jobCount    Int
+
+  @@index([userId, sentAt])
+  @@map("digest_deliveries")
 }
