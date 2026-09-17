@@ -210,3 +210,8 @@ export function unlinkConnection(provider: OAuthProvider): Promise<void> {
 export function deleteAccount(confirmation: DeleteAccountRequest): Promise<void> {
   return request('/account', z.undefined(), { method: 'DELETE', body: confirmation })
 }
+
+/** From a link in a digest email: no session, just the token (#81). */
+export function unsubscribeFromDigest(token: string): Promise<void> {
+  return request('/digest/unsubscribe', z.undefined(), { method: 'POST', body: { token } })
+}

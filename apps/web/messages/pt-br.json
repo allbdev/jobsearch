@@ -327,5 +327,15 @@
     "legal-counsel": "Jurídico e compliance",
     "content-writing": "Redação e documentação",
     "content-localization": "Tradução e localização"
+  },
+  "digest": {
+    "title": "Parar o resumo",
+    "body": "Você deixará de receber o e-mail semanal. Sua conta e seus feeds continuam como estão, e você pode reativá-lo no seu perfil.",
+    "confirm": "Parar de enviar",
+    "done": "Pronto. Sem mais e-mails de resumo.",
+    "unknown": "Este link não é reconhecido. Pode ser de um e-mail antigo, ou a conta pode não existir mais.",
+    "unavailable": "Não funcionou. Tente novamente em instantes.",
+    "missing": "Abra esta página pelo link do seu e-mail.",
+    "toProfile": "Configurações do resumo"
   }
 }
