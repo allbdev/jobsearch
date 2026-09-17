@@ -51,4 +51,6 @@ export const Limit = {
   resendVerification: () => Throttle({ ip: { ttl: HOUR, limit: 5 } }),
   /** Checks a password, so it is a guessing surface for whoever holds a session. */
   changePassword: () => Throttle({ ip: { ttl: 15 * MINUTE, limit: 5 } }),
+  /** Open to the world by design, so it gets a ceiling rather than a guard. */
+  unsubscribe: () => Throttle({ ip: { ttl: 15 * MINUTE, limit: 20 } }),
 }

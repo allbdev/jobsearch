@@ -327,5 +327,15 @@
     "legal-counsel": "Legal y cumplimiento",
     "content-writing": "Redacción y documentación",
     "content-localization": "Traducción y localización"
+  },
+  "digest": {
+    "title": "Detener el resumen",
+    "body": "Dejarás de recibir el correo semanal. Tu cuenta y tus feeds siguen igual, y puedes volver a activarlo en tu perfil.",
+    "confirm": "Dejar de enviarlo",
+    "done": "Listo. No habrá más correos de resumen.",
+    "unknown": "Este enlace no se reconoce. Puede ser de un correo antiguo, o la cuenta ya no existe.",
+    "unavailable": "No funcionó. Inténtalo de nuevo en un momento.",
+    "missing": "Abre esta página desde el enlace de tu correo.",
+    "toProfile": "Ajustes del resumen"
   }
 }

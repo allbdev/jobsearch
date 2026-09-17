@@ -327,5 +327,15 @@
     "legal-counsel": "Legal & compliance",
     "content-writing": "Writing & documentation",
     "content-localization": "Translation & localization"
+  },
+  "digest": {
+    "title": "Stop the digest",
+    "body": "You will stop receiving the weekly email. Your account and feeds stay as they are, and you can turn it back on in your profile.",
+    "confirm": "Stop sending it",
+    "done": "Done. No more digest emails.",
+    "unknown": "This link is not recognised. It may be from an old email, or the account may be gone.",
+    "unavailable": "That did not work. Try again shortly.",
+    "missing": "Open this page from the link in your email.",
+    "toProfile": "Digest settings"
   }
 }

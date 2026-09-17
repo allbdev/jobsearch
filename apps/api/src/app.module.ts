@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { AccountModule } from './account/account.module'
 import { AuthModule } from './auth/auth.module'
+import { DigestModule } from './digest/digest.module'
 import { EmailModule } from './email/email.module'
 import { FeedsModule } from './feeds/feeds.module'
 import { HealthModule } from './health/health.module'
@@ -15,6 +16,7 @@ import { RATE_LIMITS } from './rate-limit/rate-limit'
     ThrottlerModule.forRoot(RATE_LIMITS),
     PrismaModule,
     EmailModule,
+    DigestModule,
     HealthModule,
     AuthModule,
     AccountModule,
