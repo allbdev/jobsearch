@@ -151,6 +151,22 @@
       "unavailable": "Não foi possível salvar o perfil agora. Tente novamente em instantes.",
       "residence": "Escolha onde você mora: isso decide a quais vagas você pode se candidatar.",
       "field": "Confira este campo."
+    },
+    "password": {
+      "title": "Alterar senha",
+      "current": "Senha atual",
+      "new": "Nova senha",
+      "newHint": "Pelo menos 10 caracteres. Qualquer outro lugar em que você estiver conectado será desconectado.",
+      "submit": "Alterar senha",
+      "done": "Senha alterada. Os outros lugares em que você estava conectado foram desconectados.",
+      "close": "Fechar",
+      "wrong_password": "Essa não é a sua senha atual.",
+      "no_password": "Esta conta entra com Google ou GitHub e ainda não tem senha. Podemos enviar um link por e-mail para criar uma.",
+      "sendLink": "Enviar link por e-mail",
+      "passwordTooShort": "Use pelo menos 10 caracteres.",
+      "required": "Obrigatório.",
+      "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "unavailable": "Não foi possível alterar a senha agora. Tente novamente em instantes."
     }
   },
   "auth": {

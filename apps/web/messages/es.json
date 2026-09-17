@@ -151,6 +151,22 @@
       "unavailable": "No se pudo guardar el perfil ahora. Inténtalo de nuevo en un momento.",
       "residence": "Elige dónde vives: decide a qué ofertas puedes postularte.",
       "field": "Revisa este campo."
+    },
+    "password": {
+      "title": "Cambiar contraseña",
+      "current": "Contraseña actual",
+      "new": "Contraseña nueva",
+      "newHint": "Al menos 10 caracteres. Se cerrará la sesión en cualquier otro lugar donde la tengas abierta.",
+      "submit": "Cambiar contraseña",
+      "done": "Contraseña cambiada. Se cerró la sesión en los demás lugares donde estaba abierta.",
+      "close": "Cerrar",
+      "wrong_password": "Esa no es tu contraseña actual.",
+      "no_password": "Esta cuenta inicia sesión con Google o GitHub y aún no tiene contraseña. Podemos enviarte un enlace por correo para crear una.",
+      "sendLink": "Enviarme un enlace",
+      "passwordTooShort": "Usa al menos 10 caracteres.",
+      "required": "Obligatorio.",
+      "tooMany": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
+      "unavailable": "No se pudo cambiar la contraseña ahora. Inténtalo de nuevo en un momento."
     }
   },
   "auth": {
