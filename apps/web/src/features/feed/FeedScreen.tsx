@@ -106,7 +106,9 @@ export function FeedScreen({
     for (const job of jobs) {
       const key = `${job.company}\u0000${job.title}`
       const group = byRole.get(key)
-      if (group) group.alsoIn.push({ id: job.id, label: job.eligibility.regionLabel, applyUrl: job.applyUrl })
+      // The location is what differs between them; the region is the same for
+      // a whole group as often as not ("Worldwide · Worldwide · Worldwide").
+      if (group) group.alsoIn.push({ id: job.id, label: job.location ?? job.eligibility.regionLabel, applyUrl: job.applyUrl })
       else byRole.set(key, { job, alsoIn: [] })
     }
     return [...byRole.values()]
