@@ -165,12 +165,12 @@ export function profile(): Profile {
 
 export function history(): HistoryEntry[] {
   return [
-    { jobId: '1', title: 'Senior Frontend Engineer', company: 'Layered', regionLabel: 'Worldwide', confirmed: true, status: 'saved', date: 'Aug 23' },
-    { jobId: '4', title: 'Frontend Engineer, Design Systems', company: 'Northbeam', regionLabel: 'LATAM', confirmed: true, status: 'saved', date: 'Aug 21' },
-    { jobId: '7', title: 'Staff Frontend Engineer', company: 'Quarry', regionLabel: 'Brazil', confirmed: true, status: 'saved', date: 'Aug 19' },
-    { jobId: '5', title: 'Senior Fullstack Engineer', company: 'Hatchline', regionLabel: 'Worldwide', confirmed: true, status: 'applied', date: 'Aug 22' },
-    { jobId: '3', title: 'Product Engineer', company: 'Fathom Analytics', regionLabel: 'Remote', confirmed: false, status: 'applied', date: 'Aug 18' },
-    { jobId: '6', title: 'React Native Engineer', company: 'Moventra', regionLabel: 'Remote', confirmed: false, status: 'dismissed', date: 'Aug 24' },
-    { jobId: '10', title: 'UX Designer', company: 'Terraform Labs', regionLabel: 'Worldwide', confirmed: true, status: 'dismissed', date: 'Aug 20' },
+    { jobId: '1', title: 'Senior Frontend Engineer', company: 'Layered', regionLabel: 'Worldwide', confirmed: true, status: 'saved', date: daysAgo(Date.now(), 2) },
+    { jobId: '4', title: 'Frontend Engineer, Design Systems', company: 'Northbeam', regionLabel: 'LATAM', confirmed: true, status: 'saved', date: daysAgo(Date.now(), 4) },
+    { jobId: '7', title: 'Staff Frontend Engineer', company: 'Quarry', regionLabel: 'Brazil', confirmed: true, status: 'saved', date: daysAgo(Date.now(), 6) },
+    { jobId: '5', title: 'Senior Fullstack Engineer', company: 'Hatchline', regionLabel: 'Worldwide', confirmed: true, status: 'applied', date: daysAgo(Date.now(), 3) },
+    { jobId: '3', title: 'Product Engineer', company: 'Fathom Analytics', regionLabel: 'Remote', confirmed: false, status: 'applied', date: daysAgo(Date.now(), 7) },
+    { jobId: '6', title: 'React Native Engineer', company: 'Moventra', regionLabel: 'Remote', confirmed: false, status: 'dismissed', date: daysAgo(Date.now(), 1) },
+    { jobId: '10', title: 'UX Designer', company: 'Terraform Labs', regionLabel: 'Worldwide', confirmed: true, status: 'dismissed', date: daysAgo(Date.now(), 5) },
   ]
 }
