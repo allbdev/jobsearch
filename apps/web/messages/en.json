@@ -143,7 +143,15 @@
     "cadenceOff": "Off",
     "statusSaved": "Saved",
     "statusApplied": "Applied",
-    "statusDismissed": "Dismissed"
+    "statusDismissed": "Dismissed",
+    "saved": "Profile saved.",
+    "chooseCountry": "Choose a country…",
+    "errors": {
+      "invalid": "Some fields need attention.",
+      "unavailable": "The profile could not be saved right now. Try again shortly.",
+      "residence": "Choose where you live: it decides which jobs you can take.",
+      "field": "Check this field."
+    }
   },
   "auth": {
     "headline": "Remote jobs you are actually eligible for.",

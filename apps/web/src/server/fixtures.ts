@@ -146,10 +146,10 @@ export function feedResult(feedId: string, now: number): FeedResult {
 
 export function profile(): Profile {
   return {
-    residenceCountry: 'Brazil',
-    timezone: 'UTC−3 · Brasília',
+    residenceCountry: 'BR',
+    timezone: 'America/Sao_Paulo',
     targetRegions: ['US', 'CA', 'EU'],
-    languages: ['English', 'Português'],
+    languages: ['en', 'pt-BR'],
     jobFamilies: ['engineering-frontend', 'engineering-fullstack'],
     targetRoles: 'Product Engineer, Frontend Engineer, Fullstack Engineer',
     seniority: 'senior',
@@ -158,8 +158,8 @@ export function profile(): Profile {
     minCompensation: 90_000,
     currency: 'USD',
     email: 'ana@example.com',
-    interfaceLanguage: 'English',
-    digest: { cadence: 'weekly', sendOn: 'Monday', sendAt: '08:00', language: 'English' },
+    interfaceLanguage: 'en',
+    digest: { cadence: 'weekly', sendOn: 'monday', sendAt: '08:00', language: 'en' },
   }
 }
 

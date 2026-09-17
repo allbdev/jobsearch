@@ -4,12 +4,12 @@ import { CONTRACT_MODEL_LABELS, type ContractModel } from './eligibility'
  * Picker option lists.
  *
  * Job families and regions used to live here as display strings; they now have
- * their own modules with stable ids (`job-families.ts`, `regions.ts`). The
- * languages list below is still display strings and still needs the same
- * treatment.
+ * their own modules with stable ids (`job-families.ts`, `regions.ts`), and the
+ * languages below are codes.
  */
 
-export const WORK_LANGUAGES = ['English', 'Português', 'Español', 'Deutsch', 'Français'] as const
+/** BCP-47 tags a profile's work languages are picked from; names come from `Intl.DisplayNames`. */
+export const WORK_LANGUAGES = ['en', 'pt-BR', 'es', 'de', 'fr'] as const
 
 export const CONTRACT_MODELS: ContractModel[] = [
   'contractor_pj',

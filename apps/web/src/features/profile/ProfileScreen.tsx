@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import { useRegionOptions } from '../shared/useRegionOptions'
@@ -14,11 +14,9 @@ import type {
   Profile,
   Seniority,
 } from '@jobsearch/shared'
-import {
-  WORK_LANGUAGES,
-  chipOptions,
-  contractOptions,
-} from '@jobsearch/shared'
+import { contractOptions } from '@jobsearch/shared'
+import { saveProfileAction, type ProfileActionResult } from './actions'
+import type { Option, ProfileOptions } from './profile-options'
 import {
   AppShell,
   Button,
@@ -39,7 +37,6 @@ import {
   SkillsInput,
   Stack,
   Tag,
-  toOptions,
   toggleInList,
   cx,
   type Column,
@@ -58,8 +55,22 @@ const SETTINGS_NAV = [
 
 type SectionId = (typeof SETTINGS_NAV)[number]
 
-export function ProfileScreen({ profile, history }: { profile: Profile; history: HistoryEntry[] }) {
+export function ProfileScreen({
+  profile,
+  isNew,
+  history,
+  options,
+}: {
+  profile: Profile
+  /** No profile saved yet: the form shows defaults, and residence must be chosen. */
+  isNew: boolean
+  history: HistoryEntry[]
+  options: ProfileOptions
+}) {
   const [draft, setDraft] = useState(profile)
+  const [result, setResult] = useState<ProfileActionResult | null>(null)
+  const [saving, startSaving] = useTransition()
+  const router = useRouter()
   const [amount, setAmount] = useState(
     profile.minCompensation ? profile.minCompensation.toLocaleString('en-US') : '',
   )
@@ -103,6 +114,24 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
 
   const update = <K extends keyof Profile>(key: K, value: Profile[K]) =>
     setDraft((current) => ({ ...current, [key]: value }))
+
+  const save = () =>
+    startSaving(async () => {
+      const digits = amount.replace(/\D/g, '')
+      const saved = await saveProfileAction({ ...draft, minCompensation: digits ? Number(digits) : null })
+      setResult(saved)
+      // Residence changes what every feed matches; re-read the page so its
+      // numbers and the saved values are the server's, not the draft's.
+      if (saved.ok) router.refresh()
+    })
+  const invalid = (field: keyof Profile) => (result && !result.ok && result.fields?.includes(field)) ?? false
+  const fieldError = (field: keyof Profile) =>
+    invalid(field) ? <span role="alert">{p(`errors.${field === 'residenceCountry' ? 'residence' : 'field'}`)}</span> : undefined
+  const saveStatus = result ? (
+    <p role={result.ok ? 'status' : 'alert'} className={styles.saveStatus}>
+      {result.ok ? p('saved') : p(`errors.${result.error}`)}
+    </p>
+  ) : null
 
   const columns: Column<HistoryEntry>[] = [
     {
@@ -192,10 +221,11 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             description={p('matchingDescription')}
           >
             <div className={styles.pair}>
-              <Field label={p('residence')} htmlFor="residence">
+              <Field label={p('residence')} htmlFor="residence" hint={fieldError('residenceCountry')}>
                 <Select
                   id="residence"
-                  options={toOptions(['Brazil', 'Argentina', 'Mexico', 'Portugal'])}
+                  aria-invalid={invalid('residenceCountry')}
+                  options={withPlaceholder(options.countries, p('chooseCountry'), draft.residenceCountry)}
                   value={draft.residenceCountry}
                   onChange={(event) => update('residenceCountry', event.target.value)}
                 />
@@ -203,7 +233,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               <Field label={p('timezone')} htmlFor="timezone">
                 <Select
                   id="timezone"
-                  options={toOptions(['UTC−3 · Brasília', 'UTC−5 · Bogotá', 'UTC+0 · Lisbon'])}
+                  options={options.timeZones}
                   value={draft.timezone}
                   onChange={(event) => update('timezone', event.target.value)}
                 />
@@ -224,7 +254,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               hint={p('languagesHint')}
             >
               <ChipToggleGroup
-                options={chipOptions(WORK_LANGUAGES)}
+                options={options.workLanguages}
                 selected={draft.languages}
                 onToggle={(value) => update('languages', toggleInList(draft.languages, value))}
                 ariaLabel={p('workLanguages')}
@@ -313,7 +343,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                 <Select
                   id="send-on"
                   className={styles.sendOn}
-                  options={toOptions(['Monday', 'Wednesday', 'Friday'])}
+                  options={options.weekdays}
                   value={draft.digest.sendOn}
                   onChange={(event) => update('digest', { ...draft.digest, sendOn: event.target.value })}
                 />
@@ -322,7 +352,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
                 <Select
                   id="send-at"
                   className={styles.sendAt}
-                  options={toOptions(['08:00', '12:00', '18:00'])}
+                  options={options.hours}
                   value={draft.digest.sendAt}
                   onChange={(event) => update('digest', { ...draft.digest, sendAt: event.target.value })}
                 />
@@ -332,7 +362,7 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               <Field label={p('emailLanguage')} htmlFor="digest-lang">
                 <Select
                   id="digest-lang"
-                  options={toOptions(['English', 'Português (BR)', 'Español'])}
+                  options={options.emailLanguages}
                   value={draft.digest.language}
                   onChange={(event) => update('digest', { ...draft.digest, language: event.target.value })}
                 />
@@ -345,12 +375,9 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
               className={cx(styles.pair, styles.pairNarrow)}
             >
               <Field label={p('email')} htmlFor="email">
-                <Input
-                  id="email"
-                  type="email"
-                  value={draft.email}
-                  onChange={(event) => update('email', event.target.value)}
-                />
+                {/* The account's address, not a profile field: changing it needs
+                    re-verification, which does not exist yet. */}
+                <Input id="email" type="email" value={draft.email} readOnly />
               </Field>
               {/* The real control: with locale-prefixed routes the interface
                   language is the URL, so this navigates rather than editing a
@@ -393,10 +420,15 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
             gap="2"
             className={styles.saveBar}
           >
-            <Button variant="secondary" onClick={() => setDraft(profile)}>
-              {p('discard')}
+            {saveStatus}
+            {isNew ? null : (
+              <Button variant="secondary" onClick={() => setDraft(profile)} disabled={saving}>
+                {p('discard')}
+              </Button>
+            )}
+            <Button variant="primary" onClick={save} disabled={saving}>
+              {p('save')}
             </Button>
-            <Button variant="primary">{p('save')}</Button>
           </Cluster>
         </Stack>
       </div>
@@ -406,10 +438,15 @@ export function ProfileScreen({ profile, history }: { profile: Profile; history:
           <Icon icon={ChevronLeft} size={16} />
           {t('feed')}
         </Button>
-        <Button variant="primary" className={styles.saveAction}>
+        <Button variant="primary" className={styles.saveAction} onClick={save} disabled={saving}>
           {p('save')}
         </Button>
       </div>
     </AppShell>
   )
+}
+
+/** An empty first option while nothing is chosen, so the select never shows a value that was not picked. */
+function withPlaceholder(options: Option[], label: string, value: string): Option[] {
+  return value ? options : [{ value: '', label }, ...options]
 }
