@@ -124,3 +124,7 @@ export const historyEntrySchema = z.object({
   date: z.string(),
 })
 export type HistoryEntry = z.infer<typeof historyEntrySchema>
+
+/** The unsubscribe link's token, as the digest email carries it. */
+export const unsubscribeRequestSchema = z.object({ token: z.string().min(1).max(200) })
+export type UnsubscribeRequest = z.infer<typeof unsubscribeRequestSchema>
