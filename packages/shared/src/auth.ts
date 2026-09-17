@@ -93,3 +93,26 @@ export const changePasswordRequestSchema = z.object({
   newPassword: passwordSchema,
 })
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>
+
+/** What the account screen shows: how this person can sign in, and what is linked. */
+export const accountSchema = z.object({
+  email: z.string(),
+  emailVerified: z.boolean(),
+  hasPassword: z.boolean(),
+  connections: z.array(z.object({ provider: oauthProviderSchema, linkedAt: z.string().datetime() })),
+})
+export type Account = z.infer<typeof accountSchema>
+
+/**
+ * Deleting an account is irreversible, so it asks for whatever the person can
+ * prove: their password, or -- for an account that has only ever used Google or
+ * GitHub -- typing the word the screen shows.
+ */
+export const deleteAccountRequestSchema = z.object({
+  password: z.string().max(128).optional(),
+  confirm: z.string().optional(),
+})
+export type DeleteAccountRequest = z.infer<typeof deleteAccountRequestSchema>
+
+/** What an account with no password must type instead. Not translated: it is a checksum, not a sentence. */
+export const DELETE_ACCOUNT_CONFIRMATION = 'DELETE'
