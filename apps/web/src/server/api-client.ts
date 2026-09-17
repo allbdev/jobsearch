@@ -14,6 +14,9 @@ import { z } from 'zod'
 import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
 
+import type { ResetPasswordRequest, SessionUser } from '@jobsearch/shared'
+import { sessionUserSchema } from '@jobsearch/shared'
+
 /**
  * THE ONLY PLACE THE WEB APP GETS DATA.
  *
@@ -105,4 +108,17 @@ export function register(account: RegisterRequest): Promise<SessionResponse> {
 
 export function signOut(): Promise<void> {
   return request('/auth/logout', z.undefined(), { method: 'POST' })
+}
+
+/** Always resolves for a well-formed address: the API never says whether it has an account. */
+export function requestPasswordReset(email: string): Promise<void> {
+  return request('/auth/password/forgot', z.undefined(), { method: 'POST', body: { email } })
+}
+
+export function resetPassword(input: ResetPasswordRequest): Promise<SessionResponse> {
+  return request('/auth/password/reset', sessionResponseSchema, { method: 'POST', body: input })
+}
+
+export function verifyEmail(token: string): Promise<SessionUser> {
+  return request('/auth/verify-email', sessionUserSchema, { method: 'POST', body: { token } })
 }
