@@ -204,6 +204,13 @@
       "used": "Este link já foi usado.",
       "missingToken": "Abra esta página pelo link do seu e-mail.",
       "requestNew": "Pedir um novo link"
+    },
+    "oauth": {
+      "cancelled": "O login foi cancelado.",
+      "failed": "O login não foi concluído. Tente de novo.",
+      "email_unverified": "Essa conta não tem um e-mail verificado. Verifique-o no provedor ou entre com e-mail.",
+      "unavailable": "Essa opção de login não está disponível agora.",
+      "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
     }
   },
   "familyGroups": {

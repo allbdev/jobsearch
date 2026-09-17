@@ -204,6 +204,13 @@
       "used": "Este enlace ya se usó.",
       "missingToken": "Abre esta página desde el enlace de tu correo.",
       "requestNew": "Pedir un enlace nuevo"
+    },
+    "oauth": {
+      "cancelled": "Se canceló el inicio de sesión.",
+      "failed": "El inicio de sesión no se completó. Inténtalo de nuevo.",
+      "email_unverified": "Esa cuenta no tiene un correo verificado. Verifícalo con el proveedor o inicia sesión con correo.",
+      "unavailable": "Esa opción de inicio de sesión no está disponible ahora.",
+      "tooMany": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo."
     }
   },
   "familyGroups": {

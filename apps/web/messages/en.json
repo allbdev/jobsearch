@@ -204,6 +204,13 @@
       "used": "This link has already been used.",
       "missingToken": "Open this page from the link in your email.",
       "requestNew": "Request a new link"
+    },
+    "oauth": {
+      "cancelled": "Sign-in was cancelled.",
+      "failed": "Sign-in did not complete. Try again.",
+      "email_unverified": "That account has no verified email address. Verify it with the provider, or sign in with email.",
+      "unavailable": "That sign-in option is not available right now.",
+      "tooMany": "Too many attempts. Wait a few minutes and try again."
     }
   },
   "familyGroups": {
