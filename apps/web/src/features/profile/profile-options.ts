@@ -26,13 +26,11 @@ export interface ProfileOptions {
  */
 export function profileOptions(locale: Locale, now = new Date()): ProfileOptions {
   const intl = localeMeta[locale].intl
-  const byLabel = (a: Option, b: Option) => a.label.localeCompare(b.label, intl)
-  const regions = new Intl.DisplayNames(intl, { type: 'region' })
   const languages = new Intl.DisplayNames(intl, { type: 'language' })
   const weekday = new Intl.DateTimeFormat(intl, { weekday: 'long', timeZone: 'UTC' })
 
   return {
-    countries: ISO_COUNTRY_CODES.map((code) => ({ value: code, label: regions.of(code) ?? code })).sort(byLabel),
+    countries: countryOptions(locale),
     // `UTC` is valid everywhere but absent from `supportedValuesOf`, and it is
     // the zone a new profile starts in, so it is offered explicitly.
     timeZones: ['UTC', ...Intl.supportedValuesOf('timeZone')]
@@ -48,6 +46,15 @@ export function profileOptions(locale: Locale, now = new Date()): ProfileOptions
       return { value, label: value }
     }),
   }
+}
+
+/** Every country, named in the page's language and sorted by that name. Also used by sign-up. */
+export function countryOptions(locale: Locale): Option[] {
+  const intl = localeMeta[locale].intl
+  const regions = new Intl.DisplayNames(intl, { type: 'region' })
+  return ISO_COUNTRY_CODES.map((code) => ({ value: code, label: regions.of(code) ?? code })).sort((a, b) =>
+    a.label.localeCompare(b.label, intl),
+  )
 }
 
 /** "GMT-03:00" and -180 for America/Sao_Paulo, as of `now` (offsets move with daylight saving). */
