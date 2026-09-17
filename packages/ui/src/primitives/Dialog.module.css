@@ -2,8 +2,15 @@
   z-index: 50;
 }
 
+/* Capped and scrollable at every width, not just as a mobile sheet. A dialog
+   taller than the window used to overflow it with nowhere to scroll -- the
+   backdrop locks the page behind it -- so its action row was unreachable. The
+   feed's definition dialog is 829px tall, which is more than a 1280x720 laptop
+   window. */
 .panel {
   background: var(--color-bg);
+  max-height: 88vh;
+  overflow-y: auto;
 }
 
 .title {
