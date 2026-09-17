@@ -56,8 +56,13 @@ export const jobSchema = z.object({
   postedAt: z.string().datetime(),
   source: jobSourceSchema,
   eligibility: eligibilitySchema,
+  /** What the signed-in reader did with it. Absent where there is no reader, as in fixtures. */
+  interaction: z.lazy(() => jobInteractionSchema).nullable().optional(),
 })
 export type Job = z.infer<typeof jobSchema>
 
 export const jobInteractionSchema = z.enum(['saved', 'applied', 'dismissed'])
 export type JobInteraction = z.infer<typeof jobInteractionSchema>
+
+export const setInteractionRequestSchema = z.object({ status: jobInteractionSchema })
+export type SetInteractionRequest = z.infer<typeof setInteractionRequestSchema>

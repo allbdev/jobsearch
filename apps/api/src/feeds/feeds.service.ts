@@ -3,7 +3,7 @@ import type { Feed as FeedRow, Prisma, PrismaClient, User } from '@jobsearch/db'
 import type { Feed, FeedDefinition, FeedResult, FeedSort } from '@jobsearch/shared'
 import { feedDefinitionInputSchema, feedResultSchema, feedSchema } from '@jobsearch/shared'
 import { PRISMA } from '../prisma/prisma.module'
-import { feedOrderBy, feedWhere } from './feed-query'
+import { feedOrderBy, feedWhere, notDismissedBy } from './feed-query'
 import { toJob } from './to-job'
 
 type ValidDefinition = ReturnType<typeof feedDefinitionInputSchema.parse>
@@ -25,7 +25,7 @@ export class FeedsService {
       this.residenceOf(user),
     ])
     const counts = await Promise.all(
-      feeds.map((feed) => this.prisma.job.count({ where: feedWhere(feed, residence, now) })),
+      feeds.map((feed) => this.prisma.job.count({ where: { AND: [feedWhere(feed, residence, now), notDismissedBy(user.id)] } })),
     )
     return feeds.map((feed, index) =>
       feedSchema.parse({ id: feed.id, definition: toDefinition(feed), matchedCount: counts[index] }),
@@ -60,9 +60,10 @@ export class FeedsService {
     if (!feed) throw new NotFoundException(`feed ${id} not found`)
     const residence = await this.residenceOf(user)
 
-    const where = feedWhere(feed, residence, now)
+    const matching = feedWhere(feed, residence, now)
+    const where: Prisma.JobWhereInput = { AND: [matching, notDismissedBy(user.id)] }
 
-    const [rows, matched, confirmed, needsCheck, evaluated, index] = await Promise.all([
+    const [rows, matched, confirmed, needsCheck, evaluated, index, dismissed] = await Promise.all([
       this.prisma.job.findMany({
         where,
         orderBy: feedOrderBy(sort),
@@ -72,6 +73,7 @@ export class FeedsService {
           eligibility: true,
           // The first source that found it, for the attribution chip.
           rawPostings: { select: { source: { select: { slug: true } } }, orderBy: { fetchedAt: 'asc' }, take: 1 },
+          interactions: { where: { userId: user.id }, select: { status: true } },
         },
       }),
       this.prisma.job.count({ where }),
@@ -79,6 +81,8 @@ export class FeedsService {
       this.prisma.job.count({ where: { AND: [where, { eligibility: { is: { verdict: 'needs_check' } } }] } }),
       this.prisma.job.count({ where: { expiresAt: null, eligibility: { isNot: null } } }),
       this.prisma.rawPosting.aggregate({ _max: { fetchedAt: true } }),
+      // Jobs this feed would show but the reader dismissed: the footer's "dismissed by you".
+      this.prisma.job.count({ where: { AND: [matching, { interactions: { some: { userId: user.id, status: 'dismissed' } } }] } }),
     ])
 
     // Parsed on the way out, so a drift between the database and the contract
@@ -94,15 +98,16 @@ export class FeedsService {
         evaluated,
         confirmed,
         needsCheck,
-        // No interaction model yet, so nothing can have been dismissed.
-        dismissedByUser: 0,
+        dismissedByUser: dismissed,
         indexUpdatedAt: (index._max.fetchedAt ?? now).toISOString(),
       },
     })
   }
 
   private async withCount(feed: FeedRow, user: User, now: Date): Promise<Feed> {
-    const matchedCount = await this.prisma.job.count({ where: feedWhere(feed, await this.residenceOf(user), now) })
+    const matchedCount = await this.prisma.job.count({
+      where: { AND: [feedWhere(feed, await this.residenceOf(user), now), notDismissedBy(user.id)] },
+    })
     return feedSchema.parse({ id: feed.id, definition: toDefinition(feed), matchedCount })
   }
 
