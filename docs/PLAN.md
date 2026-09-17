@@ -482,6 +482,8 @@ does not exist yet. Swapping to the live API changes that one file.
 
 **Email** — transactional provider (Resend/Postmark). Digest is a scheduled worker job, per-user timezone. Must have one-click unsubscribe and a cadence setting.
 
+**Scheduling** — one entry point: `pnpm --filter @jobsearch/worker worker cycle`. It fetches every source whose poll interval is due, then normalizes, classifies with the rules, and verifies a capped slice of links. Ordering these wrong is silent — classify before normalize simply finds nothing — so a scheduler gets one command rather than five and the knowledge of which follows which. **The paid pass is deliberately not in it**: `classify --llm` stays a separate command, because a cycle that quietly spends money every hour is how a crawl becomes a bill (COSTS.md).
+
 **Observability** — structured logs, per-source fetch success rate, classification cost per day, LLM verdict distribution, link-rot rate. Source health is the metric that tells us the index is quietly rotting.
 
 **Deployment** — boring on purpose. Managed Postgres (Neon/Supabase), API + worker on Fly.io/Railway/Render, web on Vercel or alongside.
