@@ -47,14 +47,6 @@ export function FeedScreen({
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
   const [dialog, setDialog] = useState<'new' | 'edit' | null>(null)
-  // A successful save or delete redirects, and this component survives the
-  // navigation -- so the dialog would stay open over the feed it just saved.
-  // A new result from the server is the signal that the action went through.
-  const [resultShown, setResultShown] = useState(result)
-  if (result !== resultShown) {
-    setResultShown(result)
-    setDialog(null)
-  }
   const t = useTranslations('nav')
   const f = useTranslations('feed')
   const locale = useLocale()

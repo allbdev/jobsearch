@@ -1,9 +1,7 @@
 'use server'
 
-import { getLocale } from 'next-intl/server'
 import type { FeedDefinition } from '@jobsearch/shared'
 import { feedDefinitionInputSchema } from '@jobsearch/shared'
-import { redirect } from '@/i18n/navigation'
 import * as api from '@/server/api-client'
 import { ApiError } from '@/server/api-client'
 
@@ -11,13 +9,21 @@ import { ApiError } from '@/server/api-client'
 export type FeedError = 'invalid' | 'feedLimit' | 'notFound' | 'unavailable'
 
 export interface FeedActionFailure {
+  ok: false
   error: FeedError
   /** Top-level field names the shared schema refused, for highlighting. */
   fields?: string[]
 }
 
 /**
- * Creates a feed (`feedId` null) or replaces one, then opens it.
+ * Success is returned, not redirected to. The dialog that called the action is
+ * the one that knows it should close, and a redirect would leave it to infer
+ * that from the page re-rendering underneath it.
+ */
+export type FeedActionResult = { ok: true; href: string } | FeedActionFailure
+
+/**
+ * Creates a feed (`feedId` null) or replaces one, and says where it lives.
  *
  * Validated here with the same schema the API applies (#59), so a bad draft
  * never makes the round trip -- and the API validates again, because this is
@@ -27,31 +33,27 @@ export async function saveFeedAction(
   feedId: string | null,
   // The loose read shape: this is exactly the input the strict schema is for.
   definition: FeedDefinition,
-): Promise<FeedActionFailure> {
+): Promise<FeedActionResult> {
   const parsed = feedDefinitionInputSchema.safeParse(definition)
   if (!parsed.success) {
-    return { error: 'invalid', fields: [...new Set(parsed.error.issues.map((issue) => String(issue.path[0])))] }
+    return { ok: false, error: 'invalid', fields: [...new Set(parsed.error.issues.map((issue) => String(issue.path[0])))] }
   }
 
-  let saved: Awaited<ReturnType<typeof api.saveFeed>>
   try {
-    saved = await api.saveFeed(feedId, parsed.data)
+    const saved = await api.saveFeed(feedId, parsed.data)
+    return { ok: true, href: `/feed?feed=${encodeURIComponent(saved.id)}` }
   } catch (error) {
-    return { error: toFeedError(error) }
+    return { ok: false, error: toFeedError(error) }
   }
-  // Outside the try: `redirect` works by throwing.
-  redirect({ href: `/feed?feed=${encodeURIComponent(saved.id)}`, locale: await getLocale() })
-  return { error: 'unavailable' }
 }
 
-export async function deleteFeedAction(feedId: string): Promise<FeedActionFailure> {
+export async function deleteFeedAction(feedId: string): Promise<FeedActionResult> {
   try {
     await api.deleteFeed(feedId)
+    return { ok: true, href: '/feed' }
   } catch (error) {
-    return { error: toFeedError(error) }
+    return { ok: false, error: toFeedError(error) }
   }
-  redirect({ href: '/feed', locale: await getLocale() })
-  return { error: 'unavailable' }
 }
 
 function toFeedError(error: unknown): FeedError {

@@ -6,7 +6,8 @@ import type { ContractModel, FeedDefinition } from '@jobsearch/shared'
 import { contractOptions } from '@jobsearch/shared'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import { useRegionOptions } from '../shared/useRegionOptions'
-import { deleteFeedAction, saveFeedAction, type FeedActionFailure } from './actions'
+import { useRouter } from '@/i18n/navigation'
+import { deleteFeedAction, saveFeedAction, type FeedActionFailure, type FeedActionResult } from './actions'
 import {
   Button,
   Checkbox,
@@ -54,6 +55,7 @@ export function FeedDefinitionDialog({
   const [draft, setDraft] = useState(definition)
   const [failure, setFailure] = useState<FeedActionFailure | null>(null)
   const [pending, startTransition] = useTransition()
+  const router = useRouter()
   const e = useTranslations('feed.errors')
   const f = useTranslations('feed')
   const familyOptions = useJobFamilyOptions()
@@ -65,9 +67,15 @@ export function FeedDefinitionDialog({
   const update = <K extends keyof FeedDefinition>(key: K, value: FeedDefinition[K]) =>
     setDraft((current) => ({ ...current, [key]: value }))
 
-  // A successful action redirects to the saved feed, so only a failure returns.
-  const run = (action: () => Promise<FeedActionFailure>) =>
-    startTransition(async () => setFailure(await action()))
+  // On success the dialog closes itself and opens the saved feed; on failure it
+  // stays open with the reason.
+  const run = (action: () => Promise<FeedActionResult>) =>
+    startTransition(async () => {
+      const result = await action()
+      if (!result.ok) return setFailure(result)
+      onClose()
+      router.push(result.href)
+    })
   const save = () => run(() => saveFeedAction(feedId, { ...draft, minCompensation: parseAmount(amount) }))
   // Deleting is permanent and one click away from Save, so it asks first.
   const remove = () => {
