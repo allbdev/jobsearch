@@ -206,7 +206,8 @@ model Job {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  eligibility JobEligibility?
+  eligibility  JobEligibility?
+  interactions JobInteraction[]
 
   @@index([postedAt])
   @@index([jobFamily])
@@ -325,6 +326,7 @@ model User {
   sessions      Session[]
   oauthAccounts OAuthAccount[]
   authTokens    AuthToken[]
+  interactions  JobInteraction[]
 
   @@map("users")
 }
@@ -493,4 +495,40 @@ model AuthToken {
 
   @@index([userId, purpose])
   @@map("auth_tokens")
+}
+
+// ─── What a user did with a job ──────────────────────────────────────────────
+
+/// Values mirror `jobInteractionSchema` in @jobsearch/shared.
+enum JobInteractionStatus {
+  saved
+  applied
+  dismissed
+}
+
+/// A user's standing with one job: saved it, applied to it, or dismissed it.
+///
+/// One row per user and job, holding the latest status, rather than an event
+/// log. The history screen shows each job under exactly one of the three tabs,
+/// and a job saved and then applied to belongs under "applied", not both.
+/// `updatedAt` is when it reached that status, which is the date the history
+/// shows.
+///
+/// A job that expires keeps its rows: someone's history of what they applied to
+/// should not shrink because the posting closed.
+model JobInteraction {
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  status JobInteractionStatus
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, jobId])
+  /// The history screen: one user's jobs in one status, newest first.
+  @@index([userId, status, updatedAt])
+  @@map("job_interactions")
 }
