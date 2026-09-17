@@ -18,7 +18,7 @@ export function NoFeeds() {
         { href: '/feed', label: t('feed'), current: true },
         { href: '/profile', label: t('profile') },
       ]}
-      navAside={<SignOutButton action="/api/sign-out" />}
+      navAside={<SignOutButton action="/api/sign-out" label={t('signOut')} />}
       linkComponent={Link}
     >
       <Blueprint className={styles.empty}>
