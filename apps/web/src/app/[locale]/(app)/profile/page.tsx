@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getLocale } from 'next-intl/server'
 import { type Locale } from '@/i18n/routing'
-import { getHistory, getMe, getProfile } from '@/server/api-client'
+import { getAccount, getHistory, getMe, getProfile } from '@/server/api-client'
 import { ProfileScreen } from '@/features/profile/ProfileScreen'
 import { firstProfile } from '@/features/profile/first-profile'
 import { profileOptions } from '@/features/profile/profile-options'
@@ -20,13 +20,14 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const locale = (await getLocale()) as Locale
-  const [profile, history] = await Promise.all([getProfile(), getHistory()])
+  const [profile, history, account] = await Promise.all([getProfile(), getHistory(), getAccount()])
   return (
     <ProfileScreen
-      profile={profile ?? { ...firstProfile({ locale }), email: (await getMe()).email }}
+      profile={profile ?? { ...firstProfile({ locale }), email: account.email }}
       isNew={profile === null}
       history={history}
       options={profileOptions(locale)}
+      account={account}
     />
   )
 }

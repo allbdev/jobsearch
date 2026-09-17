@@ -18,7 +18,9 @@ import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
 
 import type {
+  Account,
   ChangePasswordRequest,
+  DeleteAccountRequest,
   JobInteraction,
   OAuthCallbackRequest,
   OAuthProvider,
@@ -27,7 +29,13 @@ import type {
   ResetPasswordRequest,
   SessionUser,
 } from '@jobsearch/shared'
-import { historyEntrySchema, oauthStartResponseSchema, profileSchema, sessionUserSchema } from '@jobsearch/shared'
+import {
+  accountSchema,
+  historyEntrySchema,
+  oauthStartResponseSchema,
+  profileSchema,
+  sessionUserSchema,
+} from '@jobsearch/shared'
 
 /**
  * THE ONLY PLACE THE WEB APP GETS DATA.
@@ -188,4 +196,17 @@ export function completeOAuth(provider: OAuthProvider, exchange: OAuthCallbackRe
 
 export function changePassword(change: ChangePasswordRequest): Promise<void> {
   return request('/auth/password/change', z.undefined(), { method: 'POST', body: change })
+}
+
+/** How this person can sign in, and what is linked to the account. */
+export function getAccount(): Promise<Account> {
+  return request('/account', accountSchema)
+}
+
+export function unlinkConnection(provider: OAuthProvider): Promise<void> {
+  return request(`/account/connections/${provider}`, z.undefined(), { method: 'DELETE' })
+}
+
+export function deleteAccount(confirmation: DeleteAccountRequest): Promise<void> {
+  return request('/account', z.undefined(), { method: 'DELETE', body: confirmation })
 }

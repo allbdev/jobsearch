@@ -171,6 +171,29 @@
       "required": "Obrigatório.",
       "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
       "unavailable": "Não foi possível alterar a senha agora. Tente novamente em instantes."
+    },
+    "account": {
+      "connectionsTitle": "Contas conectadas",
+      "connectionsBody": "Entre com elas em vez de uma senha.",
+      "linkedOn": "conectada em {date}",
+      "connect": "Conectar",
+      "unlink": "Desconectar",
+      "unlinked": "Desconectada.",
+      "last_way_in": "Esta é a única forma de entrar nesta conta. Defina uma senha ou conecte outro provedor antes.",
+      "not_linked": "Essa conta não está conectada.",
+      "noPasswordNote": "Esta conta não tem senha, então ao menos uma conta conectada precisa permanecer.",
+      "deleteTitle": "Excluir conta",
+      "deleteBody": "Isso remove seu perfil, seus feeds e as vagas salvas, aplicadas e dispensadas. Não é possível desfazer.",
+      "deletePassword": "Sua senha",
+      "deleteTypeWord": "Digite {word} para confirmar",
+      "deleteTypeHint": "Esta conta entra com Google ou GitHub, então não há senha para pedir.",
+      "deleteConfirm": "Excluir minha conta",
+      "cancel": "Cancelar",
+      "close": "Fechar",
+      "wrong_password": "Essa não é a sua senha.",
+      "confirmation_required": "Digite a palavra exatamente como mostrada.",
+      "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "unavailable": "Não funcionou. Tente novamente em instantes."
     }
   },
   "auth": {
