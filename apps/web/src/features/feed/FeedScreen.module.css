@@ -256,3 +256,15 @@
   margin: var(--space-8) auto;
   padding: var(--space-6);
 }
+
+/* Shown until a country is saved: the feed is unfiltered until then. */
+.residenceNotice {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+  border-left: 2px solid var(--color-accent);
+}
+
+.residenceText {
+  margin: 0;
+  font-size: 13px;
+}

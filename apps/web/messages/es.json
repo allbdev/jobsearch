@@ -84,7 +84,9 @@
       "notFound": "Este feed ya no existe.",
       "unavailable": "No se pudo guardar el feed ahora. Inténtalo de nuevo en un momento."
     },
-    "confirmDelete": "¿Eliminar “{name}”? No se puede deshacer."
+    "confirmDelete": "¿Eliminar “{name}”? No se puede deshacer.",
+    "noResidenceTitle": "Este feed todavía no filtra por dónde vives, así que puede incluir ofertas a las que no puedes postularte.",
+    "noResidenceAction": "Indica tu país"
   },
   "profile": {
     "nav": {

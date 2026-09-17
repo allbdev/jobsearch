@@ -84,7 +84,9 @@
       "notFound": "This feed no longer exists.",
       "unavailable": "The feed could not be saved right now. Try again shortly."
     },
-    "confirmDelete": "Delete “{name}”? This cannot be undone."
+    "confirmDelete": "Delete “{name}”? This cannot be undone.",
+    "noResidenceTitle": "This feed is not filtered by where you live yet, so it may list jobs you cannot take.",
+    "noResidenceAction": "Tell us your country"
   },
   "profile": {
     "nav": {
