@@ -31,7 +31,7 @@ import { toRegions } from './regions'
  * behaviour were indistinguishable from correct ones and could not be selected
  * for replay.
  */
-export const RULES_CLASSIFIER_VERSION = 'rules-3'
+export const RULES_CLASSIFIER_VERSION = 'rules-4'
 
 export type Verdict = 'confirmed' | 'needs_check' | 'rejected'
 export type ContractModel =
@@ -210,8 +210,34 @@ function detectContractModel(text: string): ContractModel {
  * eligible for it; a Brazilian one is not, and the intersection decides that
  * later rather than here.
  */
-const REMOTE_WITH_REGION = /^\s*remote\b\s*[,–—-]\s*(.+)$/i
+const REMOTE_WORD = /\b(?:remote|home[\s-]?based|distributed|anywhere)\b/i
+const REMOTE_WORDS = new RegExp(REMOTE_WORD, 'gi')
 const BARE_REMOTE = /^\s*(remote|distributed|remote friendly|flexible)\s*$/i
+
+/**
+ * The place a remote posting is bound to, or null if it names none.
+ *
+ * Boards write this every which way: "Remote, United States", "Remote-Japan",
+ * "Germany Remote", "Home based - EMEA". Matching only the first shape left the
+ * rest to fall through to the description, where one employer's "...while we
+ * hiring globally" boilerplate confirmed them as Worldwide -- a Chile-only
+ * posting shown to a Brazilian as open to anyone.
+ *
+ * Null for anything that names no place -- a bare "Remote", "Remote friendly"
+ * -- which is exactly the case the open-scope rules exist for.
+ */
+function remoteScope(location: string): string | null {
+  if (BARE_REMOTE.test(location) || !REMOTE_WORD.test(location)) return null
+  // Segments are kept: "Remote, Canada; Remote, US" names two regions, and
+  // flattening the punctuation would leave `toRegions` one run-on string.
+  const scope = location
+    .replace(REMOTE_WORDS, ' ')
+    .split(/[,;]/)
+    .map((part) => part.replace(/^[\s–—-]+|[\s–—-]+$/g, '').replace(/\s+/g, ' '))
+    .filter(Boolean)
+    .join(', ')
+  return scope || null
+}
 
 export function classifyByRules(input: EligibilityInput): RulesVerdict {
   const location = input.locationRaw?.trim() ?? ''
@@ -271,9 +297,8 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
   //    Where the two disagree, the location is the narrower and better-sourced
   //    claim: it is the field the employer fills in per req, while the
   //    description is company copy repeated across all of them.
-  const scoped = location.match(REMOTE_WITH_REGION)
-  if (scoped?.[1]) {
-    const scope = scoped[1].trim()
+  const scope = remoteScope(location)
+  if (scope) {
     const regions = toRegions(scope)
 
     // A scope we cannot express is not a confirmation. This used to store the
@@ -297,7 +322,8 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
   // 4. An explicitly stated open scope, for postings the location leaves open
   //    -- a bare "Remote", or no location at all.
   const open = firstMatch(OPEN_RULES, haystack)
-  if (open) {
+  const namesAPlace = Boolean(location) && !BARE_REMOTE.test(location) && !/remote/i.test(location)
+  if (open && !namesAPlace) {
     return {
       verdict: 'confirmed',
       regionLabel: open.rule.regionLabel,
@@ -310,7 +336,14 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
   }
 
   // 5. A named place that is not remote at all.
-  if (location && !BARE_REMOTE.test(location) && !/remote/i.test(location)) {
+  if (namesAPlace) {
+    // The description claims an open scope and the location names a place:
+    // "EMEA" with "...we hiring globally" in the copy. Neither half can be
+    // taken at face value -- the location never says remote, and the sentence
+    // is the same boilerplate on every req -- so this is the honest unknown,
+    // not a green badge for a posting that may be an office in one country.
+    if (open) return unknown('needs_check', location, toRegions(location))
+
     // ...unless it names places in more than one region. One office is a
     // rejection; ten countries is a hiring model, and the two look identical
     // to a rule that only asks "does this say remote".
