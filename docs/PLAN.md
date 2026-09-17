@@ -486,7 +486,7 @@ does not exist yet. Swapping to the live API changes that one file.
 
 **Observability** — structured logs, per-source fetch success rate, classification cost per day, LLM verdict distribution, link-rot rate. Source health is the metric that tells us the index is quietly rotting.
 
-**Deployment** — boring on purpose. Managed Postgres (Neon/Supabase), API + worker on Fly.io/Railway/Render, web on Vercel or alongside.
+**Deployment** — boring on purpose: **Neon** (Postgres), **Fly.io** (API + worker), **Vercel** (web). The runbook, the env vars each service needs, and the arithmetic behind the schedule are in [`docs/DEPLOY.md`](DEPLOY.md) — the short version is that Neon bills compute time and sleeps after five idle minutes, so nothing runs more often than hourly.
 
 **Legal/ToS** — respect `robots.txt`, identify our user-agent, rate-limit per host, honor source ToS. No LinkedIn/Indeed scraping (§3).
 
