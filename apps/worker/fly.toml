@@ -1,0 +1,20 @@
+# The worker. No service and no open port: it exists to be started by the
+# scheduler, run one command, and exit.
+#
+#   fly deploy --ha=false                     # build and push the image
+#   fly machine run . --schedule hourly \
+#     --command "pnpm --filter @jobsearch/worker worker cycle"
+#
+# See docs/DEPLOY.md for why one hourly machine runs both the crawl and the
+# digest, and what that costs on a database that sleeps when idle.
+app = "jobsearch-worker"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+  ignorefile = "../../.dockerignore"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  # Link verification runs 3,000 checks in a batch; 512mb is comfortable.
+  memory = "512mb"
