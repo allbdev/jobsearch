@@ -9,6 +9,7 @@ import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
 import { runCycle } from './cycle'
+import { runDigest } from './digest'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
 import { assignJobFamilies, classifyFamiliesByLlm } from './job-families'
 import { verifyJobs } from './verify'
@@ -144,6 +145,19 @@ async function main() {
       break
     }
 
+    case 'digest': {
+      const started = Date.now()
+      // `--dry-run` prints the email instead of sending it, and records nothing.
+      const emailFlag = process.argv.find((arg) => arg.startsWith('--email='))
+      const result = await runDigest({
+        dryRun: process.argv.includes('--dry-run'),
+        email: emailFlag ? emailFlag.split('=')[1] : undefined,
+      })
+      log('digest complete', { ...result, ms: Date.now() - started })
+      if (result.failed > 0) process.exitCode = 1
+      break
+    }
+
     case 'health': {
       const rows = await sourceHealth()
       console.log(formatHealth(rows))
@@ -155,7 +169,7 @@ async function main() {
 
     default:
       console.error(
-        'usage: worker <seed | cycle [--force] [--verify-limit=N] | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | verify [--limit=N] | health>',
+        'usage: worker <seed | cycle [--force] [--verify-limit=N] | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | verify [--limit=N] | digest [--dry-run] [--email=ADDRESS] | health>',
       )
       process.exitCode = 1
   }
