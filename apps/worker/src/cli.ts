@@ -8,6 +8,7 @@ import { seed } from './seed'
 import { formatHealth, isUnhealthy, sourceHealth } from './health'
 import { normalizePostings } from './normalize'
 import { classifyJobs } from './classify'
+import { runCycle } from './cycle'
 import { classifyByLlm, estimateCostUsd } from './classify-llm'
 import { assignJobFamilies, classifyFamiliesByLlm } from './job-families'
 import { verifyJobs } from './verify'
@@ -119,6 +120,30 @@ async function main() {
       break
     }
 
+    case 'cycle': {
+      const started = Date.now()
+      // `--force` ignores each source's poll interval, for a first run or a
+      // manual catch-up.
+      const verifyFlag = process.argv.find((arg) => arg.startsWith('--verify-limit='))
+      const result = await runCycle({
+        force: process.argv.includes('--force'),
+        verifyLimit: verifyFlag ? Number(verifyFlag.split('=')[1]) : undefined,
+      })
+      log('cycle complete', {
+        fetched: result.sources.fetched.join(',') || 'none',
+        skipped: result.sources.skipped.join(',') || 'none',
+        failed: result.sources.failed.join(',') || 'none',
+        normalized: result.normalized,
+        classified: result.classified,
+        verified: result.verified,
+        expired: result.expired,
+        ms: Date.now() - started,
+      })
+      // A scheduler should notice a board that stopped answering.
+      if (result.sources.failed.length > 0) process.exitCode = 1
+      break
+    }
+
     case 'health': {
       const rows = await sourceHealth()
       console.log(formatHealth(rows))
@@ -129,7 +154,9 @@ async function main() {
     }
 
     default:
-      console.error('usage: worker <seed | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | verify [--limit=N] | health>')
+      console.error(
+        'usage: worker <seed | cycle [--force] [--verify-limit=N] | fetch <slug> | normalize [slug] [--all] | classify [--all] [--llm] [--limit=N] | families [--llm] [--limit=N] | verify [--limit=N] | health>',
+      )
       process.exitCode = 1
   }
 }
