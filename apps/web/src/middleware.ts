@@ -28,6 +28,9 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except API routes, Next internals and files with an extension.
-  matcher: '/((?!api|_next|_vercel|.*\\..*).*)',
+  // Everything except API routes, the OAuth callback, Next internals and files
+  // with an extension. The callback is registered with Google and GitHub as
+  // exactly `/auth/callback/<provider>`; a locale redirect would add a hop
+  // between the provider and the code exchange for no benefit.
+  matcher: '/((?!api|auth/callback|_next|_vercel|.*\\..*).*)',
 }

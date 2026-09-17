@@ -16,8 +16,14 @@ import { z } from 'zod'
 import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
 
-import type { ResetPasswordRequest, SessionUser } from '@jobsearch/shared'
-import { sessionUserSchema } from '@jobsearch/shared'
+import type {
+  OAuthCallbackRequest,
+  OAuthProvider,
+  OAuthStartResponse,
+  ResetPasswordRequest,
+  SessionUser,
+} from '@jobsearch/shared'
+import { oauthStartResponseSchema, sessionUserSchema } from '@jobsearch/shared'
 
 /**
  * THE ONLY PLACE THE WEB APP GETS DATA.
@@ -134,4 +140,12 @@ export function resetPassword(input: ResetPasswordRequest): Promise<SessionRespo
 
 export function verifyEmail(token: string): Promise<SessionUser> {
   return request('/auth/verify-email', sessionUserSchema, { method: 'POST', body: { token } })
+}
+
+export function startOAuth(provider: OAuthProvider): Promise<OAuthStartResponse> {
+  return request(`/auth/oauth/${provider}/start`, oauthStartResponseSchema)
+}
+
+export function completeOAuth(provider: OAuthProvider, exchange: OAuthCallbackRequest): Promise<SessionResponse> {
+  return request(`/auth/oauth/${provider}/callback`, sessionResponseSchema, { method: 'POST', body: exchange })
 }
