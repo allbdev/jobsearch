@@ -2,8 +2,10 @@
 
 import { getLocale } from 'next-intl/server'
 import type { z } from 'zod'
-import { loginRequestSchema, registerRequestSchema } from '@jobsearch/shared'
+import { loginRequestSchema, profileInputSchema, registerRequestSchema } from '@jobsearch/shared'
+import { firstProfile } from '@/features/profile/first-profile'
 import { redirect } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import * as api from '@/server/api-client'
 import { ApiError } from '@/server/api-client'
 import { setSession } from '@/server/session'
@@ -17,34 +19,67 @@ export type AuthError =
   | 'emailInvalid'
   | 'passwordTooShort'
   | 'required'
+  | 'residenceRequired'
 
 export interface AuthFormState {
   error?: AuthError
-  fields?: Partial<Record<'email' | 'password' | 'name', AuthError>>
+  fields?: Partial<Record<'email' | 'password' | 'name' | 'residence', AuthError>>
   /** Echoed back: React resets a form after its action runs, and retyping an email is a bad reason to give up. */
-  values?: { email: string; name: string }
+  values?: { email: string; name: string; residence?: string }
 }
 
 export async function signInAction(_: AuthFormState, form: FormData): Promise<AuthFormState> {
   return authenticate(form, loginRequestSchema, api.signIn)
 }
 
+/**
+ * Creates the account, then saves the profile the sign-up form collected:
+ * residence (required -- it decides which jobs this person can take), the
+ * browser's time zone, the page's language and the digest opt-in.
+ *
+ * If the account is created but the profile is not, the person is signed in
+ * and sent to finish it on the profile screen rather than told registration
+ * failed -- it did not.
+ */
 export async function registerAction(_: AuthFormState, form: FormData): Promise<AuthFormState> {
-  // Residence and the digest opt-in are on the form but not sent: the API has
-  // nowhere to keep them until profiles can be created.
-  return authenticate(form, registerRequestSchema, api.register)
+  const residence = String(form.get('residence') ?? '')
+  if (!/^[A-Z]{2}$/.test(residence)) {
+    // Every problem at once, not residence first and the rest on the next try.
+    const account = registerRequestSchema.safeParse(accountInput(form))
+    return {
+      fields: { ...(account.success ? {} : fieldErrors(account.error)), residence: 'residenceRequired' },
+      values: echo(form),
+    }
+  }
+
+  return authenticate(form, registerRequestSchema, api.register, async () => {
+    const answers = {
+      locale: (await getLocale()) as Locale,
+      residenceCountry: residence,
+      digest: form.get('digest') === 'on',
+    }
+    // The browser's time zone, unless this server does not recognise it -- then UTC,
+    // rather than losing the residence along with it.
+    const withZone = profileInputSchema.safeParse(firstProfile({ ...answers, timezone: String(form.get('timezone') ?? '') }))
+    const profile = withZone.success ? withZone.data : profileInputSchema.parse(firstProfile(answers))
+    try {
+      await api.saveProfile(profile)
+      return '/feed'
+    } catch {
+      return '/profile'
+    }
+  })
 }
 
 async function authenticate<S extends z.ZodTypeAny>(
   form: FormData,
   schema: S,
   call: (input: z.output<S>) => Promise<unknown>,
+  /** Runs once signed in; returns where to go next. */
+  afterSignIn: () => Promise<string> = async () => '/feed',
 ): Promise<AuthFormState> {
-  const text = (key: string) => String(form.get(key) ?? '')
-  const values = { email: text('email'), name: text('name') }
-  const input = { email: values.email, password: text('password'), name: values.name.trim() || undefined }
-
-  const parsed = schema.safeParse(input)
+  const values = echo(form)
+  const parsed = schema.safeParse(accountInput(form))
   if (!parsed.success) return { fields: fieldErrors(parsed.error), values }
 
   let session: Awaited<ReturnType<typeof api.signIn>>
@@ -55,9 +90,21 @@ async function authenticate<S extends z.ZodTypeAny>(
   }
 
   await setSession(session)
+  const next = await afterSignIn()
   // Outside the try: `redirect` works by throwing, and a catch would swallow it.
-  redirect({ href: '/feed', locale: await getLocale() })
+  redirect({ href: next, locale: await getLocale() })
   return {}
+}
+
+const text = (form: FormData, key: string) => String(form.get(key) ?? '')
+
+function accountInput(form: FormData) {
+  return { email: text(form, 'email'), password: text(form, 'password'), name: text(form, 'name').trim() || undefined }
+}
+
+/** What goes back into the form after a refusal. Never the password. */
+function echo(form: FormData): NonNullable<AuthFormState['values']> {
+  return { email: text(form, 'email'), name: text(form, 'name'), residence: text(form, 'residence') }
 }
 
 function fieldErrors(error: z.ZodError): AuthFormState['fields'] {

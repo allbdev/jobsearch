@@ -190,7 +190,8 @@
       "unavailable": "No es posible iniciar sesión ahora. Inténtalo de nuevo en un momento.",
       "emailInvalid": "Introduce un correo válido.",
       "passwordTooShort": "Usa al menos 10 caracteres.",
-      "required": "Obligatorio."
+      "required": "Obligatorio.",
+      "residenceRequired": "Elige dónde vives: decide a qué ofertas puedes postularte."
     },
     "links": {
       "forgotTitle": "Restablecer tu contraseña",
@@ -219,7 +220,8 @@
       "email_unverified": "Esa cuenta no tiene un correo verificado. Verifícalo con el proveedor o inicia sesión con correo.",
       "unavailable": "Esa opción de inicio de sesión no está disponible ahora.",
       "tooMany": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo."
-    }
+    },
+    "chooseCountry": "Elige un país…"
   },
   "familyGroups": {
     "engineering": "Ingeniería",

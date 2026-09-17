@@ -190,7 +190,8 @@
       "unavailable": "Sign-in is unavailable right now. Try again shortly.",
       "emailInvalid": "Enter a valid email address.",
       "passwordTooShort": "Use at least 10 characters.",
-      "required": "Required."
+      "required": "Required.",
+      "residenceRequired": "Choose where you live: it decides which jobs you can take."
     },
     "links": {
       "forgotTitle": "Reset your password",
@@ -219,7 +220,8 @@
       "email_unverified": "That account has no verified email address. Verify it with the provider, or sign in with email.",
       "unavailable": "That sign-in option is not available right now.",
       "tooMany": "Too many attempts. Wait a few minutes and try again."
-    }
+    },
+    "chooseCountry": "Choose a country…"
   },
   "familyGroups": {
     "engineering": "Engineering",

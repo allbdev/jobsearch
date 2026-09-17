@@ -190,7 +190,8 @@
       "unavailable": "Não é possível entrar agora. Tente novamente em instantes.",
       "emailInvalid": "Informe um e-mail válido.",
       "passwordTooShort": "Use pelo menos 10 caracteres.",
-      "required": "Obrigatório."
+      "required": "Obrigatório.",
+      "residenceRequired": "Escolha onde você mora: isso decide a quais vagas você pode se candidatar."
     },
     "links": {
       "forgotTitle": "Redefinir sua senha",
@@ -219,7 +220,8 @@
       "email_unverified": "Essa conta não tem um e-mail verificado. Verifique-o no provedor ou entre com e-mail.",
       "unavailable": "Essa opção de login não está disponível agora.",
       "tooMany": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
-    }
+    },
+    "chooseCountry": "Escolha um país…"
   },
   "familyGroups": {
     "engineering": "Engenharia",
