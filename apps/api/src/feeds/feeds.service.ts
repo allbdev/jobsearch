@@ -53,7 +53,14 @@ export class FeedsService {
     if (count === 0) throw new NotFoundException(`feed ${id} not found`)
   }
 
-  async result(id: string, user: User, sort: FeedSort, limit: number, now = new Date()): Promise<FeedResult> {
+  async result(
+    id: string,
+    user: User,
+    sort: FeedSort,
+    limit: number,
+    offset = 0,
+    now = new Date(),
+  ): Promise<FeedResult> {
     // Someone else's feed is answered exactly like one that does not exist, so
     // an id reveals nothing about whether it is real.
     const feed = await this.prisma.feed.findFirst({ where: { id, userId: user.id } })
@@ -68,6 +75,7 @@ export class FeedsService {
         where,
         orderBy: feedOrderBy(sort),
         take: limit,
+        skip: offset,
         include: {
           company: true,
           eligibility: true,
