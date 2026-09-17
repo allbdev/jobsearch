@@ -1,6 +1,6 @@
 'use server'
 
-import type { JobInteraction } from '@jobsearch/shared'
+import type { FeedSort, Job, JobInteraction } from '@jobsearch/shared'
 import * as api from '@/server/api-client'
 
 /**
@@ -16,5 +16,19 @@ export async function setInteractionAction(jobId: string, status: JobInteraction
     return true
   } catch {
     return false
+  }
+}
+
+/**
+ * The next page of a feed, for "Load more".
+ *
+ * The server sorts and pages; asking it for more is the only way to get jobs
+ * the first page did not include.
+ */
+export async function loadMoreJobsAction(feedId: string, sort: FeedSort, offset: number): Promise<Job[] | null> {
+  try {
+    return (await api.getFeed(feedId, Date.now(), { sort, offset })).jobs
+  } catch {
+    return null
   }
 }

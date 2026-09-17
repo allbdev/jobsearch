@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import type {
   Feed,
   FeedDefinitionInput,
+  FeedSort,
   FeedResult,
   HistoryEntry,
   LoginRequest,
@@ -89,9 +90,17 @@ async function request<S extends z.ZodTypeAny>(
   return schema.parse(body)
 }
 
-export function getFeed(feedId: string, now: number): Promise<FeedResult> {
+export function getFeed(
+  feedId: string,
+  now: number,
+  page: { sort?: FeedSort; offset?: number } = {},
+): Promise<FeedResult> {
   if (!apiConfigured) return Promise.resolve(fixtures.feedResult(feedId, now))
-  return request(`/feeds/${encodeURIComponent(feedId)}`, feedResultSchema)
+  const query = new URLSearchParams()
+  if (page.sort) query.set('sort', page.sort)
+  if (page.offset) query.set('offset', String(page.offset))
+  const suffix = query.size > 0 ? `?${query}` : ''
+  return request(`/feeds/${encodeURIComponent(feedId)}${suffix}`, feedResultSchema)
 }
 
 export function listFeeds(now: number) {
