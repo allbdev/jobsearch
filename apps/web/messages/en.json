@@ -173,6 +173,27 @@
       "emailInvalid": "Enter a valid email address.",
       "passwordTooShort": "Use at least 10 characters.",
       "required": "Required."
+    },
+    "links": {
+      "forgotTitle": "Reset your password",
+      "forgotBody": "Enter the email you signed up with. If it has an account, we will send a link that works for one hour.",
+      "sendLink": "Send link",
+      "sent": "If an account exists for that address, a link is on its way. Check your inbox.",
+      "backToSignIn": "Back to sign in",
+      "resetTitle": "Choose a new password",
+      "resetBody": "At least 10 characters. Anywhere else you are signed in will be signed out.",
+      "newPassword": "New password",
+      "savePassword": "Save and sign in",
+      "verifyTitle": "Confirm your email",
+      "verifyBody": "Confirm that this address belongs to you.",
+      "confirm": "Confirm my email",
+      "verified": "Your email is confirmed.",
+      "goToFeed": "Go to your feed",
+      "invalid": "This link is not valid.",
+      "expired": "This link has expired.",
+      "used": "This link has already been used.",
+      "missingToken": "Open this page from the link in your email.",
+      "requestNew": "Request a new link"
     }
   },
   "familyGroups": {

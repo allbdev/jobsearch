@@ -214,3 +214,17 @@
 .alternatives {
   margin-top: var(--space-3);
 }
+
+/* The single panel of a page an emailed link opens. */
+.linkPanel {
+  /* Narrower than the viewport on phones, so the panel's corner marks stay visible. */
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 440px;
+  margin: var(--space-8) auto;
+  padding: var(--space-6);
+}
+
+.linkTitle {
+  font-size: 32px;
+  margin: 0;
+}
