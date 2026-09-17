@@ -33,6 +33,7 @@ export function toJob(row: JobWithRelations): Job {
       // wording for "not listed" belongs to the page's locale.
       label: row.salaryLabel ?? '',
     },
+    location: row.locationRaw,
     postedAt: row.postedAt.toISOString(),
     source: toSource(row.rawPostings[0]?.source.slug),
     interaction: row.interactions?.[0]?.status ?? null,
