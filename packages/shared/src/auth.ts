@@ -86,3 +86,10 @@ export const oauthCallbackRequestSchema = z.object({
   codeVerifier: z.string().min(1).max(200).nullable(),
 })
 export type OAuthCallbackRequest = z.infer<typeof oauthCallbackRequestSchema>
+
+export const changePasswordRequestSchema = z.object({
+  // No length floor, as on login: the current password was valid when it was set.
+  currentPassword: z.string().min(1).max(128),
+  newPassword: passwordSchema,
+})
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>

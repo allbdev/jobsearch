@@ -54,4 +54,9 @@ export class SessionsService {
   async revokeAll(userId: string): Promise<void> {
     await this.prisma.session.deleteMany({ where: { userId } })
   }
+
+  /** Every session but this one: a password change should not sign out the browser that made it. */
+  async revokeOthers(userId: string, keepToken: string): Promise<void> {
+    await this.prisma.session.deleteMany({ where: { userId, id: { not: hashToken(keepToken) } } })
+  }
 }

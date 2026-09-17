@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Inject, Injectable, Logger, Una
 import type { PrismaClient, User } from '@jobsearch/db'
 import { Prisma } from '@jobsearch/db'
 import type {
+  ChangePasswordRequest,
   LoginRequest,
   RegisterRequest,
   ResetPasswordRequest,
@@ -110,6 +111,30 @@ export class AuthService {
     // A reset is often *because* someone else is signed in.
     await this.sessions.revokeAll(user.id)
     return this.startSession(user)
+  }
+
+  /**
+   * Replaces the password of a signed-in user who can prove the current one,
+   * and signs out everywhere else.
+   *
+   * An account with no password -- created through Google or GitHub -- is
+   * refused with a reason rather than allowed to set one here: a stolen session
+   * could otherwise add a password and keep the account after the session is
+   * revoked. Setting a first password goes through the emailed reset link (#52),
+   * which proves control of the address.
+   */
+  async changePassword(user: User, sessionToken: string, request: ChangePasswordRequest): Promise<void> {
+    if (!user.passwordHash) {
+      throw new BadRequestException({ message: 'this account has no password yet', reason: 'no_password' })
+    }
+    if (!(await verifyPassword(user.passwordHash, request.currentPassword))) {
+      throw new BadRequestException({ message: 'the current password is not correct', reason: 'wrong_password' })
+    }
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await hashPassword(request.newPassword) },
+    })
+    await this.sessions.revokeOthers(user.id, sessionToken)
   }
 
   /**

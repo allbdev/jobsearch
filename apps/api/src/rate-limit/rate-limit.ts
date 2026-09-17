@@ -49,4 +49,6 @@ export const Limit = {
   forgotPassword: () => Throttle({ ip: { ttl: 15 * MINUTE, limit: 5 }, account: { ttl: HOUR, limit: 3 } }),
   /** Sends an email, to the caller's own inbox. */
   resendVerification: () => Throttle({ ip: { ttl: HOUR, limit: 5 } }),
+  /** Checks a password, so it is a guessing surface for whoever holds a session. */
+  changePassword: () => Throttle({ ip: { ttl: 15 * MINUTE, limit: 5 } }),
 }
