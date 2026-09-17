@@ -171,6 +171,29 @@
       "required": "Required.",
       "tooMany": "Too many attempts. Wait a few minutes and try again.",
       "unavailable": "The password could not be changed right now. Try again shortly."
+    },
+    "account": {
+      "connectionsTitle": "Connected accounts",
+      "connectionsBody": "Sign in with these instead of a password.",
+      "linkedOn": "linked {date}",
+      "connect": "Connect",
+      "unlink": "Unlink",
+      "unlinked": "Disconnected.",
+      "last_way_in": "This is the only way to sign in to this account. Set a password or connect another provider first.",
+      "not_linked": "That account is not connected.",
+      "noPasswordNote": "This account has no password, so at least one connected account must stay.",
+      "deleteTitle": "Delete account",
+      "deleteBody": "This removes your profile, your feeds and your saved, applied and dismissed jobs. It cannot be undone.",
+      "deletePassword": "Your password",
+      "deleteTypeWord": "Type {word} to confirm",
+      "deleteTypeHint": "This account signs in with Google or GitHub, so there is no password to ask for.",
+      "deleteConfirm": "Delete my account",
+      "cancel": "Cancel",
+      "close": "Close",
+      "wrong_password": "That is not your password.",
+      "confirmation_required": "Type the word exactly as shown.",
+      "tooMany": "Too many attempts. Wait a few minutes and try again.",
+      "unavailable": "That did not work. Try again shortly."
     }
   },
   "auth": {

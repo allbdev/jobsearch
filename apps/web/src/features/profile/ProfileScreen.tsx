@@ -7,6 +7,7 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import { useRegionOptions } from '../shared/useRegionOptions'
 import type {
+  Account,
   ContractModel,
   DigestCadence,
   HistoryEntry,
@@ -17,6 +18,8 @@ import type {
 import { contractOptions } from '@jobsearch/shared'
 import { saveProfileAction, type ProfileActionResult } from './actions'
 import { ChangePasswordDialog } from './ChangePasswordDialog'
+import { ConnectedAccountsDialog } from './ConnectedAccountsDialog'
+import { DeleteAccountDialog } from './DeleteAccountDialog'
 import type { Option, ProfileOptions } from './profile-options'
 import {
   AppShell,
@@ -61,18 +64,21 @@ export function ProfileScreen({
   isNew,
   history,
   options,
+  account,
 }: {
   profile: Profile
   /** No profile saved yet: the form shows defaults, and residence must be chosen. */
   isNew: boolean
   history: HistoryEntry[]
   options: ProfileOptions
+  /** How this person signs in: which providers are linked, whether a password is set. */
+  account: Account
 }) {
   const [draft, setDraft] = useState(profile)
   const [result, setResult] = useState<ProfileActionResult | null>(null)
   const [saving, startSaving] = useTransition()
   const router = useRouter()
-  const [changingPassword, setChangingPassword] = useState(false)
+  const [dialog, setDialog] = useState<'password' | 'connections' | 'delete' | null>(null)
   const [amount, setAmount] = useState(
     profile.minCompensation ? profile.minCompensation.toLocaleString('en-US') : '',
   )
@@ -392,11 +398,13 @@ export function ProfileScreen({
               </Field>
             </div>
             <Cluster gap="2" className={styles.accountActions}>
-              <Button variant="secondary" onClick={() => setChangingPassword(true)}>
+              <Button variant="secondary" onClick={() => setDialog('password')}>
                 {p('changePassword')}
               </Button>
-              <Button variant="secondary">{p('connectedAccounts')}</Button>
-              <Button variant="ghost" className={styles.dangerAction}>
+              <Button variant="secondary" onClick={() => setDialog('connections')}>
+                {p('connectedAccounts')}
+              </Button>
+              <Button variant="ghost" className={styles.dangerAction} onClick={() => setDialog('delete')}>
                 {p('deleteAccount')}
               </Button>
             </Cluster>
@@ -439,7 +447,11 @@ export function ProfileScreen({
         </Stack>
       </div>
 
-      {changingPassword ? <ChangePasswordDialog onClose={() => setChangingPassword(false)} /> : null}
+      {dialog === 'password' ? <ChangePasswordDialog onClose={() => setDialog(null)} /> : null}
+      {dialog === 'connections' ? (
+        <ConnectedAccountsDialog account={account} onClose={() => setDialog(null)} />
+      ) : null}
+      {dialog === 'delete' ? <DeleteAccountDialog account={account} onClose={() => setDialog(null)} /> : null}
 
       <div className={styles.mobileSaveBar}>
         <Button as={Link} variant="secondary" href="/feed">

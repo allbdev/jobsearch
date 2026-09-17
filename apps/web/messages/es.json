@@ -171,6 +171,29 @@
       "required": "Obligatorio.",
       "tooMany": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
       "unavailable": "No se pudo cambiar la contraseña ahora. Inténtalo de nuevo en un momento."
+    },
+    "account": {
+      "connectionsTitle": "Cuentas conectadas",
+      "connectionsBody": "Inicia sesión con ellas en lugar de una contraseña.",
+      "linkedOn": "conectada el {date}",
+      "connect": "Conectar",
+      "unlink": "Desconectar",
+      "unlinked": "Desconectada.",
+      "last_way_in": "Es la única forma de iniciar sesión en esta cuenta. Antes, define una contraseña o conecta otro proveedor.",
+      "not_linked": "Esa cuenta no está conectada.",
+      "noPasswordNote": "Esta cuenta no tiene contraseña, así que debe quedar al menos una cuenta conectada.",
+      "deleteTitle": "Eliminar cuenta",
+      "deleteBody": "Esto elimina tu perfil, tus feeds y las ofertas guardadas, postuladas y descartadas. No se puede deshacer.",
+      "deletePassword": "Tu contraseña",
+      "deleteTypeWord": "Escribe {word} para confirmar",
+      "deleteTypeHint": "Esta cuenta inicia sesión con Google o GitHub, así que no hay contraseña que pedir.",
+      "deleteConfirm": "Eliminar mi cuenta",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "wrong_password": "Esa no es tu contraseña.",
+      "confirmation_required": "Escribe la palabra exactamente como se muestra.",
+      "tooMany": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.",
+      "unavailable": "No funcionó. Inténtalo de nuevo en un momento."
     }
   },
   "auth": {
