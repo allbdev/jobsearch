@@ -31,7 +31,7 @@ import { toRegions } from './regions'
  * behaviour were indistinguishable from correct ones and could not be selected
  * for replay.
  */
-export const RULES_CLASSIFIER_VERSION = 'rules-2'
+export const RULES_CLASSIFIER_VERSION = 'rules-3'
 
 export type Verdict = 'confirmed' | 'needs_check' | 'rejected'
 export type ContractModel =
@@ -258,21 +258,19 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
     }
   }
 
-  // 3. An explicitly stated open scope.
-  const open = firstMatch(OPEN_RULES, haystack)
-  if (open) {
-    return {
-      verdict: 'confirmed',
-      regionLabel: open.rule.regionLabel,
-      eligibleRegions: open.rule.regions,
-      contractModel: detectContractModel(haystack),
-      evidenceSnippet: extractEvidence(haystack, open.index, open.length),
-      matchedRule: open.rule.id,
-      decidedByRules: true,
-    }
-  }
-
-  // 4. Remote, scoped to a named region by the location field.
+  // 3. Remote, scoped to a named region by the location field.
+  //
+  //    Before the open signals, and that order is the whole point. A posting
+  //    whose location says "Remote-Portugal" is a Portugal posting even when
+  //    the description says the company hires globally -- and that is not a
+  //    hypothetical: the employer *called* Remote ends its boilerplate with
+  //    "...while we hiring globally", which matched `hire-globally` on 167 live
+  //    country-specific reqs and badged every one of them Worldwide. A
+  //    Brazilian reader was shown jobs open only to Japan or Germany.
+  //
+  //    Where the two disagree, the location is the narrower and better-sourced
+  //    claim: it is the field the employer fills in per req, while the
+  //    description is company copy repeated across all of them.
   const scoped = location.match(REMOTE_WITH_REGION)
   if (scoped?.[1]) {
     const scope = scoped[1].trim()
@@ -292,6 +290,21 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
       contractModel: detectContractModel(haystack),
       evidenceSnippet: `Location: ${location}`,
       matchedRule: 'location-remote-scoped',
+      decidedByRules: true,
+    }
+  }
+
+  // 4. An explicitly stated open scope, for postings the location leaves open
+  //    -- a bare "Remote", or no location at all.
+  const open = firstMatch(OPEN_RULES, haystack)
+  if (open) {
+    return {
+      verdict: 'confirmed',
+      regionLabel: open.rule.regionLabel,
+      eligibleRegions: open.rule.regions,
+      contractModel: detectContractModel(haystack),
+      evidenceSnippet: extractEvidence(haystack, open.index, open.length),
+      matchedRule: open.rule.id,
       decidedByRules: true,
     }
   }

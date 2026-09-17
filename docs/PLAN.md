@@ -193,7 +193,7 @@ in at that point; without it they are emitted against `localhost` and ignored.
 
 ### D14 — Expire on disappearance, not on age
 
-The first version of link health expired anything posted more than ~60 days ago. Measured on the real corpus, that hid **1,660 of 3,092 postings — including 96 of the 251 a Brazilian could actually apply to** — and most of them were still listed on their boards.
+The first version of link health expired anything posted more than ~60 days ago. Measured on the real corpus, that hid **1,660 of 3,092 postings — including 96 of the 251 then counted as open to a Brazilian** — and most of them were still listed on their boards. (That 251 was inflated: 167 of the postings counted as Worldwide were country-specific reqs the rules misread, corrected later; the conclusion about age is unaffected, since the hidden postings were live either way.)
 
 Age is a proxy for "probably filled". It is a bad one here. These are ATS boards, not job aggregators: a role stays listed while the employer is still hiring for it, and long-running searches are ordinary. Meanwhile the source itself already answers the question exactly, by continuing to return the posting or not.
 
@@ -390,6 +390,8 @@ Four stages, each **idempotent and independently replayable**. This is the most 
 
 ### Two-stage classification (cost control)
 1. **Deterministic rules pass** — the accept/discard keyword lists from `claude_job.md`. Regex rejects "US only / must be authorized to work in the US / W2 / must reside in / hybrid / within X miles of"; auto-accepts "worldwide / anywhere in the world / LATAM / Latin America / Americas / Brazil / global remote". Free.
+
+   **The order the signals are read in is part of the rule**, not an implementation detail: not-remote, then a blocking authorisation requirement, then **the location field's own scope**, and only then an open-scope sentence from the description. The location is filled in per posting; the description is company copy repeated across every one of them. Reading them the other way round badged 167 country-specific reqs from one employer as Worldwide, because its boilerplate ends "...while we hiring globally".
 2. **LLM pass** — runs only on the genuinely ambiguous middle (postings that just say "Remote"), expected ~20–30% of volume. This is the difference between viable and unviable unit economics.
 
 **Profession-independence (D9):** the classify stage does two things — eligibility *and* `job_family` assignment. The eligibility half is entirely profession-agnostic and needs no per-vertical work; the keyword lists below apply unchanged to any posting. Only job-family assignment is taxonomy-dependent.
