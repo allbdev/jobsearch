@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
-import type { Feed, FeedResult, FeedSort } from '@jobsearch/shared'
+import { Link, useRouter } from '@/i18n/navigation'
+import type { Feed, FeedResult, FeedSort, Job, JobInteraction } from '@jobsearch/shared'
 import { CONTRACT_MODEL_LABELS } from '@jobsearch/shared'
 import {
   AppShell,
@@ -29,6 +29,7 @@ import {
   cx,
 } from '@jobsearch/ui'
 import { BLANK_FEED, FeedDefinitionDialog } from './FeedDefinitionDialog'
+import { setInteractionAction } from './interaction-actions'
 import { useJobFamilyLabels } from '../shared/useJobFamilyOptions'
 import { useRegionLabels } from '../shared/useRegionOptions'
 import styles from './FeedScreen.module.css'
@@ -44,8 +45,11 @@ export function FeedScreen({
 }) {
   const [sort, setSort] = useState<FeedSort>('best_match')
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [saved, setSaved] = useState<Record<string, boolean>>({})
-  const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
+  // What this session changed, over what the server sent with each job. Cleared
+  // for a job as soon as the server's own answer agrees.
+  const [changed, setChanged] = useState<Record<string, JobInteraction | null>>({})
+  const [, startInteraction] = useTransition()
+  const router = useRouter()
   const [dialog, setDialog] = useState<'new' | 'edit' | null>(null)
   const t = useTranslations('nav')
   const f = useTranslations('feed')
@@ -61,17 +65,36 @@ export function FeedScreen({
   const { feed, stats } = result
   const { definition } = feed
 
+  const statusOf = (job: Job): JobInteraction | null =>
+    job.id in changed ? (changed[job.id] ?? null) : (job.interaction ?? null)
+
+  /** Shows the change at once, then asks the server; puts it back if it refused. */
+  const record = (job: Job, status: JobInteraction | null) => {
+    const previous = statusOf(job)
+    setChanged((current) => ({ ...current, [job.id]: status }))
+    startInteraction(async () => {
+      const ok = await setInteractionAction(job.id, status)
+      if (ok) router.refresh()
+      else setChanged((current) => ({ ...current, [job.id]: previous }))
+    })
+  }
+
   const jobs = useMemo(() => {
-    const visible = result.jobs.filter((job) => !dismissed[job.id])
+    const visible = result.jobs.filter((job) => statusOf(job) !== 'dismissed')
     if (sort === 'newest') {
       return [...visible].sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
     }
     return visible
-  }, [result.jobs, dismissed, sort])
+  }, [result.jobs, changed, sort])
 
-  const dismissedCount = result.jobs.filter((job) => dismissed[job.id]).length
+  // Dismissed in this session and still in the page the server sent. Once it is
+  // re-read they are gone from `result.jobs` and counted by the server instead,
+  // so neither number counts them twice.
+  const justDismissed = result.jobs.filter((job) => changed[job.id] === 'dismissed').length
+  const dismissedCount = stats.dismissedByUser + justDismissed
   // The feed's total, not the page's length: the API sends one page of jobs.
-  const matched = Math.max(0, feed.matchedCount - dismissedCount)
+  // `matchedCount` already leaves out what the server knows was dismissed.
+  const matched = Math.max(0, feed.matchedCount - justDismissed)
   const hours = Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))
 
   const definitionRows: Array<[string, string]> = [
@@ -250,10 +273,13 @@ export function FeedScreen({
                   job={job}
                   now={now}
                   expanded={expanded === job.id}
-                  saved={Boolean(saved[job.id])}
+                  saved={statusOf(job) === 'saved'}
                   onToggle={() => setExpanded((current) => (current === job.id ? null : job.id))}
-                  onSave={() => setSaved((current) => ({ ...current, [job.id]: !current[job.id] }))}
-                  onDismiss={() => setDismissed((current) => ({ ...current, [job.id]: true }))}
+                  onSave={() => record(job, statusOf(job) === 'saved' ? null : 'saved')}
+                  onDismiss={() => record(job, 'dismissed')}
+                  // Opening the posting is the only signal there is. It is a
+                  // guess at "applied", and never overwrites a stronger one.
+                  onApply={() => statusOf(job) !== 'applied' && record(job, 'applied')}
                 />
               ))}
             </div>

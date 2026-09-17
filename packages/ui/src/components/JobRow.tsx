@@ -20,13 +20,14 @@ export interface JobRowProps {
   onToggle: () => void
   onSave: () => void
   onDismiss: () => void
+  onApply?: () => void
 }
 
 /** One posting in the feed, with its evidence panel. */
-export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss }: JobRowProps) {
+export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss, onApply }: JobRowProps) {
   const labels = useUiLabels()
   const { eligibility } = job
-  const actionProps = { applyUrl: job.applyUrl, saved, onSave, onDismiss }
+  const actionProps = { applyUrl: job.applyUrl, saved, onSave, onDismiss, onApply }
 
   return (
     <div className={styles.row}>
