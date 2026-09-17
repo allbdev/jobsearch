@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Logger, Post, UseGuards } from '@nestj
 import { ThrottlerGuard } from '@nestjs/throttler'
 import type { User } from '@jobsearch/db'
 import {
+  changePasswordRequestSchema,
   emailTokenRequestSchema,
   forgotPasswordRequestSchema,
   loginRequestSchema,
@@ -73,6 +74,14 @@ export class AuthController {
   @HttpCode(200)
   resetPassword(@Body() body: unknown) {
     return this.auth.resetPassword(parseBody(resetPasswordRequestSchema, body))
+  }
+
+  @Post('password/change')
+  @HttpCode(204)
+  @Limit.changePassword()
+  @UseGuards(SessionGuard)
+  async changePassword(@CurrentUser() user: User, @SessionToken() token: string, @Body() body: unknown) {
+    await this.auth.changePassword(user, token, parseBody(changePasswordRequestSchema, body))
   }
 
   @Get('me')
