@@ -74,7 +74,17 @@
     "updatedShort": "atualizado há {hours}h",
     "updatedLong": "índice atualizado há {hours}h",
     "noFeedsTitle": "Nenhum feed ainda",
-    "noFeedsBody": "Um feed é uma busca salva sobre todas as vagas que verificamos. Criar um por aqui é o próximo passo."
+    "noFeedsBody": "Um feed é uma busca salva sobre todas as vagas que verificamos: escolha as áreas, regiões e contratos que importam para você, e ele se mantém atualizado.",
+    "deleteFeed": "Excluir feed",
+    "createFirstFeed": "Criar meu primeiro feed",
+    "errors": {
+      "invalid": "Alguns campos precisam de atenção.",
+      "name": "Dê um nome ao feed.",
+      "feedLimit": "Você atingiu o limite de 20 feeds. Exclua um para abrir espaço.",
+      "notFound": "Este feed não existe mais.",
+      "unavailable": "Não foi possível salvar o feed agora. Tente novamente em instantes."
+    },
+    "confirmDelete": "Excluir “{name}”? Não é possível desfazer."
   },
   "profile": {
     "nav": {

@@ -2,6 +2,8 @@ import 'server-only'
 
 import { headers } from 'next/headers'
 import type {
+  Feed,
+  FeedDefinitionInput,
   FeedResult,
   HistoryEntry,
   LoginRequest,
@@ -9,7 +11,7 @@ import type {
   RegisterRequest,
   SessionResponse,
 } from '@jobsearch/shared'
-import { feedResultSchema, sessionResponseSchema } from '@jobsearch/shared'
+import { feedResultSchema, feedSchema, sessionResponseSchema } from '@jobsearch/shared'
 import { z } from 'zod'
 import * as fixtures from './fixtures'
 import { getSessionToken } from './session'
@@ -48,7 +50,7 @@ export class ApiError extends Error {
 async function request<S extends z.ZodTypeAny>(
   path: string,
   schema: S,
-  init: { method?: 'GET' | 'POST'; body?: unknown } = {},
+  init: { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown } = {},
 ): Promise<z.output<S>> {
   if (!API_URL) throw new ApiError(503, { message: 'API_URL is not set' })
 
@@ -86,6 +88,17 @@ export function getFeed(feedId: string, now: number): Promise<FeedResult> {
 export function listFeeds(now: number) {
   if (!apiConfigured) return Promise.resolve(fixtures.feeds(now))
   return request('/feeds', z.array(feedResultSchema.shape.feed))
+}
+
+/** Saves a new feed (no id) or replaces an existing one. */
+export function saveFeed(feedId: string | null, definition: FeedDefinitionInput): Promise<Feed> {
+  return feedId
+    ? request(`/feeds/${encodeURIComponent(feedId)}`, feedSchema, { method: 'PUT', body: definition })
+    : request('/feeds', feedSchema, { method: 'POST', body: definition })
+}
+
+export function deleteFeed(feedId: string): Promise<void> {
+  return request(`/feeds/${encodeURIComponent(feedId)}`, z.undefined(), { method: 'DELETE' })
 }
 
 // Fixtures until the API serves a profile and its history; both screens are

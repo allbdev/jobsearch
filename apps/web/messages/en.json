@@ -74,7 +74,17 @@
     "updatedShort": "updated {hours}h ago",
     "updatedLong": "index updated {hours}h ago",
     "noFeedsTitle": "No feeds yet",
-    "noFeedsBody": "A feed is a saved search over every job we have verified. Creating one from here is coming next."
+    "noFeedsBody": "A feed is a saved search over every job we have verified: choose the families, regions and contracts you care about, and it keeps itself up to date.",
+    "deleteFeed": "Delete feed",
+    "createFirstFeed": "Create your first feed",
+    "errors": {
+      "invalid": "Some fields need attention.",
+      "name": "Give the feed a name.",
+      "feedLimit": "You have reached the limit of 20 feeds. Delete one to make room.",
+      "notFound": "This feed no longer exists.",
+      "unavailable": "The feed could not be saved right now. Try again shortly."
+    },
+    "confirmDelete": "Delete “{name}”? This cannot be undone."
   },
   "profile": {
     "nav": {

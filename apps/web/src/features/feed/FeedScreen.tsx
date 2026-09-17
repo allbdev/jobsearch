@@ -28,7 +28,7 @@ import {
   User,
   cx,
 } from '@jobsearch/ui'
-import { FeedDefinitionDialog } from './FeedDefinitionDialog'
+import { BLANK_FEED, FeedDefinitionDialog } from './FeedDefinitionDialog'
 import { useJobFamilyLabels } from '../shared/useJobFamilyOptions'
 import { useRegionLabels } from '../shared/useRegionOptions'
 import styles from './FeedScreen.module.css'
@@ -46,7 +46,7 @@ export function FeedScreen({
   const [expanded, setExpanded] = useState<string | null>(null)
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [dismissed, setDismissed] = useState<Record<string, boolean>>({})
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialog, setDialog] = useState<'new' | 'edit' | null>(null)
   const t = useTranslations('nav')
   const f = useTranslations('feed')
   const locale = useLocale()
@@ -108,7 +108,7 @@ export function FeedScreen({
               icon
               title={f('editFeedDefinition')}
               aria-label={f('editFeedDefinition')}
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setDialog('edit')}
             >
               <Icon icon={Filter} size={16} />
             </Button>
@@ -135,7 +135,7 @@ export function FeedScreen({
               title={f('newFeed')}
               aria-label={f('newFeed')}
               className={styles.newFeedChip}
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setDialog('new')}
             >
               <Icon icon={Plus} size={15} />
             </button>
@@ -175,7 +175,7 @@ export function FeedScreen({
                 )
               })}
             </Stack>
-            <Button variant="ghost" onClick={() => setDialogOpen(true)} className={styles.newFeed}>
+            <Button variant="ghost" onClick={() => setDialog('new')} className={styles.newFeed}>
               <Icon icon={Plus} />
               {f('newFeed')}
             </Button>
@@ -194,7 +194,7 @@ export function FeedScreen({
             <Button
               variant="secondary"
               block
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setDialog('edit')}
               className={styles.editDefinition}
             >
               <Icon icon={Pencil} />
@@ -277,11 +277,16 @@ export function FeedScreen({
         </main>
       </div>
 
-      <FeedDefinitionDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        definition={definition}
-      />
+      {dialog ? (
+        <FeedDefinitionDialog
+          // Remounted per feed and mode, so a draft never leaks between them.
+          key={`${dialog}:${feed.id}`}
+          open
+          onClose={() => setDialog(null)}
+          definition={dialog === 'edit' ? definition : BLANK_FEED}
+          feedId={dialog === 'edit' ? feed.id : null}
+        />
+      ) : null}
     </AppShell>
   )
 }
