@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
+import { AccountModule } from './account/account.module'
 import { AuthModule } from './auth/auth.module'
 import { EmailModule } from './email/email.module'
 import { FeedsModule } from './feeds/feeds.module'
@@ -16,6 +17,7 @@ import { RATE_LIMITS } from './rate-limit/rate-limit'
     EmailModule,
     HealthModule,
     AuthModule,
+    AccountModule,
     FeedsModule,
     ProfileModule,
     InteractionsModule,
