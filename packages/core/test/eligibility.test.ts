@@ -231,3 +231,54 @@ describe('a listing in several countries is not one office', () => {
     expect(classifyByRules(job({ locationRaw: 'Dubai' })).verdict).toBe('rejected')
   })
 })
+
+describe('the location field outranks a global-hiring sentence', () => {
+  // The employer called Remote ends its boilerplate this way on every req,
+  // while each req names one country in its location field. Read the other way
+  // round, 167 live postings were badged Worldwide, and a Brazilian reader was
+  // shown jobs open only to Japan or Germany.
+  const globalBoilerplate =
+    'At Remote we have international operations and a globally distributed workforce. ' +
+    'We use geo ranges to consider geographic pay differentials as part of our global ' +
+    'compensation strategy to remain competitive in various markets while we hiring globally.'
+
+  it.each([
+    ['Remote-Portugal', ['EU']],
+    ['Remote-Germany', ['EU']],
+    ['Remote-Japan', ['APAC']],
+    ['Remote - United States', ['US']],
+  ])('scopes %s to %j rather than Worldwide', (locationRaw, regions) => {
+    const result = classifyByRules(job({ locationRaw, description: globalBoilerplate }))
+    expect(result.verdict).toBe('confirmed')
+    expect(result.eligibleRegions).toEqual(regions)
+    expect(result.matchedRule).toBe('location-remote-scoped')
+    expect(result.evidenceSnippet).toContain(locationRaw)
+  })
+
+  it.each(['Remote-EMEA', 'Remote-NORAM', 'Remote-UK&I', 'Remote-Iberia'])(
+    'says needs_check for %s, a scope the vocabulary cannot express',
+    (locationRaw) => {
+      // Except EMEA, which does map. The others are honest unknowns.
+      const result = classifyByRules(job({ locationRaw, description: globalBoilerplate }))
+      expect(result.verdict === 'needs_check' || result.eligibleRegions.length > 0).toBe(true)
+      expect(result.eligibleRegions).not.toContain('Worldwide')
+    },
+  )
+
+  it('still confirms Worldwide when the location leaves the scope open', () => {
+    for (const locationRaw of ['Remote', null]) {
+      const result = classifyByRules(job({ locationRaw, description: globalBoilerplate }))
+      expect(result.verdict).toBe('confirmed')
+      expect(result.eligibleRegions).toEqual(['Worldwide'])
+      expect(result.matchedRule).toBe('hire-globally')
+    }
+  })
+
+  it('keeps a blocking requirement ahead of the location', () => {
+    const result = classifyByRules(
+      job({ locationRaw: 'Remote-Portugal', description: 'You must be authorized to work in the United States.' }),
+    )
+    expect(result.verdict).toBe('rejected')
+  })
+})
+
