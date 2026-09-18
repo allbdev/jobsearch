@@ -11,6 +11,12 @@ export interface SkillsInputProps {
   skills: readonly string[]
   onChange: (skills: string[]) => void
   placeholder?: string
+  /**
+   * A ceiling the caller's schema also enforces. The field stops offering a
+   * place to type once it is reached, which is how someone finds out — a
+   * rejection after pressing Save teaches it far too late.
+   */
+  max?: number
 }
 
 /**
@@ -18,9 +24,10 @@ export interface SkillsInputProps {
  * D9), so anything the user types is valid — there is no controlled vocabulary
  * to validate against.
  */
-export function SkillsInput({ skills, onChange, placeholder }: SkillsInputProps) {
+export function SkillsInput({ skills, onChange, placeholder, max }: SkillsInputProps) {
   const labels = useUiLabels()
   const [draft, setDraft] = useState('')
+  const full = max !== undefined && skills.length >= max
 
   const commit = () => {
     const value = draft.trim()
@@ -58,14 +65,16 @@ export function SkillsInput({ skills, onChange, placeholder }: SkillsInputProps)
           </button>
         </Tag>
       ))}
-      <input
-        value={draft}
-        placeholder={placeholder ?? labels.addSkill}
-        onChange={(event) => setDraft(event.target.value)}
-        onKeyDown={onKeyDown}
-        onBlur={commit}
-        className={styles.input}
-      />
+      {full ? null : (
+        <input
+          value={draft}
+          placeholder={placeholder ?? labels.addSkill}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={onKeyDown}
+          onBlur={commit}
+          className={styles.input}
+        />
+      )}
     </div>
   )
 }

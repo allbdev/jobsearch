@@ -47,6 +47,10 @@
     "editDefinition": "Edit definition",
     "definition": "Feed definition",
     "jobFamilies": "Job families",
+    "searchTerms": "Search terms",
+    "searchTermsHint": "Every term must appear in the posting. Up to 5.",
+    "searchTermsPlaceholder": "e.g. react",
+    "noSearchTerms": "No terms",
     "eligibleFrom": "Eligible from",
     "contract": "Contract",
     "minCompensation": "Min compensation",
@@ -84,7 +88,8 @@
       "name": "Give the feed a name.",
       "feedLimit": "You have reached the limit of 20 feeds. Delete one to make room.",
       "notFound": "This feed no longer exists.",
-      "unavailable": "The feed could not be saved right now. Try again shortly."
+      "unavailable": "The feed could not be saved right now. Try again shortly.",
+      "searchTerms": "Terms are 2 to 40 characters, up to 5 of them."
     },
     "confirmDelete": "Delete “{name}”? This cannot be undone.",
     "noResidenceTitle": "This feed is not filtered by where you live yet, so it may list jobs you cannot take.",
