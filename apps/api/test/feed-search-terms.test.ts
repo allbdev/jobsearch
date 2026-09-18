@@ -37,10 +37,13 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('a feed’s own se
       // The case this exists for: React work in a posting titled otherwise.
       { key: 'fullstack', title: 'Senior Software Engineer', description: 'You will work in React and Node.', skills: ['TypeScript'], family: 'engineering-fullstack' },
       { key: 'titled', title: 'Frontend Engineer, React', description: 'Build the web app.', skills: [], family: 'engineering-frontend' },
-      // Its skills say React; its text never does. Nothing fills `skills` today.
+      // Its skills say React; its text never does. Nothing fills `skills` today,
+      // but `searchText` flattens them in, so the day something does it works.
       { key: 'skills-only', title: 'Product Engineer', description: 'Own features end to end.', skills: ['React', 'Go'], family: 'engineering-fullstack' },
       { key: 'backend', title: 'Backend Engineer', description: 'Postgres, Go, and queues.', skills: ['Go'], family: 'engineering-backend' },
       { key: 'staff-react', title: 'Staff Engineer', description: 'React platform work.', skills: [], family: 'engineering-platform' },
+      // Says neither "react" nor "rust", in words that contain both.
+      { key: 'reactive', title: 'Security Engineer', description: 'We are both reactive and proactive, and trusted across teams.', skills: [], family: 'engineering-security' },
     ]
     for (const seed of seeds) {
       const job = await prisma.job.create({
@@ -74,15 +77,23 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('a feed’s own se
     await prisma.$disconnect()
   })
 
-  it('finds the work wherever the posting mentions it — in the title or the body', async () => {
-    expect(await matching(['react'])).toEqual(['fullstack', 'staff-react', 'titled'])
+  it('finds the work wherever the posting mentions it — title, skills or body', async () => {
+    expect(await matching(['react'])).toEqual(['fullstack', 'skills-only', 'staff-react', 'titled'])
   })
 
-  it('does not answer for a skill the posting never mentions', async () => {
-    // Not an oversight: no adapter fills `jobs.skills`, so searching it could
-    // only ever match nothing. The day something does, this test should change.
-    expect(await matching(['react'])).not.toContain('skills-only')
-    expect(await matching(['go'])).toEqual(['backend'])
+  it('matches whole words, not letters inside longer ones', async () => {
+    // The bug this replaced: `contains` has no boundary, so "rust" matched
+    // 1,407 of 3,010 live postings through the word "trusted", and "react"
+    // matched a security role calling itself "reactive".
+    expect(await matching(['react'])).not.toContain('reactive')
+    expect(await matching(['rust'])).toEqual([])
+    expect(await matching(['active'])).toEqual([])
+  })
+
+  it('reads a skill the posting text never mentions', async () => {
+    // `skills` is flattened into `searchText` by the same trigger. No adapter
+    // fills it today, so this is the contract holding rather than a live path.
+    expect(await matching(['go']).then((keys) => keys.includes('skills-only'))).toBe(true)
   })
 
   it('ignores case, in the term and in the posting', async () => {
@@ -102,7 +113,12 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('a feed’s own se
   })
 
   it('matches nothing differently when no term is given', async () => {
-    expect((await matching([])).length).toBe(5)
+    expect((await matching([])).length).toBe(6)
+  })
+
+  it('flattens punctuation the same way on both sides', async () => {
+    // "Node." in the posting and "node" typed by a reader are the same word.
+    expect(await matching(['node'])).toEqual(['fullstack'])
   })
 
   it('lower-cases, de-duplicates and caps what a client may send', async () => {

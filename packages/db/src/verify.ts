@@ -48,6 +48,16 @@ export async function verifySchema(): Promise<string[]> {
     if (!triggerNames.has(name)) problems.push(`missing trigger ${name}`)
   }
 
+  // The trigger can survive while quietly doing less than it did. If it stops
+  // filling `searchText`, every posting crawled afterwards answers no search
+  // term at all, and nothing else says so.
+  const [body] = await prisma.$queryRaw<{ src: string }[]>`
+    SELECT prosrc AS src FROM pg_proc WHERE proname = 'jobs_search_vector_update'
+  `
+  if (body && !body.src.includes('searchText')) {
+    problems.push('trigger jobs_search_vector_update no longer fills jobs."searchText"')
+  }
+
   const constraints = await prisma.$queryRaw<{ conname: string }[]>`
     SELECT conname FROM pg_constraint
   `
