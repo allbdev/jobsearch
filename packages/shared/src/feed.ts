@@ -24,6 +24,13 @@ export type FeedDefinition = z.infer<typeof feedDefinitionSchema>
 const unique = <T>(values: T[]) => [...new Set(values)]
 
 /**
+ * A ceiling on a filter that costs a `LIKE` per term, not a product limit
+ * anyone will meet. Exported so the input that collects them stops at the same
+ * number the schema refuses past.
+ */
+export const MAX_SEARCH_TERMS = 5
+
+/**
  * A definition as a client sends it to create or replace a feed. Stricter than
  * the read shape, which must still round-trip data written under older rules:
  * a feed saved with a region code the matcher does not speak matches nothing,
@@ -40,12 +47,11 @@ export const feedDefinitionInputSchema = feedDefinitionSchema.extend({
   contractModels: z.array(contractModelSchema).transform(unique),
   /**
    * Lower-cased and de-duplicated, because "React" and "react" are one filter,
-   * and matching is case-insensitive anyway. Five is a ceiling on a filter that
-   * costs a `LIKE` per term, not a product limit anyone will meet.
+   * and matching is case-insensitive anyway.
    */
   searchTerms: z
     .array(z.string().trim().min(2).max(40))
-    .max(5)
+    .max(MAX_SEARCH_TERMS)
     // Defaulted, like the read shape: a client that has never heard of search
     // terms is sending a feed without them, not an invalid feed.
     .default([])

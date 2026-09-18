@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ContractModel, FeedDefinition } from '@jobsearch/shared'
-import { contractOptions } from '@jobsearch/shared'
+import { MAX_SEARCH_TERMS, contractOptions } from '@jobsearch/shared'
 import { useJobFamilyOptions } from '../shared/useJobFamilyOptions'
 import { useRegionOptions } from '../shared/useRegionOptions'
 import { useRouter } from '@/i18n/navigation'
@@ -16,6 +16,7 @@ import {
   Dialog,
   Field,
   Input,
+  SkillsInput,
   toggleInList,
 } from '@jobsearch/ui'
 
@@ -120,6 +121,23 @@ export function FeedDefinitionDialog({
           aria-invalid={invalid('name')}
           value={draft.name}
           onChange={(event) => update('name', event.target.value)}
+        />
+      </Field>
+
+      {/* Above the families on purpose: a family filter only reaches postings
+          something has already named, and a term reaches the other 3,000 --
+          150 live postings mention React and 18 are titled frontend. */}
+      <Field
+        label={f('searchTerms')}
+        hint={
+          invalid('searchTerms') ? <span role="alert">{e('searchTerms')}</span> : f('searchTermsHint')
+        }
+      >
+        <SkillsInput
+          skills={draft.searchTerms}
+          onChange={(terms) => update('searchTerms', terms)}
+          placeholder={f('searchTermsPlaceholder')}
+          max={MAX_SEARCH_TERMS}
         />
       </Field>
 
