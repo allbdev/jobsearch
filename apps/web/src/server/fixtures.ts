@@ -143,6 +143,7 @@ export function feedResult(feedId: string, now: number): FeedResult {
       confirmed: jobs.filter((job) => job.eligibility.verdict === 'confirmed').length,
       needsCheck: jobs.filter((job) => job.eligibility.verdict === 'needs_check').length,
       dismissedByUser: 0,
+      withoutFamily: 0,
       indexUpdatedAt: new Date(now - 2 * 3_600_000).toISOString(),
     },
   }

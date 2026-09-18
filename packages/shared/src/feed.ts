@@ -71,6 +71,11 @@ export const feedStatsSchema = z.object({
   confirmed: z.number().int().nonnegative(),
   needsCheck: z.number().int().nonnegative(),
   dismissedByUser: z.number().int().nonnegative(),
+  /**
+   * Jobs this feed would have shown but for its family filter, because nothing
+   * has named their family yet. Zero when the feed filters by no family.
+   */
+  withoutFamily: z.number().int().nonnegative(),
   indexUpdatedAt: z.string().datetime(),
 })
 export type FeedStats = z.infer<typeof feedStatsSchema>
