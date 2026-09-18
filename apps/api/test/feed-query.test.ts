@@ -41,13 +41,14 @@ const SEEDS: Seed[] = [
 
 const ids = new Map<string, string>()
 interface FeedFields {
+  searchTerms: string[]
   jobFamilies: string[]
   eligibleFrom: string[]
   contractModels: ContractModel[]
   freshnessDays: number | null
   hideRejected: boolean
 }
-const DEFAULTS: FeedFields = { jobFamilies: [], eligibleFrom: [], contractModels: [], freshnessDays: null, hideRejected: true }
+const DEFAULTS: FeedFields = { searchTerms: [], jobFamilies: [], eligibleFrom: [], contractModels: [], freshnessDays: null, hideRejected: true }
 
 async function match(
   feed: Partial<FeedFields>,

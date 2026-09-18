@@ -423,6 +423,13 @@ model Feed {
   /// Empty means any contract model.
   contractModels ContractModel[] @default([])
 
+  /// Words the reader typed: "React", "Postgres", "staff". Matched against the
+  /// title, the skills and the posting itself, because the work a person wants
+  /// is often in a posting that does not say it in its title -- 150 live
+  /// postings mention React and only 13 are titled frontend. Every term must
+  /// match; empty means no term filter.
+  searchTerms    String[]        @default([])
+
   /// Minor units, as on `Profile`. Null means no floor.
   minCompensation Int?
   currency        String @default("USD")
