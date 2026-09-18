@@ -47,6 +47,10 @@
     "editDefinition": "Editar definição",
     "definition": "Definição da busca",
     "jobFamilies": "Áreas de atuação",
+    "searchTerms": "Termos de busca",
+    "searchTermsHint": "Cada termo precisa aparecer no anúncio, como palavra inteira. Até 5.",
+    "searchTermsPlaceholder": "ex.: react",
+    "noSearchTerms": "Nenhum termo",
     "eligibleFrom": "Elegível de",
     "contract": "Contratação",
     "minCompensation": "Remuneração mínima",
@@ -84,7 +88,8 @@
       "name": "Dê um nome ao feed.",
       "feedLimit": "Você atingiu o limite de 20 feeds. Exclua um para abrir espaço.",
       "notFound": "Este feed não existe mais.",
-      "unavailable": "Não foi possível salvar o feed agora. Tente novamente em instantes."
+      "unavailable": "Não foi possível salvar o feed agora. Tente novamente em instantes.",
+      "searchTerms": "Os termos têm de 2 a 40 caracteres, no máximo 5."
     },
     "confirmDelete": "Excluir “{name}”? Não é possível desfazer.",
     "noResidenceTitle": "Este feed ainda não filtra pelo lugar onde você mora, então pode listar vagas às quais você não pode se candidatar.",

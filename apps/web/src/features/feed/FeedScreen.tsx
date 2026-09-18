@@ -137,6 +137,7 @@ export function FeedScreen({
   const hours = Math.max(1, Math.round((now - Date.parse(stats.indexUpdatedAt)) / 3_600_000))
 
   const definitionRows: Array<[string, string]> = [
+    [f('searchTerms'), definition.searchTerms.join(' · ') || f('noSearchTerms')],
     [f('jobFamilies'), familyLabels(definition.jobFamilies).join(', ') || f('allFamilies')],
     [f('eligibleFrom'), regionLabels(definition.eligibleFrom).join(' · ') || f('anyRegion')],
     [f('contract'), definition.contractModels.map((c) => CONTRACT_MODEL_LABELS[c]).join(' · ')],
