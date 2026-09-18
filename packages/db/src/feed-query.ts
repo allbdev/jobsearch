@@ -17,6 +17,19 @@ import type { FeedSort } from '@jobsearch/shared'
  * strength of a scope nobody has established would drop exactly the jobs the
  * tier exists to surface.
  */
+/**
+ * A term as it appears inside `jobs.searchText`: the same flattening the
+ * trigger applies, wrapped in the spaces that make it a whole word.
+ *
+ * Both sides must agree, so this is the one place the expression is written in
+ * TypeScript — the other copy is in the migration, which the comment there
+ * points back at. "Node.js" typed by a reader becomes `' node js '`, and so
+ * does "Node.js" written in a posting.
+ */
+export function wholeWord(term: string): string {
+  return ` ${term.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `
+}
+
 export function feedWhere(
   feed: Pick<
     Feed,
@@ -68,24 +81,22 @@ export function feedWhere(
 
   if (feed.jobFamilies.length > 0) where.jobFamily = { in: feed.jobFamilies }
 
-  // Every term must appear in the posting -- its title or its body. Two terms
-  // narrow rather than widen, which is what someone typing "react staff" means.
+  // Every term must appear in the posting, as a whole word. Two terms narrow
+  // rather than widen, which is what someone typing "react staff" means.
   //
-  // `jobs.skills` is deliberately *not* searched: no adapter fills it, so every
-  // row's array is empty and a clause over it can only ever match nothing. When
-  // something extracts skills, this is where they join -- with the caveat that
-  // Postgres array matching is exact, so "React" would not answer to "react".
+  // Matched against `searchText` -- title, skills and description flattened and
+  // padded with spaces by a trigger -- so `' term '` is a word boundary. A
+  // `contains` over the description itself has none, and that is not a detail:
+  // "rust" matched 1,407 of 3,010 live postings through the word "trusted", and
+  // "react" matched a security role describing itself as "reactive".
   //
-  // `contains` rather than the tsvector: full-text search matches lexemes, so
-  // "react" would not find "React Native" the way a reader expects. At this size
-  // (3k live postings) the scan costs nothing; the GIN index on `searchVector`
-  // is there to move to when it does.
+  // The cost is that a term matches a word, not a prefix of one: "postgres"
+  // does not find "PostgreSQL". That is the same trade a word boundary makes
+  // anywhere, and the honest half of the pair -- a filter that silently means
+  // something wider than it says is the one a reader cannot work with.
   if (feed.searchTerms.length > 0) {
     where.AND = feed.searchTerms.map((term) => ({
-      OR: [
-        { title: { contains: term, mode: 'insensitive' as const } },
-        { description: { contains: term, mode: 'insensitive' as const } },
-      ],
+      searchText: { contains: wholeWord(term) },
     }))
   }
 

@@ -185,6 +185,13 @@ model Job {
   /// Prisma has no tsvector type, so it is opaque here and queried with raw SQL.
   searchVector Unsupported("tsvector")?
 
+  /// Title, skills and description flattened for whole-word matching:
+  /// lower-cased, non-alphanumerics collapsed to single spaces, wrapped in
+  /// spaces. Written by the same trigger, never by application code -- a feed's
+  /// search terms match it with `contains: ' term '`, which is a word boundary
+  /// `contains` on the description cannot express ("rust" in "trusted").
+  searchText   String?
+
   /// Cohere embed-v4.0 at 1024 dimensions (D13). Null until M3 -- there is no
   /// corpus to embed before ingestion runs.
   embedding          Unsupported("vector(1024)")?
