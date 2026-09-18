@@ -1,0 +1,40 @@
+# The API service. `fly deploy` from apps/api.
+app = "jobsearch-api"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+  # The workspace, not just this app: the image installs sibling packages.
+  ignorefile = "../../.dockerignore"
+
+[deploy]
+  # Migrations run once per release, before the new version serves traffic.
+  # `migrate deploy` applies what exists and never generates or resets.
+  release_command = "pnpm --filter @jobsearch/db migrate:deploy"
+
+[env]
+  API_PORT = "8080"
+  # Fly's proxy forwards the client address in X-Forwarded-For and reaches the
+  # machine over the private network (fdaa::/8, a unique-local address). Without
+  # this the rate limits in #54 would key on the proxy and throttle everyone
+  # together; trusting any peer would let a client name its own IP.
+  TRUST_PROXY = "loopback, linklocal, uniquelocal"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # There is no traffic overnight and no reason to pay for it. A suspended
+  # machine resumes in well under a second.
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
