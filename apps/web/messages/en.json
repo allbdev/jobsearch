@@ -48,7 +48,7 @@
     "definition": "Feed definition",
     "jobFamilies": "Job families",
     "searchTerms": "Search terms",
-    "searchTermsHint": "Every term must appear in the posting. Up to 5.",
+    "searchTermsHint": "Every term must appear in the posting, as a whole word. Up to 5.",
     "searchTermsPlaceholder": "e.g. react",
     "noSearchTerms": "No terms",
     "eligibleFrom": "Eligible from",

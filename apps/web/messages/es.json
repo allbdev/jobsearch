@@ -48,7 +48,7 @@
     "definition": "Definición de la búsqueda",
     "jobFamilies": "Áreas profesionales",
     "searchTerms": "Términos de búsqueda",
-    "searchTermsHint": "Cada término debe aparecer en la oferta. Hasta 5.",
+    "searchTermsHint": "Cada término debe aparecer en la oferta, como palabra completa. Hasta 5.",
     "searchTermsPlaceholder": "ej.: react",
     "noSearchTerms": "Sin términos",
     "eligibleFrom": "Elegible desde",
