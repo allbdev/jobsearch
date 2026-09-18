@@ -11,6 +11,7 @@ import {
 } from '@jobsearch/core'
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { effortFor } from './classify-llm'
 import { log } from './log'
 
 export interface FamilyResult {
@@ -189,7 +190,7 @@ export async function classifyFamiliesByLlm(
           system: [{ type: 'text', text: FAMILY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
           messages: [{ role: 'user', content: buildFamilyPrompt(job) }],
           output_config: {
-            effort: EFFORT as 'low' | 'medium' | 'high' | 'xhigh' | 'max',
+            ...effortFor(MODEL, EFFORT),
             format: zodOutputFormat(familyVerdictSchema),
           },
         })

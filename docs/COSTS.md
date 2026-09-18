@@ -12,14 +12,25 @@ billing. The Console's usage page is authoritative; this file exists to explain
 
 ## 1. What costs money today
 
-Only one thing: the LLM eligibility pass (PLAN.md §4, stage 3).
+Two things, both opt-in behind `--llm`: the eligibility pass (PLAN.md §4,
+stage 3) and the job-family pass.
 
 | Stage | Cost |
 |---|---|
 | `fetch` — Greenhouse public boards | free |
 | `normalize` — raw payload to `jobs` | free |
 | `classify` — deterministic rules | free |
-| `classify --llm` — the ambiguous middle | **the entire bill** |
+| `families` — title and description keywords | free |
+| `classify --llm` — the ambiguous middle | **most of the bill** |
+| `families --llm` — postings no keyword named | **measured below** |
+
+The family pass runs once over a backlog, not every cycle: the free keyword
+rules name most postings, and only what they leave unnamed reaches the model.
+One real backfill on `claude-haiku-4-5-20251001` considered 919 postings,
+assigned 892, declined 27, and cost **$2.43** — against a $2.40 projection.
+The same run on Opus would have been roughly five times that for a label, not
+an eligibility verdict, which is why §4's "yes Opus" conclusion does not carry
+over to this pass.
 
 Not yet built, and therefore not yet costing anything: Cohere embeddings
 (D13), the email digest (D7), and any hosting — Postgres runs in local Docker.
@@ -205,8 +216,11 @@ recorded rather than just counted.
    $0.0284 at the default. Override with `CLASSIFIER_EFFORT` if a future
    measurement disagrees.
 2. **Model choice** — Sonnet 5 is $2/$10 per MTok against Opus 5's $5/$25;
-   Haiku 4.5 is $1/$5. `CLASSIFIER_MODEL` overrides it. See §4 before pulling
-   this one.
+   Haiku 4.5 is $1/$5. `CLASSIFIER_MODEL` overrides it, and the cost line
+   prices the run at that model's rates. See §4 before pulling this one for
+   *eligibility*; the family pass already runs on Haiku (§1). Note that
+   `effort` is an Opus control — Haiku rejects a request carrying it, so the
+   worker omits the parameter for non-Opus models rather than passing it.
 3. **Batch API** — a flat 50% discount for work with no latency requirement,
    which describes this exactly. Costs a polling loop.
 4. **Trim the posting** — input is 50% of the bill. The description cap is
