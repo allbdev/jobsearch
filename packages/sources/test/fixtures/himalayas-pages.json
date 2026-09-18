@@ -1,0 +1,147 @@
+[
+  {
+    "jobs": [
+      {
+        "title": "Desenvolvedor(a) Fullstack Backend - Trainee",
+        "excerpt": "Você fará parte de um time de desenvolvedores extremamente qualificado fortement",
+        "companyName": "Confitec",
+        "companySlug": "confitec",
+        "companyLogo": "https://cdn-images.himalayas.app/9ufkz41s2kupcxsxdsjtanofj5ay",
+        "employmentType": "Intern",
+        "minSalary": null,
+        "maxSalary": null,
+        "salaryPeriod": "annual",
+        "seniority": [
+          "Entry-level"
+        ],
+        "currency": null,
+        "locationRestrictions": [
+          "Brazil"
+        ],
+        "timezoneRestrictions": [
+          -5,
+          -4
+        ],
+        "categories": [
+          "Backend-Development",
+          "Fullstack-Development"
+        ],
+        "parentCategories": [
+          "Developer"
+        ],
+        "description": "<p>Você fará parte de um time de desenvolvedores extremamente qualificado fortemente orientado a resultados e que não tem medo de inovar.</p><p>Você será parte vital no desenvolvimento da nova plataforma de um de nossos ",
+        "pubDate": 1789767876,
+        "expiryDate": 1794951875,
+        "applicationLink": "https://himalayas.app/companies/confitec/jobs/desenvolvedor-a-fullstack-backend-trainee",
+        "guid": "https://himalayas.app/companies/confitec/jobs/desenvolvedor-a-fullstack-backend-trainee"
+      },
+      {
+        "title": "Finance Manager I, Platform",
+        "excerpt": "About Pinterest:Millions of people around the world come to our platform to find",
+        "companyName": "Pinterest",
+        "companySlug": "pinterestcareers",
+        "companyLogo": "https://cdn-images.himalayas.app/0z9fnkx71h8ej7e6j698wdutia3l",
+        "employmentType": "Full Time",
+        "minSalary": 98561,
+        "maxSalary": 202918,
+        "salaryPeriod": "annual",
+        "seniority": [
+          "Manager"
+        ],
+        "currency": "USD",
+        "locationRestrictions": [
+          "United States"
+        ],
+        "timezoneRestrictions": [
+          -10,
+          -9
+        ],
+        "categories": [
+          "Finance-Manager",
+          "Financial-Planning-And-Analysis"
+        ],
+        "parentCategories": [
+          "Finance"
+        ],
+        "description": "<div class=\"content-intro\">\n<h3>About <a href=\"https://himalayas.app/companies/pinterestcareers\">Pinterest</a>:</h3>\n<p>Millions of people around the world come to our platform to find creative ideas, dream about new pos",
+        "pubDate": 1789767895,
+        "expiryDate": 1794951894,
+        "applicationLink": "https://himalayas.app/companies/pinterestcareers/jobs/finance-manager-i-platform",
+        "guid": "https://himalayas.app/companies/pinterestcareers/jobs/finance-manager-i-platform"
+      }
+    ],
+    "nextCursor": "MjAyNi0wOS0xOFQyMTo0MDozOC43NDc1MTBafDIyMzk4MjA"
+  },
+  {
+    "jobs": [
+      {
+        "title": "Senior Front End Engineer",
+        "excerpt": "CSC Generation is the AI-native holding company re-engineering omnichannel retai",
+        "companyName": "CSC Generation",
+        "companySlug": "csc-generation",
+        "companyLogo": "https://cdn-images.himalayas.app/p4dq9henyvs8mivtjefcxy36fvqh",
+        "employmentType": "Full Time",
+        "minSalary": 125000,
+        "maxSalary": 155000,
+        "salaryPeriod": "annual",
+        "seniority": [
+          "Senior"
+        ],
+        "currency": "CAD",
+        "locationRestrictions": [
+          "Canada",
+          "Costa Rica",
+          "United States"
+        ],
+        "timezoneRestrictions": [
+          -10,
+          -9
+        ],
+        "categories": [
+          "Frontend-Development",
+          "Frontend-Engineer"
+        ],
+        "parentCategories": [
+          "Developer"
+        ],
+        "description": "<div>\n<a href=\"https://himalayas.app/companies/csc-generation\">CSC Generation</a> is the AI-native holding company re-engineering omnichannel retail. We acquire iconic brands and transform them with Genesis, our operatin",
+        "pubDate": 1789767613,
+        "expiryDate": 1794951613,
+        "applicationLink": "https://himalayas.app/companies/csc-generation/jobs/senior-front-end-engineer",
+        "guid": "https://himalayas.app/companies/csc-generation/jobs/senior-front-end-engineer"
+      },
+      {
+        "title": "DevOps Engineer (Digital Engineering)",
+        "excerpt": "Company BackgroundOur client is a leading life insurance company, part of a glob",
+        "companyName": "Coherent Solutions",
+        "companySlug": "coherent-solutions",
+        "companyLogo": "https://cdn-images.himalayas.app/ko4jpynvugjh4gfucfrvkvj51mcz",
+        "employmentType": "Full Time",
+        "minSalary": null,
+        "maxSalary": null,
+        "salaryPeriod": "annual",
+        "seniority": [
+          "Senior"
+        ],
+        "currency": null,
+        "locationRestrictions": [],
+        "timezoneRestrictions": [
+          1
+        ],
+        "categories": [
+          "Azure-DevOps-Engineer",
+          "DevOps-Engineer"
+        ],
+        "parentCategories": [
+          "Developer"
+        ],
+        "description": "<h3>Company Background</h3><p>Our client is a leading life insurance company, part of a global financial services group. The company offers a wide range of products, including annuities and life insurance, delivered thro",
+        "pubDate": 1789767613,
+        "expiryDate": 1794951613,
+        "applicationLink": "https://himalayas.app/companies/coherent-solutions/jobs/devops-engineer-digital-engineering",
+        "guid": "https://himalayas.app/companies/coherent-solutions/jobs/devops-engineer-digital-engineering"
+      }
+    ],
+    "nextCursor": null
+  }
+]

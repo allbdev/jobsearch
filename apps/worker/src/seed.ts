@@ -1,5 +1,5 @@
 import { prisma } from '@jobsearch/db'
-import { GREENHOUSE_DEFAULT_BASE_URL, LEVER_DEFAULT_BASE_URL } from '@jobsearch/sources'
+import { GREENHOUSE_DEFAULT_BASE_URL, HIMALAYAS_DEFAULT_BASE_URL, LEVER_DEFAULT_BASE_URL } from '@jobsearch/sources'
 import { log } from './log'
 
 /**
@@ -99,4 +99,28 @@ export async function seed() {
     update: { config: leverConfig },
   })
   log('source seeded', { slug: lever.slug, boards: LEVER_BOARDS.length })
+
+  /**
+   * The aggregator (PLAN.md §3, tier 3). Not a board list: one feed of every
+   * remote job it knows of, newest first.
+   *
+   * 30 pages of 20 is 600 listings a crawl, and roughly 200 are published a
+   * day, so a six-hourly poll reaches every new listing several times over
+   * before `maxAgeDays` closes the window. The ceiling matters because the
+   * catalogue is ~102,000 listings: crawling all of it would be 5,100 requests
+   * to find, on the measured 5% rate, a few hundred open to LATAM.
+   */
+  const himalayasConfig = { baseUrl: HIMALAYAS_DEFAULT_BASE_URL, maxPages: 30, maxAgeDays: 3 }
+  const himalayas = await prisma.source.upsert({
+    where: { slug: 'himalayas' },
+    create: {
+      slug: 'himalayas',
+      kind: 'aggregator',
+      name: 'Himalayas',
+      config: himalayasConfig,
+      pollIntervalMinutes: 360,
+    },
+    update: { config: himalayasConfig },
+  })
+  log('source seeded', { slug: himalayas.slug, maxPages: himalayasConfig.maxPages })
 }
