@@ -18,7 +18,10 @@ import type { FeedSort } from '@jobsearch/shared'
  * tier exists to surface.
  */
 export function feedWhere(
-  feed: Pick<Feed, 'jobFamilies' | 'eligibleFrom' | 'contractModels' | 'freshnessDays' | 'hideRejected'>,
+  feed: Pick<
+    Feed,
+    'jobFamilies' | 'eligibleFrom' | 'contractModels' | 'freshnessDays' | 'hideRejected' | 'searchTerms'
+  >,
   residenceCountry: string | null,
   now: Date,
 ): Prisma.JobWhereInput {
@@ -64,6 +67,27 @@ export function feedWhere(
   }
 
   if (feed.jobFamilies.length > 0) where.jobFamily = { in: feed.jobFamilies }
+
+  // Every term must appear in the posting -- its title or its body. Two terms
+  // narrow rather than widen, which is what someone typing "react staff" means.
+  //
+  // `jobs.skills` is deliberately *not* searched: no adapter fills it, so every
+  // row's array is empty and a clause over it can only ever match nothing. When
+  // something extracts skills, this is where they join -- with the caveat that
+  // Postgres array matching is exact, so "React" would not answer to "react".
+  //
+  // `contains` rather than the tsvector: full-text search matches lexemes, so
+  // "react" would not find "React Native" the way a reader expects. At this size
+  // (3k live postings) the scan costs nothing; the GIN index on `searchVector`
+  // is there to move to when it does.
+  if (feed.searchTerms.length > 0) {
+    where.AND = feed.searchTerms.map((term) => ({
+      OR: [
+        { title: { contains: term, mode: 'insensitive' as const } },
+        { description: { contains: term, mode: 'insensitive' as const } },
+      ],
+    }))
+  }
 
   // Opt-in only (D14): null means any age, and is the default.
   if (feed.freshnessDays) {
