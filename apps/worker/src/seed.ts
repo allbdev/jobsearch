@@ -40,6 +40,16 @@ const GREENHOUSE_BOARDS = [
   'planetscale',
   'circleci',
   'ghost',
+  // The first board added for where a reader *lives* rather than where the
+  // employer is. Every board above hires remote across borders and almost none
+  // of it reaches Brazil: of 3,010 live postings, one React role was open to a
+  // Brazilian. Gympass is LATAM-domiciled and posts 33 remote roles of 90.
+  //
+  // Measured before adding, because a board that posts no remote work is pure
+  // crawl cost: VTEX (28 postings), QuintoAndar (86), EBANX (33), Stone (410)
+  // and Wildlife (14) were all rejected on that test -- between them, two
+  // remote postings.
+  'gympass',
 ]
 
 /**
@@ -55,6 +65,10 @@ const LEVER_BOARDS = [
   { slug: 'voltus', name: 'Voltus' },
   { slug: 'veeva', name: 'Veeva Systems' },
   { slug: 'spotify', name: 'Spotify' },
+  // 144 of 170 postings remote, 22 of them frontend, and `workplaceType`
+  // 'remote' with location 'Brazil' -- which `leverLocation` renders as
+  // "Remote — Brazil", so the free rules settle it without the paid pass.
+  { slug: 'ciandt', name: 'CI&T' },
 ]
 
 export async function seed() {
