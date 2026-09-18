@@ -110,6 +110,32 @@ describe('region-bound remote', () => {
     expect(result.decidedByRules).toBe(false)
   })
 
+  // A country we have no code for is not a country we failed to read. Calling
+  // it unknown put 19 postings restricted to South Africa and Pakistan in front
+  // of a Brazilian reader as jobs that might be open to them.
+  it('confirms a country it has no code for, open to nobody it can describe', () => {
+    for (const locationRaw of ['Remote — South Africa', 'Remote, Pakistan', 'Remote - Nigeria']) {
+      const result = classifyByRules(job({ locationRaw }))
+      expect(result.verdict).toBe('confirmed')
+      expect(result.matchedRule).toBe('location-unserved-country')
+      // Empty is the point: a stated scope that intersects nobody in this
+      // vocabulary, so a feed filters it out instead of offering it.
+      expect(result.eligibleRegions).toEqual([])
+      expect(result.decidedByRules).toBe(true)
+    }
+  })
+
+  it('still says needs_check when only half the location is understood', () => {
+    // "Boston" is not a country, so the scope as a whole is not established.
+    const result = classifyByRules(job({ locationRaw: 'Remote — South Africa; Boston' }))
+    expect(result.verdict).toBe('needs_check')
+  })
+
+  it('keeps a name that is ours before it is a country', () => {
+    // Georgia is a US state in this gazetteer and must stay one.
+    expect(classifyByRules(job({ locationRaw: 'Remote, Georgia' })).eligibleRegions).toEqual(['US'])
+  })
+
   it('splits a multi-region location', () => {
     const result = classifyByRules(job({ locationRaw: 'Remote, Canada; Remote, United States' }))
     expect(result.eligibleRegions).toEqual(['US', 'CA'])

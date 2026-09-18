@@ -151,3 +151,70 @@ export function toRegions(place: string | null | undefined): Region[] {
 
   return REGION_VOCABULARY.filter((code) => found.has(code))
 }
+
+/**
+ * Countries this vocabulary has no code for.
+ *
+ * `REGION_VOCABULARY` covers the Americas, the EU, the UK and APAC, and
+ * deliberately invents nothing for Africa, the Middle East or the rest of
+ * Europe. That left two very different situations looking identical to
+ * `toRegions`, which returns an empty array for both:
+ *
+ *   "Massachusetts - Boston"  — a place we failed to parse. Unknown scope.
+ *   "South Africa"            — a country we parsed perfectly. Known scope,
+ *                               simply not one this vocabulary serves.
+ *
+ * The first is honestly `needs_check`. The second is not: the source stated
+ * plainly where the employer hires, and calling that unknown put 19 postings
+ * restricted to South Africa and Pakistan in front of a Brazilian reader as
+ * jobs that might be open to them.
+ *
+ * Named rather than derived from a full ISO list, because the point is the
+ * *judgement* that we have no code for these — the day LATAM gains a
+ * neighbour or an AFRICA code exists, the name moves out of this list and into
+ * the gazetteer above.
+ */
+const UNSERVED_COUNTRIES = words(`
+  afghanistan albania algeria andorra angola armenia azerbaijan bahrain bangladesh belarus
+  benin bhutan botswana brunei burundi cambodia cameroon chad congo egypt eritrea eswatini
+  ethiopia gabon gambia georgia ghana guinea iceland iran iraq israel jordan kazakhstan kenya
+  kuwait kyrgyzstan laos lebanon lesotho liberia libya liechtenstein macedonia madagascar
+  malawi maldives mali mauritania mauritius moldova monaco mongolia montenegro morocco
+  mozambique myanmar namibia nepal niger nigeria norway oman pakistan palestine qatar russia
+  rwanda senegal serbia seychelles somalia sudan switzerland syria tajikistan tanzania togo
+  tunisia turkey turkmenistan uganda ukraine uzbekistan yemen zambia zimbabwe
+`)
+const UNSERVED_PHRASES = [
+  'south africa', 'saudi arabia', 'united arab emirates', 'sri lanka', 'ivory coast',
+  'burkina faso', 'sierra leone', 'north macedonia', 'bosnia and herzegovina',
+  'bosnia', 'san marino', 'cape verde', 'papua new guinea', 'south sudan',
+  'democratic republic of the congo', 'middle east', 'africa',
+]
+
+/**
+ * True when a place names a country we recognise and have no code for.
+ *
+ * Only consulted once `toRegions` has come back empty, so a name that is also
+ * one of ours — "Georgia" is a US state before it is a country — has already
+ * been claimed and never reaches here.
+ */
+export function namesUnservedCountry(place: string | null | undefined): boolean {
+  if (!place) return false
+
+  // Every fragment must be a country we know. "South Africa; Boston" is still
+  // an unknown scope, because half of it is unparsed — and a half-understood
+  // location is exactly the case that must stay `needs_check`.
+  const fragments = place
+    .toLowerCase()
+    .replace(/\(|\)/g, ' ')
+    .split(/[,;/|]|\s-\s|\band\b|\bor\b/)
+    .map((fragment) => fragment.trim().replace(/^remote\s*/, '').trim())
+    .filter(Boolean)
+
+  return (
+    fragments.length > 0 &&
+    fragments.every(
+      (fragment) => UNSERVED_COUNTRIES.includes(fragment) || UNSERVED_PHRASES.includes(fragment),
+    )
+  )
+}

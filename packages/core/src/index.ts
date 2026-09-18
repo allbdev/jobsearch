@@ -2,7 +2,7 @@ export { htmlToText } from './html'
 export { canonicalizeUrl, dedupUrl } from './url'
 export { jobContentHash, normalizeCompanyName, normalizeTitle } from './identity'
 export { extractEvidence } from './evidence'
-export { REGION_VOCABULARY, toRegions, type Region } from './regions'
+export { namesUnservedCountry, REGION_VOCABULARY, toRegions, type Region } from './regions'
 export {
   classifyByRules,
   RULES_CLASSIFIER_VERSION,
