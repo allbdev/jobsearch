@@ -25,6 +25,7 @@ export const BLANK_FEED: FeedDefinition = {
   jobFamilies: [],
   eligibleFrom: [],
   contractModels: [],
+  searchTerms: [],
   minCompensation: null,
   currency: 'USD',
   freshnessDays: null,

@@ -139,6 +139,7 @@ function toDefinition(feed: FeedRow): FeedDefinition {
     jobFamilies: feed.jobFamilies,
     eligibleFrom: feed.eligibleFrom,
     contractModels: feed.contractModels,
+    searchTerms: feed.searchTerms,
     // Stored in minor units; the contract speaks whole currency units.
     minCompensation: feed.minCompensation === null ? null : feed.minCompensation / 100,
     currency: feed.currency,

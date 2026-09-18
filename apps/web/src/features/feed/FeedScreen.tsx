@@ -86,10 +86,16 @@ export function FeedScreen({
     })
   }
 
-  // Pages beyond the first, dropped whenever the feed or its order changes --
-  // and de-duplicated, because dismissing a job shifts what the next offset
-  // returns.
-  const pageKey = `${feed.id}:${sort}`
+  // Pages beyond the first, dropped whenever the feed, its order, or its
+  // definition changes -- and de-duplicated, because dismissing a job shifts
+  // what the next offset returns.
+  //
+  // The definition belongs in the key: editing a feed leaves its id and sort
+  // alone, so without it pages fetched under the old filters survived the save
+  // and were merged with the new first page. The screen then showed a long list
+  // beside "1 matched position", and switching sort and back made them come and
+  // go -- the stale entry was still there under the old key.
+  const pageKey = `${feed.id}:${sort}:${JSON.stringify(feed.definition)}`
   const loaded = morePages.key === pageKey ? morePages.jobs : []
   const jobs = useMemo(() => {
     const byId = new Map([...result.jobs, ...loaded].map((job) => [job.id, job]))

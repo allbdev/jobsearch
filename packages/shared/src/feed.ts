@@ -10,6 +10,8 @@ export const feedDefinitionSchema = z.object({
   jobFamilies: z.array(z.string()),
   eligibleFrom: z.array(z.string()),
   contractModels: z.array(contractModelSchema),
+  /** Words the reader typed. Every one must appear in the title, the skills or the posting. */
+  searchTerms: z.array(z.string()).default([]),
   minCompensation: z.number().nullable(),
   currency: z.string().length(3),
   /** Only jobs posted within this many days. Null is any age, the default (D14). */
@@ -36,6 +38,18 @@ export const feedDefinitionInputSchema = feedDefinitionSchema.extend({
     .transform(unique),
   eligibleFrom: z.array(z.enum(REGION_VOCABULARY)).transform(unique),
   contractModels: z.array(contractModelSchema).transform(unique),
+  /**
+   * Lower-cased and de-duplicated, because "React" and "react" are one filter,
+   * and matching is case-insensitive anyway. Five is a ceiling on a filter that
+   * costs a `LIKE` per term, not a product limit anyone will meet.
+   */
+  searchTerms: z
+    .array(z.string().trim().min(2).max(40))
+    .max(5)
+    // Defaulted, like the read shape: a client that has never heard of search
+    // terms is sending a feed without them, not an invalid feed.
+    .default([])
+    .transform((terms) => unique(terms.map((term) => term.toLowerCase()))),
   minCompensation: z.number().nonnegative().max(100_000_000).nullable(),
   currency: z.string().regex(/^[A-Z]{3}$/, 'an ISO 4217 code, e.g. USD'),
 })

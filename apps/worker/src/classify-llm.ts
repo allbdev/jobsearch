@@ -29,12 +29,51 @@ export interface LlmClassifyResult {
   thinkingTokens: number
 }
 
+/** Anything that counted tokens: the eligibility pass, the family pass. */
+export interface TokenUsage {
+  inputTokens: number
+  cachedInputTokens: number
+  cacheWriteTokens: number
+  outputTokens: number
+}
+
+export interface TokenRates {
+  input: number
+  cachedRead: number
+  cacheWrite: number
+  output: number
+}
+
 /**
- * Published rates for claude-opus-5, per million tokens, as of 2026-09. Cache
- * reads are a tenth of the base rate and cache *writes* are 1.25x it. Only ever
- * used to print an estimate — nothing branches on it.
+ * Published rates per million tokens, as of 2026-09. Cache reads are a tenth of
+ * the base rate and cache *writes* are 1.25x it. Only ever used to print an
+ * estimate — nothing branches on it.
+ *
+ * Keyed by model because the estimate is worthless otherwise: printing Opus
+ * prices for a Haiku run does not report a smaller number, it reports a wrong
+ * one, and the whole point of the line is to be able to trust it (COSTS.md).
  */
-const USD_PER_MTOK = { input: 5, cachedRead: 0.5, cacheWrite: 6.25, output: 25 }
+const OPUS_RATES: TokenRates = { input: 5, cachedRead: 0.5, cacheWrite: 6.25, output: 25 }
+
+const RATES: Record<string, TokenRates> = {
+  'claude-opus-5': OPUS_RATES,
+  'claude-haiku-4-5-20251001': { input: 1, cachedRead: 0.1, cacheWrite: 1.25, output: 5 },
+}
+
+/** Opus rates when the model is unknown: an over-estimate is the safe way to be wrong about a bill. */
+export function ratesFor(model: string): TokenRates {
+  return RATES[model] ?? OPUS_RATES
+}
+
+/**
+ * `effort` is an Opus control. Haiku refuses the request outright rather than
+ * ignoring it, so the parameter has to be left off entirely.
+ */
+export function effortFor(model: string, effort: string): { effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' } {
+  return model.startsWith('claude-opus')
+    ? { effort: effort as 'low' | 'medium' | 'high' | 'xhigh' | 'max' }
+    : {}
+}
 
 const MODEL = process.env.CLASSIFIER_MODEL ?? 'claude-opus-5'
 
@@ -58,7 +97,8 @@ const MODEL = process.env.CLASSIFIER_MODEL ?? 'claude-opus-5'
 const EFFORT = process.env.CLASSIFIER_EFFORT ?? 'low'
 const CONCURRENCY = 4
 
-export function estimateCostUsd(result: LlmClassifyResult): number {
+export function estimateCostUsd(result: TokenUsage, model = MODEL): number {
+  const USD_PER_MTOK = ratesFor(model)
   // The three input counters are disjoint: total input is input_tokens +
   // cache_creation_input_tokens + cache_read_input_tokens. Leaving the write
   // term out under-reported every run, because writes bill above the base rate
@@ -134,7 +174,7 @@ export async function classifyByLlm(
           system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
           messages: [{ role: 'user', content: buildUserPrompt(input) }],
           output_config: {
-            effort: EFFORT as 'low' | 'medium' | 'high' | 'xhigh' | 'max',
+            ...effortFor(MODEL, EFFORT),
             format: zodOutputFormat(llmVerdictSchema),
           },
         })
