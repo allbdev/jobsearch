@@ -40,7 +40,12 @@ async function main() {
         const llm = await classifyFamiliesByLlm({
           limit: limitFlag ? Number(limitFlag.split('=')[1]) : undefined,
         })
-        log('llm families complete', { ...llm, ms: Date.now() - started })
+        log('llm families complete', {
+          ...llm,
+          model: process.env.CLASSIFIER_MODEL ?? 'claude-opus-5',
+          usd: Number(estimateCostUsd(llm, process.env.CLASSIFIER_MODEL).toFixed(4)),
+          ms: Date.now() - started,
+        })
       }
       break
     }
