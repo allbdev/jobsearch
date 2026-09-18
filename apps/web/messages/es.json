@@ -88,7 +88,9 @@
     },
     "confirmDelete": "¿Eliminar “{name}”? No se puede deshacer.",
     "noResidenceTitle": "Este feed todavía no filtra por dónde vives, así que puede incluir ofertas a las que no puedes postularte.",
-    "noResidenceAction": "Indica tu país"
+    "noResidenceAction": "Indica tu país",
+    "unnamedFamilyTitle": "{count, plural, one {# oferta activa aún no tiene área asignada, así que el filtro de áreas de este feed la está ocultando.} other {# ofertas activas aún no tienen área asignada, así que el filtro de áreas de este feed las está ocultando.}}",
+    "unnamedFamilyAction": "Editar las áreas de este feed"
   },
   "profile": {
     "nav": {

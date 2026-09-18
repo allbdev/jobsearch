@@ -77,6 +77,26 @@ export function feedWhere(
 }
 
 /**
+ * Jobs this feed would show if it did not filter by family, and that carry no
+ * family at all.
+ *
+ * A family filter silently hides every posting nothing has named yet, and the
+ * reader cannot tell that from a market with nothing in it -- a feed reading
+ * "1 matched" looked like a broken filter when in truth 817 live jobs had no
+ * family. Counting them is what makes the difference visible.
+ *
+ * Empty when the feed names no family, because then nothing is being hidden.
+ */
+export function unnamedFamilyWhere(
+  feed: Parameters<typeof feedWhere>[0],
+  residenceCountry: string | null,
+  now: Date,
+): Prisma.JobWhereInput | null {
+  if (feed.jobFamilies.length === 0) return null
+  return { AND: [feedWhere({ ...feed, jobFamilies: [] }, residenceCountry, now), { jobFamily: null }] }
+}
+
+/**
  * Leaves out what this reader dismissed. Separate from `feedWhere`, which
  * describes the feed and is the same for anyone who could own it.
  */

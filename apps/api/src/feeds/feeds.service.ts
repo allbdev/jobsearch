@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import type { Feed as FeedRow, Prisma, PrismaClient, User } from '@jobsearch/db'
-import { feedOrderBy, feedWhere, notDismissedBy } from '@jobsearch/db'
+import { feedOrderBy, feedWhere, notDismissedBy, unnamedFamilyWhere } from '@jobsearch/db'
 import type { Feed, FeedDefinition, FeedResult, FeedSort } from '@jobsearch/shared'
 import { feedDefinitionInputSchema, feedResultSchema, feedSchema } from '@jobsearch/shared'
 import { PRISMA } from '../prisma/prisma.module'
@@ -71,7 +71,12 @@ export class FeedsService {
     const matching = feedWhere(feed, residence, now)
     const where: Prisma.JobWhereInput = { AND: [matching, notDismissedBy(user.id)] }
 
-    const [rows, matched, confirmed, needsCheck, evaluated, index, dismissed] = await Promise.all([
+    // Null when the feed names no family: there is nothing to count, and a
+    // count over the whole index would be a number about the index, not
+    // about what this feed is hiding.
+    const unnamed = unnamedFamilyWhere(feed, residence, now)
+
+    const [rows, matched, confirmed, needsCheck, evaluated, index, dismissed, withoutFamily] = await Promise.all([
       this.prisma.job.findMany({
         where,
         orderBy: feedOrderBy(sort),
@@ -92,6 +97,7 @@ export class FeedsService {
       this.prisma.rawPosting.aggregate({ _max: { fetchedAt: true } }),
       // Jobs this feed would show but the reader dismissed: the footer's "dismissed by you".
       this.prisma.job.count({ where: { AND: [matching, { interactions: { some: { userId: user.id, status: 'dismissed' } } }] } }),
+      unnamed ? this.prisma.job.count({ where: { AND: [unnamed, notDismissedBy(user.id)] } }) : 0,
     ])
 
     // Parsed on the way out, so a drift between the database and the contract
@@ -108,6 +114,7 @@ export class FeedsService {
         confirmed,
         needsCheck,
         dismissedByUser: dismissed,
+        withoutFamily,
         indexUpdatedAt: (index._max.fetchedAt ?? now).toISOString(),
       },
     })

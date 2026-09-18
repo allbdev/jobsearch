@@ -311,6 +311,20 @@ export function FeedScreen({
             </Blueprint>
           )}
 
+          {/* A family filter hides every posting nothing has named yet, and an
+              empty feed looks identical to a market with nothing in it. This
+              is the difference, stated. */}
+          {stats.withoutFamily > 0 ? (
+            <Blueprint className={styles.residenceNotice}>
+              <p role="status" className={styles.residenceText}>
+                {f('unnamedFamilyTitle', { count: stats.withoutFamily })}{' '}
+                <button type="button" className={styles.linkButton} onClick={() => setDialog('edit')}>
+                  {f('unnamedFamilyAction')}
+                </button>
+              </p>
+            </Blueprint>
+          ) : null}
+
           <Blueprint className={styles.list}>
             <div className={styles.scroll}>
               {groups.map(({ job, alsoIn }) => (

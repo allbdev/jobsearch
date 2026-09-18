@@ -88,7 +88,9 @@
     },
     "confirmDelete": "Delete “{name}”? This cannot be undone.",
     "noResidenceTitle": "This feed is not filtered by where you live yet, so it may list jobs you cannot take.",
-    "noResidenceAction": "Tell us your country"
+    "noResidenceAction": "Tell us your country",
+    "unnamedFamilyTitle": "{count, plural, one {# live posting has no job family yet, so this feed's family filter is hiding it.} other {# live postings have no job family yet, so this feed's family filter is hiding them.}}",
+    "unnamedFamilyAction": "Edit this feed’s families"
   },
   "profile": {
     "nav": {

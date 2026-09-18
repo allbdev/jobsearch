@@ -88,7 +88,9 @@
     },
     "confirmDelete": "Excluir “{name}”? Não é possível desfazer.",
     "noResidenceTitle": "Este feed ainda não filtra pelo lugar onde você mora, então pode listar vagas às quais você não pode se candidatar.",
-    "noResidenceAction": "Informe seu país"
+    "noResidenceAction": "Informe seu país",
+    "unnamedFamilyTitle": "{count, plural, one {# vaga ativa ainda não tem área definida, então o filtro de áreas deste feed está escondendo ela.} other {# vagas ativas ainda não têm área definida, então o filtro de áreas deste feed está escondendo elas.}}",
+    "unnamedFamilyAction": "Editar as áreas deste feed"
   },
   "profile": {
     "nav": {
