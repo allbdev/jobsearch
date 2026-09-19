@@ -29,6 +29,9 @@ export interface UiLabels {
 
   /** Evidence panel */
   evidenceKicker: string
+  /** Why a row answered a search term. Each takes {term}. */
+  matchedTerm: string
+  matchedTermInTitle: string
   /**
    * Appended to the kicker on desktop and hidden on mobile, so it has to be a
    * separate string rather than a fuller variant of the one above. Takes
@@ -80,6 +83,8 @@ export const defaultUiLabels: UiLabels = {
   notEligible: 'NOT ELIGIBLE',
 
   evidenceKicker: 'Eligibility evidence',
+  matchedTerm: 'matched “{term}”',
+  matchedTermInTitle: 'matched “{term}” in the title',
   classifierSuffix: ' · classifier {version}',
   quotedFrom: 'Quoted from the posting',
   viewSource: 'view source',

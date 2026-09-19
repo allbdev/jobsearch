@@ -64,6 +64,19 @@ export const jobSchema = z.object({
   eligibility: eligibilitySchema,
   /** What the signed-in reader did with it. Absent where there is no reader, as in fixtures. */
   interaction: z.lazy(() => jobInteractionSchema).nullable().optional(),
+  /**
+   * Why this posting answered the feed's search terms. Absent when the feed has
+   * none -- and null when it has terms that matched a field with no sentence to
+   * quote, such as `skills`.
+   */
+  termMatch: z
+    .object({
+      term: z.string(),
+      snippet: z.string(),
+      field: z.enum(['title', 'description']),
+    })
+    .nullable()
+    .optional(),
 })
 export type Job = z.infer<typeof jobSchema>
 

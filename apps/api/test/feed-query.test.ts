@@ -77,7 +77,7 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('feedWhere', () =>
         data: {
           companyId,
           title: seed.key,
-          description: '',
+          description: seed.key === 'latam' ? 'For front end work we prefer React and Flutter.' : '',
           applyUrl: `https://example.test/${seed.key}`,
           jobFamily: seed.family === undefined ? 'engineering-frontend' : seed.family,
           // Distinct timestamps, newest first in declaration order.
@@ -147,5 +147,27 @@ describe.skipIf(!process.env.DATABASE_URL && !process.env.CI)('feedWhere', () =>
     const job = jobSchema.parse(toJob(row))
     expect(job).toMatchObject({ source: 'other', compensation: { label: '', currency: null } })
     expect(job.eligibility).toMatchObject({ verdict: 'confirmed', eligibleCountries: ['AR', 'BR', 'MX'] })
+    // A feed with no terms asks no question, so there is nothing to answer.
+    expect(job.termMatch).toBeUndefined()
+  })
+
+  it('says why a row answered a search term, over the wire', async () => {
+    const row = await prisma.job.findUniqueOrThrow({
+      where: { id: ids.get('latam') },
+      include: { company: true, eligibility: true, rawPostings: { select: { source: { select: { slug: true } } } } },
+    })
+
+    // The case that made this necessary: the term is in boilerplate, not in
+    // the title, and without the quote the row reads as a broken filter.
+    const job = jobSchema.parse(toJob(row, ['react']))
+    expect(job.termMatch).toEqual({
+      term: 'react',
+      snippet: 'For front end work we prefer React and Flutter.',
+      field: 'description',
+    })
+
+    // Matched on a field with no sentence to quote -- `searchText` folds in
+    // `skills`, so null is a real answer rather than a failure.
+    expect(jobSchema.parse(toJob(row, ['kubernetes'])).termMatch).toBeNull()
   })
 })

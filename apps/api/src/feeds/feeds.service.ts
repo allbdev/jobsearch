@@ -108,7 +108,7 @@ export class FeedsService {
         definition: toDefinition(feed),
         matchedCount: matched,
       },
-      jobs: rows.map(toJob),
+      jobs: rows.map((row) => toJob(row, feed.searchTerms)),
       stats: {
         evaluated,
         confirmed,
