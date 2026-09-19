@@ -32,6 +32,16 @@
   opacity: 0.8;
 }
 
+/* One line, always. The quote explains the row; it must not compete with it. */
+.termMatch {
+  font-size: 12px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .aside {
   align-items: flex-end;
 }

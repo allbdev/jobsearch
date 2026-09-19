@@ -67,6 +67,17 @@ export function JobRow({ job, expanded, saved, now, onToggle, onSave, onDismiss,
               </Tag>
             ))}
           </Cluster>
+
+          {/* Why this row is here. Without it, a search for "react" returning
+              "Golang Engineer" reads as a broken filter rather than as a
+              posting whose boilerplate happens to mention React. */}
+          {job.termMatch ? (
+            <Muted className={styles.termMatch}>
+              {job.termMatch.field === 'title'
+                ? formatLabel(labels.matchedTermInTitle, { term: job.termMatch.term })
+                : `${formatLabel(labels.matchedTerm, { term: job.termMatch.term })} · “${job.termMatch.snippet}”`}
+            </Muted>
+          ) : null}
         </Stack>
 
         <Stack gap="2" className={styles.aside}>

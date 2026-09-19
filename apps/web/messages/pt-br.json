@@ -19,6 +19,8 @@
     "needsCheck": "A CONFIRMAR",
     "notEligible": "NÃO ELEGÍVEL",
     "evidenceKicker": "Comprovação de elegibilidade",
+    "matchedTerm": "corresponde a “{term}”",
+    "matchedTermInTitle": "corresponde a “{term}” no título",
     "classifierSuffix": " · classificador {version}",
     "quotedFrom": "Citado do anúncio",
     "viewSource": "ver fonte",

@@ -1,6 +1,7 @@
 import type { Company, Job as JobRow, JobEligibility, JobInteraction, Source } from '@jobsearch/db'
 import type { Job, JobSource } from '@jobsearch/shared'
 import { jobSourceSchema } from '@jobsearch/shared'
+import { findTermMatch } from '@jobsearch/core'
 
 export type JobWithRelations = JobRow & {
   company: Company
@@ -10,8 +11,14 @@ export type JobWithRelations = JobRow & {
   interactions?: Pick<JobInteraction, 'status'>[]
 }
 
-/** A stored job in the wire shape of `jobSchema`. */
-export function toJob(row: JobWithRelations): Job {
+/**
+ * A stored job in the wire shape of `jobSchema`.
+ *
+ * `searchTerms` are the feed's, and are only used to say *why* this row
+ * matched. Passing none leaves `termMatch` undefined, which is the honest
+ * shape for a feed that filters by no term at all.
+ */
+export function toJob(row: JobWithRelations, searchTerms: readonly string[] = []): Job {
   const eligibility = row.eligibility
   // The feed query only returns classified jobs; a job without a verdict here
   // is a query bug, and serving it would render a badge nobody decided.
@@ -37,6 +44,10 @@ export function toJob(row: JobWithRelations): Job {
     postedAt: row.postedAt.toISOString(),
     source: toSource(row.rawPostings[0]?.source.slug),
     interaction: row.interactions?.[0]?.status ?? null,
+    // The description is already on the row -- this costs a regex, not a query.
+    ...(searchTerms.length > 0
+      ? { termMatch: findTermMatch(searchTerms, row.title, row.description) }
+      : {}),
     eligibility: {
       verdict: eligibility.verdict,
       regionLabel: eligibility.regionLabel,

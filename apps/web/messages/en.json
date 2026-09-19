@@ -19,6 +19,8 @@
     "needsCheck": "NEEDS CHECK",
     "notEligible": "NOT ELIGIBLE",
     "evidenceKicker": "Eligibility evidence",
+    "matchedTerm": "matched “{term}”",
+    "matchedTermInTitle": "matched “{term}” in the title",
     "classifierSuffix": " · classifier {version}",
     "quotedFrom": "Quoted from the posting",
     "viewSource": "view source",
