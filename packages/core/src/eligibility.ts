@@ -1,5 +1,5 @@
 import { extractEvidence } from './evidence'
-import { toRegions } from './regions'
+import { namesUnservedCountry, toRegions } from './regions'
 
 /**
  * The deterministic eligibility pass (PLAN.md §4, stage 3).
@@ -31,7 +31,7 @@ import { toRegions } from './regions'
  * behaviour were indistinguishable from correct ones and could not be selected
  * for replay.
  */
-export const RULES_CLASSIFIER_VERSION = 'rules-5'
+export const RULES_CLASSIFIER_VERSION = 'rules-6'
 
 export type Verdict = 'confirmed' | 'needs_check' | 'rejected'
 export type ContractModel =
@@ -310,7 +310,27 @@ export function classifyByRules(input: EligibilityInput): RulesVerdict {
     // and "NY" from splitting "New York, NY" on the comma -- which no user
     // location could ever intersect. Saying `needs_check` costs an LLM call and
     // is true; a confirmation nothing can match is neither.
-    if (regions.length === 0) return unknown('needs_check', scope)
+    //
+    // Unless the scope names a country we simply have no code for. "South
+    // Africa" is not a location we failed to parse, it is one we parsed and
+    // cannot serve -- and calling that unknown showed a Brazilian reader 19
+    // postings restricted to South Africa and Pakistan as possibilities. The
+    // empty region list is the point: it is a stated scope that intersects
+    // nobody this vocabulary can describe, so the posting is kept and labelled
+    // rather than offered.
+    if (regions.length === 0) {
+      if (!namesUnservedCountry(scope)) return unknown('needs_check', scope)
+
+      return {
+        verdict: 'confirmed',
+        regionLabel: scope,
+        eligibleRegions: [],
+        contractModel: detectContractModel(haystack),
+        evidenceSnippet: `Location: ${location}`,
+        matchedRule: 'location-unserved-country',
+        decidedByRules: true,
+      }
+    }
 
     return {
       verdict: 'confirmed',
